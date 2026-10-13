@@ -4,997 +4,410 @@
 <meta charset="utf-8">
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Passacaglia</title>
+<title>Unfolding Urbanism</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="top.css?v=9f1ed714">
 <link rel="stylesheet" href="scroll.css?v=da4efe7e">
-<link rel="stylesheet" href="top.css?v=f32dc556">
 <style>
-  :root { --paper: #f6f0dc; --ink: #1c1a17; --muted: #6f6a60; --line: #cfc7ad; --emerge: #e01b24; --warm: #d98c3a;
-          --v0: #2b6f9e; --v1: #3f7d4e; --v2: #7b4a1e; --v3: #c2185b; --v4: #1c1a17; --grey: #9b968e; }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--paper); color: var(--ink);
-         font-family: "Cormorant Garamond", Garamond, "Times New Roman", serif; font-size: 15px; font-weight: 500; line-height: 1.4; }
-  h1, .controls, .tab, button, .tempo output, #wheel text, .engraved { font-family: Cinzel, "Trajan Pro", "Times New Roman", serif; }
-  /* the sheet: one unit, 8px; the header's ink rule; small capitals for every control */
-  body.grain::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9; opacity: .035; mix-blend-mode: multiply;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-  .page { height: 100vh; display: flex; flex-direction: column; padding: 16px 24px 16px; }
-  .sc { font-family: Cinzel, "Trajan Pro", serif; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; line-height: 16px; }
-  .controls { display: flex; gap: 24px; align-items: baseline; white-space: nowrap; }
-  button { font: inherit; font-family: Cinzel, "Trajan Pro", serif; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink);
-           background: none; border: 0; border-radius: 0; padding: 0; margin: 0; cursor: pointer; line-height: 16px; }
-  .dot { color: var(--muted); white-space: nowrap; }
-  .dot::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; border: 1px solid currentColor; margin-right: 8px; vertical-align: 0; }
-  @media (hover: hover) { .dot:hover { color: var(--ink); } }
-  .dot.on { color: var(--ink); }
-  .dot.on::before { background: currentColor; }
-  .tempo { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
-  .tempo output { font-family: Cinzel, serif; font-size: 11px; letter-spacing: .06em; font-variant-numeric: tabular-nums; min-width: 6ch; color: var(--ink); }
-  input[type="range"] { -webkit-appearance: none; appearance: none; width: 96px; height: 1px; background: var(--line); outline: none; }
-  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); border: 0; }
-  input[type="range"]::-moz-range-thumb { width: 9px; height: 9px; border-radius: 50%; background: var(--ink); border: 0; }
-  .pair { display: inline-flex; gap: 24px; }
-  /* the page's own controls, in one quiet row at its foot, as on the scrolled pages */
-  .bar { flex: 0 0 auto; align-self: center; display: flex; align-items: center; gap: 22px; margin-top: 10px; padding: 9px 20px; border-radius: 22px; white-space: nowrap;
-         background: rgba(249, 244, 229, .92); box-shadow: 0 1px 0 var(--line), 0 6px 24px rgba(28, 26, 23, .06); }
-  .bar .controls { gap: 22px; align-items: center; }
-  .tools .controls { display: flex; gap: 22px; align-items: center; }
-  .tools #controls button, .tools .tempo output, .bar button, .bar .tempo output { font-family: Cinzel, "Trajan Pro", serif; font-size: 10px; font-weight: 500; letter-spacing: .16em; }
-  .stage { flex: 1; min-height: 0; display: flex; justify-content: center; align-items: center; }
-  .main { height: 100%; max-width: 100%; aspect-ratio: 1526 / 700; display: grid; grid-template-columns: 700fr 800fr; gap: 26px; }
-  #band, #disc { transform-box: view-box; transform-origin: 350px 350px; }
-  #band.turning, #disc.turning { transition: transform .75s cubic-bezier(.3, .7, .2, 1); }
-  .layer { transform-box: view-box; transform-origin: 350px 350px; transition: transform .75s cubic-bezier(.2, .7, .2, 1), opacity .6s; }
-  .layer.folded { transform: scale(.22); opacity: 0; }
-  #bands { transition: opacity .45s; }
-  #bands.fresh { opacity: .1; }
-  @media (prefers-reduced-motion: reduce) { .layer, #bands { transition: none; } }
-  .slot { cursor: pointer; }
-  .slot .hit { fill: transparent; }
-  /* the wheel as an etched plate: everything in ink, the cell's statements solid and the
-     rest hollow or fine, the sounding note warm, the north line red. The emergent is drawn
-     on the block only */
-  #wheel .n { --c: var(--ink) !important; }
-  #wheel .n.em-t, #wheel .n.em-w { --c: var(--emerge) !important; opacity: 1; }   /* the emergent, bold and red, on the wheel too */
-  #wheel .n.struck:not(.cell) { fill: var(--paper); stroke: var(--c); stroke-width: 1.1; opacity: .7; }
-  #wheel .n.held:not(.cell) { opacity: .5; }
-  #wheel .n.on { --c: var(--warm) !important; opacity: 1; }
-  #wheel .n.on.struck:not(.cell) { fill: var(--warm); }
-  #wheel .gl { stroke: var(--ink); }
-  #wheel circle.gl { fill: var(--ink); stroke: none; }
-  #wheel .slot.cur line.gl { stroke: var(--paper); }      /* on the dark wedge of the lap in play, the cell shows in paper */
-  #wheel .slot.cur circle.gl { fill: var(--paper); }
-  .slot:focus { outline: none; }
-  .slot:focus .glyphbox { stroke: var(--ink); }
-  #hub { cursor: pointer; }
-  #hub:focus { outline: none; }
-  .hint { font-size: 8px; fill: var(--muted); letter-spacing: .06em; }
-  .heading { font-size: 8px; fill: var(--muted); letter-spacing: .16em; text-transform: uppercase; }
-  .main svg { display: block; width: 100%; height: 100%; font-family: inherit; }
-  svg text { fill: var(--ink); }
-  .hid { display: none !important; }
-  [hidden] { display: none !important; }
-  /* the scrolled page: beside the story the stage shows the wheel or the block, one at a time, as large as the board
-     allows; after the story the whole page holds both, as it always has */
-  .board > .stage { width: 100%; height: 100%; }
-  .board .main { width: 100%; height: 100%; aspect-ratio: auto; grid-template-columns: 1fr; grid-template-rows: 100%; gap: 0; }
-  .board .main > div { min-height: 0; height: 100%; }
-  .stage[data-panel="wheel"] .main > div:nth-child(2), .stage[data-panel="bands"] .main > div:first-child { display: none; }
-  #full { padding-top: 64px; }
-  #full-main { flex: 1; min-height: 0; display: flex; }
-  #full-bar:empty { visibility: hidden; }
-  #full-main > .stage { flex: 1; min-width: 0; min-height: 0; }
-  /* the example performances, last on the page, under the whole page */
-  #renditions { padding: 64px 56px 96px; }
-  #renditions h2 { font-family: Cinzel, "Trajan Pro", serif; font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin: 0 0 16px; }
-  #renditions > p { font-size: 20px; line-height: 1.5; margin: 0 0 24px; }
-  #renditions .cards { gap: 24px; }
-  #renditions .card .title { font-size: 15px; }
-  /* the source of the score, across the foot of the page */
-  #renditions .credit { margin: 32px 0 0; font-size: 11px; line-height: 1.35; color: var(--muted); text-align: center; }
-  #renditions .credit a { color: inherit; }
-
-  /* the notes: every mark carries its voice's colour in --c; the state of the switches
-     is a set of classes on the stage, and these rules do the rest */
-  .n { opacity: .35; }
-  .n.cell, .n.v4 { opacity: 1; }
-  .n.held { stroke: var(--c); fill: none; }
-  .n.struck { fill: var(--c); }
-  .n.blk { fill: var(--c); }
-  .n.cell.blk, .n.cell.struck { stroke: var(--ink); stroke-width: 1.4; paint-order: stroke; }
-  .n.under { stroke: var(--ink); fill: none; }
-  .n.lead { stroke-dasharray: 3 2; }
-  .n.lead.struck { stroke-dasharray: none; }
-  .lead-own, .lead-next { transition: opacity .3s; }
-  /* the note sounding now: a glow in its own colour; the ground's lights warm */
-  .n.on { opacity: 1; filter: drop-shadow(0 0 2.5px var(--c)) drop-shadow(0 0 1px var(--c)); }
-  .n.on.v4 { --c: var(--warm) !important; }
-  .stage.iso-0 .n:not(.v0), .stage.iso-1 .n:not(.v1), .stage.iso-2 .n:not(.v2),
-  .stage.iso-3 .n:not(.v3), .stage.iso-4 .n:not(.v4) { opacity: .12; }
-  /* the emergent patterns in their own colours, on the block only: a line passed from
-     voice to voice in red; two voices twined (alto and tenor in I, II and XVIII) as one
-     grey line, which takes the place of their own notes while emergent is on */
-  .stage.em-on .n.em-t, .stage.iso-5 .n.em-t { --c: var(--emerge) !important; opacity: 1; }
-  .stage.em-on .n.em-w, .stage.iso-5 .n.em-w { --c: var(--emerge) !important; opacity: 1; }
-  .stage.iso-5 .n:not(.em) { opacity: .12; }
-  /* in a lap whose cell is carried by two voices at once (alto and tenor in I, II and XVIII), their notes are drawn
-     solid in their own colours, as the cell is, whether or not emergent is on */
-  .stage.twined-lap .n.twined-lane { opacity: 1; stroke: var(--ink); stroke-width: 1.4; paint-order: stroke; }
-  .stage.twined-lap .twine { display: inline; }
-  .stage.twined-lap .n.twined { display: none; }
-  .stage.twined-lap .twine .n.em-w { --c: var(--emerge) !important; opacity: 1; stroke: var(--ink); stroke-width: 1.4; paint-order: stroke; }
-  .twine { display: none; }
-  .stage.em-on .twine, .stage.iso-5 .twine { display: inline; }
-  .stage.em-on .n.twined, .stage.iso-5 .n.twined { display: none; }
-  .tap { fill: transparent; cursor: pointer; }
-  .stage.off-0 .n.v0, .stage.off-1 .n.v1, .stage.off-2 .n.v2, .stage.off-3 .n.v3, .stage.off-4 .n.v4 { display: none; }
-  .sw { cursor: pointer; }
-  @media (hover: hover) { .sw:hover .ring { stroke: var(--ink); stroke-width: 1.6; } .sw:hover .rowname { fill: var(--ink); } .sw:hover .name-cue { stroke: var(--ink); stroke-dasharray: none; } }
-  .legend text { font-size: 12.5px; }
-  .hint { font-size: 9.5px; }
-
-  /* example performances */
-  .watch { width: 100%; align-self: start; overflow: auto; max-height: 100%; padding-top: 16px; }
-  .watch .lead { margin: 0 0 16px; font-style: italic; color: var(--muted); }
-  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 22px; }
-  .card { display: block; color: inherit; text-decoration: none; border: 1px solid var(--line); background: #f9f4e5; }
-  .card img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
-  .card .body { padding: 10px 12px 12px; }
-  .card p { margin: 0; }
-  .card .title { font-size: 14px; line-height: 1.3; }
-  .card .chan { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 4px 0 8px; }
-  .card .desc { font-size: 12px; line-height: 1.4; }
-  .card .chap { font-size: 11px; color: var(--muted); margin-top: 8px; font-variant-numeric: tabular-nums; }
-  @media (max-width: 900px) {
-    body { overflow: auto; }
-    .page { height: auto; }
-    .stage { display: block; }
-    .main { height: auto; aspect-ratio: auto; grid-template-columns: 1fr; }
-    .main svg { height: auto; }
-  }
+  :root { --tile: #f0e8d0; }   /* the wall's tiles, one shade deeper than the paper */
+  /* the overview: the presentation as a short story, a few sentences a passage, and a picture held beside it. A picture
+     that has a page behind it opens that page; so does the line under the passage */
+  /* a wider column for the story than on the pages it links to, since here the text carries the argument */
+  @media (min-width: 901px) { .scrolly { grid-template-columns: minmax(400px, 46%) 1fr; } .hold { padding-bottom: 96px; } }
+  @media (max-width: 900px) { .hold { height: 50vh; padding: 48px 12px 24px; } .top .nav a:not(.home) { display: inline; } .top .nav { font-size: 11px; gap: 12px; flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; max-width: 60vw; scrollbar-width: none; } .top .nav::-webkit-scrollbar { display: none; } .scrolly .story section > :first-child { scroll-margin-top: calc(50vh + 24px); } }
+  .story section { min-height: 66vh; padding: 9vh 0; max-width: 37em; }
+  .story section > :first-child { scroll-margin-top: 96px; }
+  .story section:first-child { min-height: 100vh; }
+  /* a passage shorter than its section sits at the foot of it, nearer the reader's eye as it scrolls up into view */
+  .story section:not(:first-child):not(.full) { justify-content: flex-end; }
+  /* a passage with no picture, set across the whole page: centred, in large type, and tall enough that its words are off the
+     window before the picture of the passage after it comes in */
+  .story section.full { width: calc(100vw - 112px); max-width: none; min-height: 130vh; align-items: center; text-align: center; }
+  .story section.full h2 { margin-bottom: 24px; }
+  .story section.full p { max-width: 30em; margin: 32px 0 0; }   /* a line under the question, in the page's own size */
+  .story section.full p.lead { max-width: 22em; margin: 0; font-size: clamp(30px, 3.3vw, 52px); line-height: 1.28; }
+  @media (max-width: 900px) { .story section.full { width: auto; min-height: 100vh; } .story section.full p.lead { font-size: 26px; } }
+  .story h2 { margin-bottom: 12px; }
+  .story p.lead { margin-bottom: 14px; }
+  .story .go { margin: 16px 0 0; font-family: var(--caps); font-size: 13px; letter-spacing: .2em; text-transform: uppercase; }
+  .story .go a { border-bottom: 1px solid var(--ink); padding-bottom: 3px; }
+  /* the references of a passage, closed until asked for */
+  .story details.refs { margin-top: 16px; }
+  .story details.refs summary { cursor: pointer; list-style: none; padding: 12px 0; font-family: var(--caps); font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+  .story details.refs summary::-webkit-details-marker { display: none; }
+  .story details.refs summary::before { content: "+"; display: inline-block; width: 12px; }
+  .story details.refs[open] summary::before { content: "\2212"; }
+  .story details.refs ol { margin: 8px 0 0; padding: 0 0 0 12px; list-style: none; }
+  .story details.refs li { font-size: 16px; line-height: 1.4; color: var(--muted); margin: 0 0 8px; }
+  .board figure { position: absolute; inset: 0; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity .7s ease, visibility 0s .7s; pointer-events: none; }
+  .board figure.on { opacity: 1; visibility: visible; transition: opacity .7s ease, visibility 0s; pointer-events: auto; }
+  /* a picture with a page behind it cycles through a few of that page's states, and the way in is written under it */
+  .board figure img.frame { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; opacity: 0; transition: opacity 1.2s ease; }
+  .board figure img.frame.now { position: static; opacity: 1; }
+  .board figure .frames { position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; min-height: 0; }
+  .board figcaption { position: relative; z-index: 1; }
+  .board figcaption.explore { margin-top: 24px; font-family: var(--caps); font-size: 13px; font-style: normal; letter-spacing: .2em; text-transform: uppercase; color: var(--ink); }
+  .board figcaption.explore a { color: var(--ink); border-bottom: 1px solid var(--ink); padding-bottom: 4px; }
+  .board figcaption.explore a::after { content: "\00a0\2192"; }
+  .board figcaption.explore.note { font-family: inherit; font-size: 15px; font-style: italic; letter-spacing: 0; text-transform: none; color: var(--muted); }
+  .board figure > a { display: flex; align-items: center; justify-content: center; width: 100%; flex: 1 1 0; min-height: 0; }
+  .board figure img { display: block; max-width: 100%; max-height: 100%; }
+  /* a picture fades into the page at its edges, so its paper and the page's never meet at a line */
+  .board figure > a > img, .board figure > img, .board figure .frames img { -webkit-mask-image: linear-gradient(to right, transparent, #000 3%, #000 97%, transparent), linear-gradient(to bottom, transparent, #000 3%, #000 97%, transparent); -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(to right, transparent, #000 3%, #000 97%, transparent), linear-gradient(to bottom, transparent, #000 3%, #000 97%, transparent); mask-composite: intersect; }
+  .board figure.crisp img { -webkit-mask-image: none; mask-image: none; border-radius: 6px; }
+  .board figure.drawn img { width: min(100%, 720px); height: auto; }
+  .board figcaption { margin-top: 16px; font-family: var(--sans); font-size: 15px; font-weight: 400; color: var(--ink); text-align: center; line-height: 1.5; text-wrap: balance; }
+  .board figure.anim canvas { display: block; width: 100%; height: auto; aspect-ratio: 2.6; max-height: calc(100% - 48px); }
+  .board figure.anim.tall canvas { width: min(100%, 640px); aspect-ratio: .95; }
+  .board figure.anim.wide canvas { width: min(100%, 720px); aspect-ratio: 1.75; }
+  .board figure.anim.strip canvas { width: min(100%, 760px); aspect-ratio: 3.2; }
+  .board figure.anim.towns canvas { width: min(100%, 760px); aspect-ratio: 1.9; }
+  @media (max-width: 600px) { .board figure.anim.towns canvas { aspect-ratio: .9; } }
+  @media (max-width: 600px) { .board figure.anim.trio canvas { aspect-ratio: 1.1; } }
+  .board figure.anim.square canvas { width: min(100%, 600px); aspect-ratio: .9; }
+  .board figure.photo img { width: min(100%, 720px); height: auto; }
+  .board figure.photo figcaption { width: min(100%, 720px); text-align: center; line-height: 1.5; }
+  .board figcaption a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
+  @media (hover: hover) { .board figcaption a:hover { color: var(--ink); border-bottom-color: var(--ink); } }
+  .board figure.drawn svg.dots + figcaption { margin-top: 32px; }
+  /* the two figures drawn here */
+  .board svg.dots { width: min(70%, 460px); height: auto; }
+  .board svg.dots circle { fill: var(--ink); }
+  .board svg.loop { width: min(100%, 620px); height: auto; overflow: visible; }
+  .board svg.loop .ring { fill: none; stroke: var(--muted); stroke-width: .7; stroke-dasharray: 2 2; }
+  .board svg.loop .pt { fill: var(--ink); }
+  .board svg.loop .back { fill: var(--emerge); }
+  .board svg.loop text { font-family: var(--caps); font-size: 6px; letter-spacing: .1em; text-transform: uppercase; fill: var(--muted); }
+  .tocome { width: min(100%, 520px); aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; border: 1px dashed var(--line);
+            font-family: var(--caps); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--grey); }
+  /* the opening picture, a girih wall and the moves played on it (girih-wall.js): the tiles one shade deeper than the paper, and their
+     lines, which take the colour the script gives each tile for its age. The two rules name no ancestor, since a rule that does is not
+     applied to a shape drawn through a use element. The wall keeps clear of the count at its right */
+  .board svg.wall { display: block; width: calc(100% - 80px); height: calc(100% - 72px); margin-right: 80px; overflow: visible; color: var(--ink); }
+  .wall-tile { stroke-linejoin: round; }
+  .wall-line { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
+  /* the fill of the tiles and the width of the lines are set on their layers, so that the script can swell a fresh tile's lines
+     and flush a tile that is taken out, through the use element that draws it */
+  .wall-shapes { fill: var(--tile); stroke: var(--tile); stroke-width: .6; }
+  /* the same play small, beside the girih case */
+  .board svg.girih-patch { display: block; width: min(100%, 520px); aspect-ratio: 1; margin-bottom: 24px; overflow: visible; color: var(--ink); }
+  /* the Truchet board beside its case (truchet-live.js): the tiles turn about their own middles */
+  .board svg.truchet-patch { display: block; width: min(100%, 480px); aspect-ratio: 1; margin-bottom: 24px; }
+  /* the Penrose patch, the Solari board, and the loom, live beside their cases */
+  .board svg.penrose-patch { display: block; width: min(100%, 520px); aspect-ratio: 1; margin-bottom: 24px; overflow: visible; }
+  .penrose-patch .pt { fill: var(--tile); stroke: var(--ink); stroke-width: 1; stroke-linejoin: round; }
+  .board svg.solari-patch { display: block; width: min(100%, 760px); margin-bottom: 24px; }
+  .solari-glyph { font-family: 'IBM Plex Sans Condensed', 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 19px; font-weight: 500; fill: #f1e8d0; }
+  .board svg.loom-patch { display: block; width: min(100%, 640px); margin-bottom: 24px; }
+  .board svg.lattice-patch { display: block; width: min(100%, 720px); margin-bottom: 24px; }
+  .truchet-spin { transform-box: fill-box; transform-origin: center; }
+  .truchet-cell { fill: var(--plate); stroke: var(--line); stroke-width: .5; }
+  .truchet-dark { fill: var(--ink); }
+  .board svg.girih-patch .wall-shapes { stroke: var(--line); stroke-width: 1; }   /* the tiles' outlines show, pale, so the joins can be read */
+  .wall-shapes use, .wall-lines use, .wall-ghosts use { transform-box: fill-box; transform-origin: center; }   /* a tile popping in or out scales about its own middle */
+  .wall-ghosts, .wall-lines { stroke-width: 1.8; }
+  /* a few photographs or plans side by side, each set in the page's ink on its paper, with its caption and, smaller, its credit */
+  .plates { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; width: min(100%, 720px); }
+  .plates img { display: block; width: 100%; height: auto; }
+  .plates p { margin: 8px 0 0; font-family: var(--sans); font-size: 14px; line-height: 1.4; font-weight: 400; color: var(--ink); }
+  .plates a { display: block; font-family: var(--sans); font-size: 13px; font-style: normal; color: var(--muted); text-decoration: none; }
+  @media (hover: hover) { .plates a:hover { color: var(--ink); } }
+  @media (max-width: 900px) { .plates { gap: 8px; } .plates p { font-size: 13px; } .plates a { font-size: 12px; } }
+  /* the count at the right of the wall: the five tiles, each with the number of it in the wall. Every tile has a row of one height,
+     so the numbers stand at equal steps. It is spaced on the pages' unit of 8px, and the numbers are in the face the scrolled pages
+     use for counts (notes/design-principles.md). It is out of sight on the first passage, where the wall is still, and comes into
+     view when the moves begin */
+  .wall-count { position: absolute; right: -24px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; opacity: 0; transition: opacity .8s ease;
+                font-family: var(--sans); font-size: 16px; font-weight: 500; line-height: 24px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .wall-count.on { opacity: 1; }
+  /* what the wall is doing, and where its tiles come from, under it: two captions in one place, the still wall's on the first
+     passage and the played wall's after it, crossed over by girih-wall.js as the reader scrolls */
+  .board figcaption.wall-caption { display: grid; margin: 16px 80px 0 0; max-width: 560px; text-align: center; line-height: 1.5; }
+  .board figcaption.wall-caption span { grid-area: 1 / 1; opacity: 0; transition: opacity .8s ease; }
+  .board figcaption.wall-caption span.on { opacity: 1; }
+  .wall-count div { display: grid; grid-template-columns: 64px 40px; height: 56px; align-items: center; }
+  .wall-count svg { justify-self: center; overflow: visible; }
+  .wall-count polygon { fill: var(--tile); }
+  .wall-count path { fill: none; stroke: currentColor; stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; }
+  .wall-count span { text-align: right; }
+  @media (max-width: 900px) { .board svg.wall { width: 100%; margin-right: 0; } .wall-count { display: none; } }
+  /* the eight pages at a glance */
+  .sheet { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px 16px; width: min(100%, 860px); }
+  .sheet a { display: block; text-align: center; text-decoration: none; color: var(--muted); font-family: var(--caps); font-size: 12px; letter-spacing: .18em; text-transform: uppercase; }
+  .sheet img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; margin-bottom: 8px; }
+  @media (hover: hover) { .sheet a:hover { color: var(--ink); } }
+  @media (max-width: 900px) { .sheet { grid-template-columns: repeat(4, 1fr); gap: 8px 8px; } .sheet a { font-size: 11px; letter-spacing: .1em; } }
+  .foot { padding: 48px 56px 64px; font-size: 15px; line-height: 1.5; color: var(--muted); max-width: 48em; }
+  .foot a { color: var(--muted); border-bottom: 1px solid var(--line); }
+  @media (max-width: 900px) { .foot { padding: 32px 20px 48px; } }
+  @media (prefers-reduced-motion: reduce) { .board figure { transition: none; } }
 </style>
 </head>
 <body class="grain">
 <header class="top">
-    <a class="mark" href="index.html">Passacaglia</a>
-    <nav class="nav"><a class="home" href="overview.html#scene=passacaglia">Overview</a><a href="truchet.html">Truchet</a><a href="girih.html">Girih</a><a href="penrose.html">Penrose</a><a href="automata.html">Automata</a><a href="solari.html">Solari</a><a href="jacquard.html">Jacquard</a><a href="index.html" class="here">Passacaglia</a><a href="fugue.html">Fugue</a></nav>
+  <a class="mark" href="#top">Unfolding Urbanism</a>
+  <nav class="nav"><a href="index.html" class="here">Overview</a><a href="truchet.html">Truchet</a><a href="girih.html">Girih</a><a href="penrose.html">Penrose</a><a href="automata.html">Automata</a><a href="solari.html">Solari</a><a href="jacquard.html">Jacquard</a><a href="passacaglia.html">Passacaglia</a><a href="fugue.html">Fugue</a></nav>
 </header>
 
 <main class="scrolly">
   <div class="story">
-    <section data-scene="ground" id="top">
-      <h1>Passacaglia</h1>
-      <p class="lead">One ground, twenty variations, four voices, and what passes between them.</p>
-      <p>The ground is eight bars and fifteen notes in the bass, stated twenty-one times, and the rest of the piece is written over it. On the wheel the ground and the twenty variations run round the face in the order they play, with the one in play at the top. Inside, the ground is the black ring, and the voices of the variation in play turn round it, the cell in bold and the rest light. In XI to XV, hollow on the wheel, the pedal falls silent and the ground moves up into the voices.</p>
-      <p class="cue">Scroll to read. Tap the middle of the wheel to play, or a variation to go there.</p>
+    <section data-scene="open" data-fig="open" id="top">
+      <h1>Unfolding Urbanism</h1>
+      <p class="lead">Modular patterns simple enough for anyone to use, yet capable of emergence and complexity. They allow targeted intervention while remaining part of the city&#x27;s web, sustaining its wider dynamics and evolving with them.</p>
+      <p class="cue">Scroll</p>
     </section>
-    <section data-scene="cell">
-      <h2>The cells</h2>
-      <p>Each variation is built on one cell, a figure of four or five notes with a fixed rhythm and shape. The view shows one variation at a time, with its cell at the left and the voices across its eight bars in the block, each voice on its own lane and the readings beneath. The solid notes are the cell. Where a cell is handed from voice to voice, each statement that another voice takes up is drawn in red, and where two voices carry it together, as alto and tenor do in I, II, and XVIII, both are drawn solid.</p>
-      <p class="small">Tap a voice to hear it alone, or the block for all of them. The page follows the playing, with the wheel and the block together.</p>
+    <section data-scene="process" data-fig="open">
+      <h2>The city as process</h2>
+      <p class="lead">Cities are accretions of process, knitted together as they unfold across space and time, congealing and dissolving by turns. Unfolding urbanism works with that rhythm.</p>
+      <p>Its elements are modular patterns, designed for the pedestrian scale. Small and composable, they let a designer intervene locally, with a light touch. Used incrementally, they allow intervention to proceed one street or square at a time, answering to the larger unfolding of the city as it goes.</p>
+      <p>The simplicity is deceptive. Because the approach is modular and incremental, it can respond as the rhythms of the city rise and fall. Heavier-handed approaches interfere with those rhythms. They are brittle for that reason, and costly, and when they fail the damage can be extensive and can last for generations.</p>
+      <p>The unfolding city celebrates process, not automation. It values human engagement over decisions driven by algorithm, and uses technology in its service. It relies on the city’s own intelligence, which rests on feedback and small steps, and which cannot be replaced by an external or automated process.</p>
+    </section>
+    <section data-scene="static" data-fig="static">
+      <h2>Static urbanism</h2>
+      <p class="lead">Unfolding urbanism is the antithesis of the static master plan.</p>
+      <p>After the Second World War, the car, the utility network, and mass production made it possible to build at a new scale, and planners set out to solve the city in one stroke, as though it were a problem with an answer. What they missed was that a city is itself a process. It has no final form, and it asks for vision tempered by the capacity for fine-grained change, a direction held over time and open to what each step reveals. Its streets had been its connective tissue, a public realm open to anyone, where shops, doorways, and passers-by met in one fine mesh. The new plans inverted that. The street became a conduit for through traffic, uses were zoned apart, and housing went into towers on open ground or out to the suburbs, a scatter of private enclaves in lieu of a public realm. In trying to solve the city, planners took away much of its capacity for process, and the mistake recurs when a new technology is used to shortcut that process instead of serving it.</p>
+      <p>A process needs grain in space and in time. A city that changes one plot or one street at a time gives the public a way in at each step, and it gives the authorities changes small enough to fund and to trial before anything is taken further. Master plans typically lack this grain, in their spatial layout and in their ownership alike, and so they are hard to alter once built, and that rigidity can damage the wider fabric of the city.</p>
+      <p>Current development practice compounds the problem. Clients want a predictable budget, a firm end date, and a concrete deliverable, and the master plan is the usual vehicle for them. The unfolding city answers with modular patterns, set out as an incremental playbook. They give a client units that can be seen and costed in advance, and because they are laid one at a time, each returns feedback as the work proceeds while the place stays open to change. Savannah’s wards and Cerdà’s grid for Barcelona were frameworks of this kind, drawn with intention and filled in over a century.</p>
+    </section>
+    <section data-scene="question" data-fig="" class="full">
+      <h2>The design challenge</h2>
+      <p class="lead">If a city is a process, how can it be designed with intent?</p>
+      <p>A vision has to be held over decades, and each step towards it has to stay open to what the city does in the meantime. Artists, scientists, architects, and composers have each met a version of this problem with a small set of modular patterns, simple enough to apply in one place. What they design is a substrate, and the form is left to the process. A substrate works at both scales. It tempers what is imposed from above, so the local fabric keeps working and a larger order can form from it, and it keeps the two scales in a loop, each read back into the other.</p>
+    </section>
+    <section data-scene="alexander" data-fig="alexander">
+      <h2>Precedent · A city is not a tree</h2>
+      <p class="lead">Christopher Alexander spent his career on this question.</p>
+      <p>In “A City Is Not a Tree” (1965) he showed what goes wrong when a city is planned for visual order and efficiency at the large scale, and its connections at the small scale are overlooked. Such an order imposes a rigid and fragmented spatial hierarchy, which limits the ways in which spaces can connect to one another. In that hierarchy each part is kept in its own compartment. A living city lets its parts cross-connect, so that a corner shop is a stop on the walk to work, a meeting place for its street, a living for the family behind the counter, and a landmark for a stranger. His answer came in A Pattern Language (1977), a substrate of 253 patterns from the region to the room, each a recurring problem with a way of solving it, made to be combined by whoever builds. A New Theory of Urban Design (1987) turned to the process itself, a city grown through a sequence of projects, each judged by what it adds to the whole already there.</p>
+      <details class="refs"><summary>References</summary><ol><li>Alexander, C., Notes on the Synthesis of Form, 1964; A City Is Not a Tree, 1965</li><li>Alexander, C., A Foreshadowing of 21st Century Art: The Color and Geometry of Very Early Turkish Carpets, Oxford University Press, 1993 <a href="https://archive.org/details/AForeshadowingOf21stCenturyArt">link</a></li></ol></details>
+    </section>
+    <section data-scene="mind" data-fig="mind">
+      <h2>The problem · The mind can hold only so much</h2>
+      <p class="lead">Alexander traced the tree to a limit of the mind.</p>
+      <p>In 1871 William Stanley Jevons threw beans into a box and guessed each count at a glance, and he was reliably right up to four. Reviewing the evidence on working memory in 2001, Nelson Cowan put its span at about four items. A tree suits a mind of that size, since each group can be taken in on its own and the whole grasped a level at a time. A semilattice, Alexander’s name for the overlapping web, cannot be read that way. Its overlaps multiply far faster than its parts, and in a city most of them lie out of sight, in relations between people and places that differ by the street and by the hour. A designer who sets out to settle the city in one pass cannot know them, and so faces a choice. One course, which Alexander found in his natural cities, is a substrate in which the combinations of parts stay open, to be remade as each person, day, and circumstance requires. The other reduces those relations to a few assumptions and fixes them in advance, as a composition on the drawing board, a network modelled on the utilities, or a street pattern prepared by a traffic engineer, and holds the city to the one arrangement it was drawn with.</p>
+      <details class="refs"><summary>References</summary><ol><li>Hamilton, W., Lectures on Metaphysics and Logic, 1859 (the marbles, quoted by Jevons)</li><li>Jevons, W. S., The power of numerical discrimination, Nature 3, 281 (1871) <a href="https://www.nature.com/articles/003281a0">link</a></li><li>Kaufman, E. L. et al., The discrimination of visual number, American Journal of Psychology 62, 1949 (subitizing)</li><li>Miller, G. A., The magical number seven, plus or minus two, Psychological Review 63, 1956</li><li>Cowan, N., The magical number 4 in short-term memory, Behavioral and Brain Sciences 24, 2001 (issued 2000 online)</li><li>Simon, H. A., Models of Man, 1957 (bounded rationality; satisficing from 1956)</li></ol></details>
+    </section>
+    <section data-scene="pace" data-fig="pace">
+      <h2>Precedent · Pace layers</h2>
+      <p class="lead">A substrate holds the local and the global in balance by letting them change at different speeds and keeping the speeds in touch.</p>
+      <p>Stewart Brand, in How Buildings Learn (1994), took from the architect Frank Duffy the observation that a building is layers that change at different rates (its site, structure, skin, services, space plan, and stuff), and in 1999 he widened it to a civilisation: fashion, commerce, infrastructure, governance, culture, and nature, from the fastest to the slowest. On a street the layers are the walker’s minute, the shop’s month, the owner’s year, the street’s decades, and the ground’s centuries. The layers hold each other in check by feedback. The slow set the bounds, the fast try changes within them, and what proves itself there settles over time into the slower layers. The cross-connections Alexander found in a living city are not the feedback itself. They are what permit it. Where a corner shop is tied into several overlapping uses, each can change without the others having to, so the fast layers evolve instead of being locked in place by the slow.</p>
+      <blockquote>Fast learns, slow remembers. Fast proposes, slow disposes. Fast is discontinuous, slow is continuous. Fast and small instructs slow and big by accrued innovation and by occasional revolution. Slow and big controls small and fast by constraint and constancy. Fast gets all our attention, slow has all the power.<cite>Stewart Brand, 2018</cite></blockquote>
+      <details class="refs"><summary>References</summary><ol><li>Tero, A., Takagi, S., Saigusa, T., Ito, K., Bebber, D. P., Fricker, M. D., Yumiki, K., Kobayashi, R., and Nakagaki, T., Rules for biologically inspired adaptive network design, Science 327, 2010, pp. 439 to 442 (the slime mould laying tubes between oat flakes set out as the towns round Tokyo, and the rule that a tube thickens with the flow it carries and thins without it; the live figure’s road rule follows it) <a href="https://doi.org/10.1126/science.1177894">link</a></li><li>Brand, S., How Buildings Learn, Viking, 1994 (the shearing layers, after Frank Duffy); The Clock of the Long Now, Basic Books, 1999</li><li>Brand, S., Pace layering: how complex systems learn and keep learning, Journal of Design and Science, 2018 (CC BY 4.0; the quotation) <a href="https://doi.org/10.21428/7f2e5f08">link 1</a> <a href="https://longnow.org/ideas/pace-layers/">link 2</a></li></ol></details>
+    </section>
+    <section data-scene="science" data-fig="science">
+      <h2>The problem · No substitute for process</h2>
+      <p class="lead">It is widely assumed that a city can be engineered and optimised in one pass, if only the design is good enough.</p>
+      <p>The assumption is mistaken, because what a set of rules will do cannot in general be read off from the rules. In the 1930s Kurt Gödel showed that any consistent set of rules rich enough for arithmetic leaves some of its own questions unsettled, and Alan Turing that no general method can tell in advance whether a procedure will ever halt. The rows of black and white cells beside this text, the ones Stephen Wolfram studied, show the same limit on a small scale. Each cell takes its colour from itself and its two neighbours by one fixed rule, and yet for rule 110, as far as anyone knows, the thousandth row can be reached only by working out every row before it. Wolfram called this computational irreducibility. There is no shortcut for process. A city is far richer than these cells, and it has no last row. It is not a single end state to be optimised. This does not mean that intentional interventions and design are not possible, only that it matters whether that design leaves open a substrate within which processes are free to unfold. The city itself is by nature a process, an unfolding that trades information day by day between the slow and the fast, the local and the global. Whatever a new technology promises, it cannot stand in for that unfolding. It can take a part in the design at the pedestrian scale, and in the feedback between the layers, provided it keeps that feedback intact.</p>
+      <details class="refs"><summary>References</summary><ol><li>Gödel, K., Über formal unentscheidbare Sätze, 1931</li><li>Turing, A. M., On computable numbers, 1936</li><li>Wolfram, S., A New Kind of Science, 2002 <a href="https://www.wolframscience.com/nks/">link</a></li></ol></details>
+    </section>
+    <section data-scene="emergence" data-fig="emergence">
+      <h2>The problem · Organised complexity</h2>
+      <p class="lead">In “Science and Complexity” (1948) Warren Weaver sorted the problems of science into three kinds.</p>
+      <p>Problems of simplicity, such as two balls on a billiard table, yield to an equation. Problems of disorganised complexity, a table with millions of balls colliding at random, yield to averages, the methods of statistical mechanics. Between them lie problems of organised complexity, which deal with a sizeable number of factors “interrelated into an organic whole”. Jane Jacobs argued in 1961 that a city is a problem of this third kind, in which dozens of quantities vary “simultaneously and in subtly interconnected ways”. A city holds intention and existing order alongside the order that arises spontaneously from the interaction of its parts, and as each shapes the other, the city unfolds in ways that are hard to predict. Planning framed in the other two terms proceeded much as Jacobs described, and damaged the city’s capacity for feedback and spontaneous adaptation.</p>
+      <p>That loss mattered because feedback is where a city’s intelligence lies. From the cross-talk between its parts, a higher-order intelligence emerges of its own accord, able to solve hard problems and to adapt to constraints and opportunities that were not foreseen. It can do harm as well, as when rising rents drive out the people who made a street busy, and in either case a plan fixed in advance cannot keep pace. W. Ross Ashby’s law of requisite variety (1956) holds that a system can be steered only by responses as varied as the disturbances it meets, and in a city that variety comes from many people, each acting locally on a shared substrate. A slime mould shows the same capacity without a brain. In 2010 Atsushi Tero and colleagues placed one among oat flakes laid out as the towns around Tokyo, and it grew a network close to the region’s railways in efficiency and in tolerance of breaks.</p>
+      <details class="refs"><summary>References</summary><ol><li>Weaver, W., Science and complexity, American Scientist 36, 1948</li><li>Batty, M., Cities and Complexity, 2005; The New Science of Cities, 2013; Inventing Future Cities, 2018</li><li>Simon, H. A., The architecture of complexity, Proc. Am. Phil. Soc. 106, 1962</li><li>Cook, M., Universality in elementary cellular automata, Complex Systems 15, 2004</li></ol></details>
+    </section>
+    <section data-scene="cases" data-fig="cases">
+      <h2>Complexity through simplicity</h2>
+      <p class="lead">Each of the cases that follow is a substrate of this kind.</p>
+      <p>In each a framework holds while a toolkit of simple parts acts within it. Local action stays within reach, the whole coheres by the same means, and information passes between the scales. The heading over each names what that interplay supports there: flexibility, a whole by design, variety from simplicity, emergent computation, simple by design, complexity programmed, a toolkit of parts, and the human in the loop. Most are stated first in mathematics, craft, or music, and then found in a town. Many of the figures are live, and eight open as pages of their own, where the patterns can be tried by hand.</p>
+    </section>
+    <section data-scene="truchet" data-fig="truchet">
+      <h2>Flexibility · Truchet: one tile</h2>
+      <p class="lead">Truchet’s system begins with one square tile, cut on its diagonal, with one half dark.</p>
+      <p>In 1704 Sébastien Truchet, a priest and engineer, showed that its four orientations yield an unlimited number of designs. A board of 144 tiles admits 4 to the power 144 arrangements, far more than could be laid out or inspected, and a choice made at each tile throws up structure at scales well above it. The tile does not change, so the variety lies in the arrangement. There is no rule between neighbours. Any tile can be turned at any time, and the design above it shifts with the turn. So simple a system bends to almost any design, and with nothing to steer it, what it makes lies close to chance.</p>
+      <details class="refs"><summary>References</summary><ol><li>Truchet, S., Mémoire sur les combinaisons, Mémoires de l’Académie Royale des Sciences, 1704 <a href="https://en.wikipedia.org/wiki/Truchet_tiles">link</a></li><li>Smith, C. S. and Boucher, P., The tiling patterns of Sebastien Truchet and the topology of structural hierarchy, Leonardo 20(4), 373 to 385, 1987 (Boucher’s translation of the memoir; Smith’s quarter-circle tile) <a href="https://doi.org/10.2307/1578535">link</a></li></ol></details>
+    </section>
+    <section data-scene="medina" data-fig="medina">
+      <h2>Flexibility · In towns · The medina: rules between neighbours</h2>
+      <p class="lead">The medina of Tunis is the same flexibility at the scale of a town.</p>
+      <p>Thousands of households built it over centuries, without a plan, under a handful of rules between neighbours, which Besim Hakim recovered from Maliki legal texts and court cases. A property may be used as its owner wishes, provided no harm is done to others. No window may be placed so that it looks into a neighbour’s house. A public street must be wide enough for two loaded camels to pass.</p>
+      <p>Most of the rules set no form, and the one that does sets a minimum, so building stayed within each household’s reach and free in form, and the street stayed public. The rules were applied case by case as disputes arose, each decision joining what the next was judged against. The plan of the medina records those decisions.</p>
+      <details class="refs"><summary>References</summary><ol><li>Hakim, B. S., Arabic-Islamic Cities: Building and Planning Principles, 1986 (rules at pp. 19 to 21; plates 1 and 17) <a href="https://uomustansiriyah.edu.iq/media/lectures/5/5_2018_10_07!08_40_51_PM.pdf">link</a></li><li>O’Meara, S., Journal of Arabic and Islamic Studies 9, 1 to 17 (2009) (measured street widths against the seven-cubit rule) <a href="https://www.lancaster.ac.uk/jais/volume/docs/vol9/v9_1_OMeara_1-17.pdf">link</a></li></ol></details>
+    </section>
+    <section data-scene="girih" data-fig="girih">
+      <h2>The whole by design · Girih tiles</h2>
+      <p class="lead">The walls of the Darb-i Imam shrine in Isfahan (1453) and the Gunbad-i Kabud tomb tower in Maragha (1197), in Iran, bear girih, the Persian word for knot and the name for the interlaced strapwork of Islamic architecture.</p>
+      <p>In 2007 the physicists Peter Lu and Paul Steinhardt showed in Science that many such surfaces could be laid from five tiles, each scored with lines that join at the edges into stars and bands spanning several tiles. The Topkapı Scroll, a Timurid pattern book of the late fifteenth century, shows the outlines of the tiles beneath the strapwork of several panels, evidence that the artisans worked with them. Lu thought the tiles might have been “just a way for artisans to construct their art more easily”.</p>
+      <p>Truchet’s tile may sit in any orientation beside any other. The girih adds one rule at the edge, that the corners close and the lines run on. It is checked only where two tiles meet, so an artisan needs no compass work and no drawing of the whole wall to add to it, and lays each tile by hand where it fits. Yet the whole is not left to chance. The stars and bands are cut into the tiles, and the edge rule carries them from tile to tile across the wall.</p>
+      <details class="refs"><summary>References</summary><ol><li>Lu, P. J. and Steinhardt, P. J., Decagonal and quasi-crystalline tilings in medieval Islamic architecture, Science 315, 1106 (2007) <a href="https://doi.org/10.1126/science.1135491">link</a></li><li>the supplement, with the tiles drawn <a href="https://peterlu.org/pdf/publications/2007/Science_315_1106_2007_SOM.pdf">link</a></li><li>Harvard Gazette, Medieval Islamic architecture presages 20th-century mathematics, 2007 (Lu’s quotations) <a href="https://news.harvard.edu/gazette/story/2007/03/medieval-islamic-architecture-presages-20th-century-mathematics/">link</a></li><li>phys.org, Study finds advanced 20th-century geometry in 15th-century tilings, 2007 <a href="https://phys.org/news/2007-02-advanced-20th-century-geometry-15th-century-tilings.html">link</a></li><li>Girih tiles; Topkapı Scroll; Gonbad-e Kabud <a href="https://en.wikipedia.org/wiki/Girih_tiles">link 1</a> <a href="https://en.wikipedia.org/wiki/Topkap%C4%B1_Scroll">link 2</a> <a href="https://en.wikipedia.org/wiki/Gonbad-e_Kabud">link 3</a></li></ol></details>
+    </section>
+    <section data-scene="savannah" data-fig="savannah">
+      <h2>The whole by design · In towns · Savannah: the ward</h2>
+      <p class="lead">Savannah’s surveyors worked from a single drawing, the ward, which James Oglethorpe, founder of the colony of Georgia, laid out in 1733 for a colonial town on Yamacraw land.</p>
+      <p>Each ward is a square with four blocks of ten house lots and four trust lots for public buildings around it, and Oglethorpe set the wards within a regional framework of garden and farm lots. As with the girih, the difficult thinking was done once, within the module, which carries the relations of the whole with it. Wherever a ward was laid, each house lot fell within about a block of a square and the streets lined up with the next ward’s, so the town could be extended by repetition with no drawing of the finished town. One survey party could stake out a ward, and each new ward was a complete neighbourhood. Savannah grew in this way from four wards in 1733 to twenty-four by 1851. When the city later spread south on a plain grid, the squares stopped where the ward was set aside.</p>
+      <details class="refs"><summary>References</summary><ol><li>Wilson, T. D., The Oglethorpe Plan: Enlightenment Design in Savannah and Beyond, University of Virginia Press, 2012</li><li>National Park Service, Savannah, Georgia: the lasting legacy of colonial city planning <a href="https://www.nps.gov/articles/savannah-georgia-the-lasting-legacy-of-colonial-city-planning-teaching-with-historic-places.htm">link</a></li><li>Reps, J. W., C2 + L2 = S2? Another look at the origins of Savannah’s town plan, in Jackson and Spalding (eds), Forty Years of Diversity, 1984</li><li>Savannah city plan, New Georgia Encyclopedia <a href="https://www.georgiaencyclopedia.org/articles/history-archaeology/savannah-city-plan/">link</a></li></ol></details>
+    </section>
+    <section data-scene="penrose" data-fig="penrose">
+      <h2>Variety from simplicity · Penrose tiles</h2>
+      <p class="lead">A set of tiles that can cover the plane only without repeating is called aperiodic, and the number of shapes such a set needs was reduced in stages.</p>
+      <p>In 1966 Robert Berger, in proving that no general procedure can decide whether a given set of tiles will cover the plane, found such a set of 20,426. By 1971 Raphael Robinson had reduced it to six, and in 1974 the physicist Roger Penrose to two. In 2023 David Smith and colleagues found a single shape, the hat, that does so with its mirror image, and then the spectre, which needs no mirror. Penrose’s two rhombs carry marks on their edges that must match where tiles meet. Two shapes and one rule at the edge admit infinitely many tilings, none of which repeats. Any finite patch of one tiling occurs in every other, so the local fabric is shared, while the pattern as a whole does not repeat.</p>
+      <p>Aperiodic order also occurs in matter. In 1982 Dan Shechtman observed an alloy whose diffraction pattern showed tenfold symmetry, then held impossible in a crystal. He published the finding in 1984, and in the same year Dov Levine and Paul Steinhardt gave crystallographers a model for such order in the Penrose tiling. Such materials are now called quasicrystals. For towns the tiling also shows the limit of a rule held at the edge. A tile that fits its neighbours may leave no lawful tile further on, so a local choice is not always free, and more than the neighbours must be read before the next piece is laid.</p>
+      <details class="refs"><summary>References</summary><ol><li>Wang, H., Proving theorems by pattern recognition II, Bell System Technical Journal 40, 1961</li><li>Berger, R., The undecidability of the domino problem, Memoirs of the AMS 66, 1966 (20,426 tiles)</li><li>Knuth, D. E., The Art of Computer Programming, vol. 1, 1968 (92 tiles)</li><li>Robinson, R. M., Undecidability and nonperiodicity for tilings of the plane, Inventiones 12, 1971 (6 tiles)</li><li>Penrose, R., The role of aesthetics in pure and applied mathematical research, Bull. Inst. Math. Appl. 10, 266 (1974)</li><li>Gardner, M., Extraordinary nonperiodic tiling that enriches the theory of tiles, Scientific American, January 1977</li><li>Grünbaum, B. and Shephard, G. C., Tilings and Patterns, 1987</li><li>Smith, D., Myers, J. S., Kaplan, C. S. and Goodman-Strauss, C., An aperiodic monotile, 2023 <a href="https://aperiodical.com/2023/03/an-aperiodic-monotile-exists/">link</a></li><li>Quanta, A brief history of tricky mathematical tiling, 2023 (the countdown) <a href="https://www.quantamagazine.org/a-brief-history-of-tricky-mathematical-tiling-20231030/">link</a></li><li>Scientific American on the hat, 2023 <a href="https://www.scientificamerican.com/article/inside-mathematicians-search-for-the-mysterious-einstein-tile/">link</a></li><li>Shechtman, D. et al., Metallic phase with long-range orientational order and no translational symmetry, Phys. Rev. Lett. 53, 1951 (1984); Nobel prize in chemistry 2011 <a href="https://physicsworld.com/a/quasicrystal-discovery-bags-2011-chemistry-nobel/">link 1</a> <a href="https://www.iucr.org/news/newsletter/volume-28/number-4/penrosemackayshechtman-and-bringing-down-the-dogma-about-fivefold-symmetry">link 2</a></li><li>Kepler, J., Harmonices Mundi, 1619 (the pentagon tilings) <a href="https://en.wikipedia.org/wiki/Penrose_tiling">link</a></li><li>Penrose, L. S. and Penrose, R., Impossible objects: a special type of visual illusion, British Journal of Psychology 49, 1958</li><li>Nobel prize in physics 2020, Oxford’s announcement <a href="https://www.ox.ac.uk/news/2020-10-06-oxford-mathematician-roger-penrose-jointly-wins-nobel-prize-physics">link</a></li><li>Storey Hall, ARM Architecture, 1995 <a href="https://armarchitecture.com.au/projects/rmit-storey-hall-and-green-brain/">link</a></li><li>Penrose paving, Oxford, Atlas Obscura <a href="https://www.atlasobscura.com/places/penrose-paving-at-the-mathematical-institute">link</a></li><li>Penrose tiling; aperiodic tiling; Roger Penrose <a href="https://en.wikipedia.org/wiki/Penrose_tiling">link 1</a> <a href="https://en.wikipedia.org/wiki/Aperiodic_tiling">link 2</a> <a href="https://en.wikipedia.org/wiki/Roger_Penrose">link 3</a></li></ol></details>
+    </section>
+    <section data-scene="beadyring" data-fig="beadyring">
+      <h2>Variety from simplicity · In towns · Settlements grown by one rule</h2>
+      <p class="lead">The hamlets of the Vaucluse, in Provence, grew house by house.</p>
+      <p>Bill Hillier and Julienne Hanson, the founders of space syntax, modelled them in The Social Logic of Space (1984) with a restricted random process. Houses are added at random, each with a cell of open space in front of it, and that cell must share a side with another. Run repeatedly, the rule grows a beady ring, an open space that widens and narrows like beads on a string and stays continuous. Each house is placed freely against the open space the earlier houses left. The rule binds only the public space, so the settlement can take many shapes and still be crossed on foot as it grows. The model reproduces the spatial type of the hamlets and makes no claim about how they were built.</p>
+      <p>In a Ba-ila settlement in southern Zambia, the house, the family ring, and the village share one structure, each with a gated front and a back of higher status. Ron Eglash, in African Fractals (1999), models the plan as one rule applied three times, each time to the result of the last, so that a single relation between front and back orders household, family, and village alike.</p>
+      <details class="refs"><summary>References</summary><ol><li>Hillier, B. and Hanson, J., The Social Logic of Space, Cambridge University Press, 1984, ch. 2 (the beady ring, pp. 55 to 61) <a href="https://archive.org/details/the-social-logic-of-space-b-hillier-and">link</a></li><li>Hillier, B., Leaman, A., Stansall, P. and Bedford, M., Space syntax, Environment and Planning B 3, 147 (1976) <a href="https://doi.org/10.1068/b030147">link</a></li><li>Vaughan, L., Peponis, J. and Dalton, R. C. (eds), Space Syntax: Selected Papers by Bill Hillier, UCL Press, 2025 (open access; Hillier 1985 and 1989 test the rule on 77 clusters) <a href="https://discovery.ucl.ac.uk/10207360/1/Space-Syntax.pdf">link</a></li></ol></details>
+    </section>
+    <section data-scene="automata" data-fig="automata">
+      <h2>Emergent computation · Cellular automata</h2>
+      <p class="lead">Settlements grow by rules applied again and again to what is already there, and the rows of cells that Stephen Wolfram studied show such rules in a minimal form.</p>
+      <p>A cell and its two neighbours give eight cases, each answered black or white, so there are 256 rules. Some settle into uniformity, some into a repeat, and some into apparent randomness or long-lived structures. Rule 30, started from a single black cell, produces a pattern that passes tests for randomness, and rule 110, by a proof Matthew Cook published in 2004, can compute anything a computer can. Each cell sees only its neighbourhood, yet the row as a whole processes information, and the written rule does not show whether it will. By analogy, the cells are neighbours in a town, and what they compute together is the town’s capacity to adapt.</p>
+      <details class="refs"><summary>References</summary><ol><li>Fukś, H., Solution of the density classification problem with two cellular automaton rules, Phys. Rev. E 55, 1997</li><li>Land, M. and Belew, R. K., No perfect two-state cellular automata for density classification exists, Phys. Rev. Lett. 74, 1995</li><li>Elementary cellular automaton <a href="https://en.wikipedia.org/wiki/Elementary_cellular_automaton">link</a></li></ol></details>
+    </section>
+    <section data-scene="subak" data-fig="subak">
+      <h2>Emergent computation · In towns · The subak: a watershed coordinated by neighbours</h2>
+      <p class="lead">On Bali, farmers who follow only their neighbours coordinate the water of a river system.</p>
+      <p>A subak is a group of rice farmers who share one water source, and the subaks are linked by a network of water temples that reaches up to Lake Batur. The canals and temples stay fixed, and each subak decides its own planting date. Planting together deprives pests of a host, while planting apart spreads the demand for water, and each subak can strike that balance only in relation to its neighbours. J. Stephen Lansing has studied Balinese irrigation since the 1970s. In his model of 2017, after each harvest every subak copies the planting schedule of whichever neighbour did best. No subak sees the whole watershed, and over successive harvests the yields approach the best for the whole of it.</p>
+      <p>From 1971 continuous planting was ordered instead, as part of the government’s drive to raise rice yields under the Green Revolution. By the late 1970s pests took a large part of the crop, and the order was revoked in 1988. Lansing reads the losses as the cost of replacing local adjustment with a single rule set from above, which removed the feedback between neighbours.</p>
+      <details class="refs"><summary>References</summary><ol><li>Lansing, J. S., Priests and Programmers, Princeton University Press, 1991; new edition 2007 <a href="https://archive.org/details/priestsprogramme0000lans">link</a></li><li>Lansing, J. S. and Kremer, J. N., Emergent properties of Balinese water temple networks, American Anthropologist 95, 97 (1993) <a href="https://doi.org/10.1525/aa.1993.95.1.02a00050">link</a></li><li>Lansing, J. S. et al., Adaptive self-organization of Bali’s ancient rice terraces, PNAS 114, 6504 (2017) <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5488911/">link</a></li><li>Subak (irrigation) <a href="https://en.wikipedia.org/wiki/Subak_(irrigation)">link</a></li></ol></details>
+    </section>
+    <section data-scene="solari" data-fig="solari">
+      <h2>Simple by design · Solari: row by row</h2>
+      <p class="lead">The split-flap departures board, made by the Italian firm Solari di Udine since the 1950s, is simple by design.</p>
+      <p>Each character sits on a drum of hinged flaps, and the drum turns until the right flap falls into view. A drum can do only this, yet a wall of the same drum, repeated, lists a station’s departures and changes them as the trains move. What the board says is decided by whatever drives it. The board demonstrates the power of a modular format of design. Simple parts, repeated, become a medium for information that emerges across the whole. On the Solari page the drums spell a word and then list departures.</p>
+    </section>
+    <section data-scene="loom" data-fig="loom">
+      <h2>Complexity programmed · The loom and the draft</h2>
+      <p class="lead">Cloth, too, is made row by row, the weft passing across a fixed warp.</p>
+      <p>The loom that Joseph Marie Jacquard built in 1804 read which threads to lift from a punched card, one card to a row, so that the design of a cloth was held as a chain of cards, and a weaver could alter a row by changing its card. The chain of cards is a programme made of simple parts. From it came cloth too complex to hold in mind, programmed on purpose more than a century before the electronic computer. The warp is laid once, and the card is chosen row by row. A town’s streets and plots are its warp, and the uses that pass through them its weft. Charles Babbage later took the punched card for his Analytical Engine, a design for a mechanical computer, and Ada Lovelace drew the comparison.</p>
+      <blockquote>We may say most aptly that the Analytical Engine weaves algebraical patterns just as the Jacquard-loom weaves flowers and leaves.<cite>Ada Lovelace, 1843</cite></blockquote>
+      <p>Anni Albers, trained in weaving at the Bauhaus, drafted her weaves first, writing the threading and the lifts on squared paper as rules she could revise before a thread was set. In her later prints she took up the triangle, and through the 1970s she filled a graph-paper notebook with such drawings. A grid square cut on its diagonal into two triangles is Truchet’s tile, and Albers chose hers square by square, judging the sheet as it accumulated.</p>
+      <details class="refs"><summary>References</summary><ol><li>Lovelace, A. A., Notes by the translator, in Menabrea, L. F., Sketch of the Analytical Engine, Scientific Memoirs 3, 1843 (note A: the engine “weaves algebraical patterns”) <a href="https://www.fourmilab.ch/babbage/sketch.html">link</a></li><li>Jacquard machine; the woven portrait of Jacquard, 1839 <a href="https://en.wikipedia.org/wiki/Jacquard_machine">link</a></li></ol></details>
+    </section>
+    <section data-scene="passacaglia" data-fig="passacaglia">
+      <h2>The toolkit of parts · Bach's Passacaglia</h2>
+      <p class="lead">Johann Sebastian Bach’s Passacaglia in C minor for organ shows how much variation a few small parts can yield.</p>
+      <p>A passacaglia is built on a ground, a short bass line repeated while the music above it varies. Bach’s ground has fifteen notes and is stated twenty-one times, mostly in the bass and for a stretch in the upper voices, and it holds the piece together. Over the statements, often two at a time, a new cell is explored in turn, a figure of four or five notes whose rhythm and shape are kept exact so that it can be repeated and combined. The cells are the toolkit. The piece works through what each can do on its own and what they can do together across four voices, each heard against the ground and against the cells before it. As an analogy, it shows how a modular system can be designed.</p>
+    </section>
+    <section data-scene="copenhagen" data-fig="copenhagen">
+      <h2>The toolkit of parts · In towns · Copenhagen: street by street</h2>
+      <p class="lead">Cities can also proceed one move at a time, each judged by what the last produced.</p>
+      <p>In 1962 Copenhagen closed Strøget, its main shopping street, to cars as a trial, against the fears of its shopkeepers, and went on street by street. From 1968 Jan Gehl counted the people walking and staying in the centre, and his counts were used to judge each step. The moves were few in kind and repeated: a street closed to cars, a car park made a square, two or three per cent of the parking removed each year, and chairs and benches added where people stayed. The area given to people on foot grew from 15,800 square metres in 1962 to nearly 100,000 by 1996, the number staying on a summer afternoon grew more than threefold, and in the same years eighteen squares that had been car parks were made over.</p>
+      <p>In 1970 the University of Oregon engaged Alexander’s group to replace its master plan with the same kind of process, yearly surveys and small projects, published as The Oregon Experiment (1975). The university’s plan still states that planning follows “a process rather than an established image of the campus”.</p>
+      <details class="refs"><summary>References</summary><ol><li>Jacobs, J., The Death and Life of Great American Cities, 1961; The Economy of Cities, 1969; The Nature of Economies, 2000</li><li>Gehl, J. and Gemzøe, L., Public Spaces, Public Life: Copenhagen 1996, Danish Architectural Press, 1996</li><li>Gehl, J., Gemzøe, L., Kirknæs, S. and Søndergaard, B. S., New City Life, Danish Architectural Press, 2006</li><li>Svarre, B., Gehl Architects, lecture, 2015 (the dates of each step; 22 squares) <a href="https://courses.washington.edu/gehlstud/gehl-studio/wp-content/uploads/documents/LarsGemzoe_Lecture_2015.pdf">link</a></li><li>Gehl, J. et al., How to revitalize a city, Project for Public Spaces <a href="https://www.pps.org/article/howtorevitalizeacity">link</a></li><li>Strøget; Gråbrødretorv <a href="https://en.wikipedia.org/wiki/Str%C3%B8get">link 1</a> <a href="https://en.wikipedia.org/wiki/Gr%C3%A5br%C3%B8dretorv">link 2</a></li></ol></details>
+    </section>
+    <section data-scene="newyork" data-fig="newyork">
+      <h2>The toolkit of parts · In towns · New York: the plaza kit</h2>
+      <p class="lead">New York worked from a kit of parts.</p>
+      <p>From 2008 the city’s transport department, under its commissioner Janette Sadik-Khan, took pieces of roadway back with what could be set out in a day, paint and gravel on the asphalt, planters, and movable chairs and tables, and counted what followed. On 24 May 2009 it closed Broadway through Times Square as a trial, with folding lawn chairs bought that week, and in February 2010, with injuries to pedestrians down by a third and three in four New Yorkers surveyed saying the square had improved, the closure was made permanent. The parts were few and cheap. The arrangement was tried on the ground and changed where the counts said so, and only what worked was built in stone. Dozens of plazas came from the same kit, each arranged for its own corner.</p>
+      <details class="refs"><summary>References</summary><ol><li>New York City Department of Transportation, Green Light for Midtown Evaluation Report, January 2010 (the injury and survey figures) <a href="https://www.nyc.gov/html/dot/downloads/pdf/broadway_report_final2010_web.pdf">link</a></li><li>New York City Department of Transportation, the NYC Plaza Program <a href="https://www.nyc.gov/html/dot/html/pedestrians/nyc-plaza-program.shtml">link</a></li><li>Sadik-Khan, J. and Solomonow, S., Streetfight: Handbook for an Urban Revolution, Viking, 2016</li></ol></details>
+    </section>
+    <section data-scene="fugue" data-fig="fugue">
+      <h2>The human in the loop · The fugue: voices co-evolving</h2>
+      <p class="lead">The fugue that follows the Passacaglia without a break is the more dynamic case.</p>
+      <p>A fugue takes a single theme, its subject, and passes it through the voices. Each voice enters with the subject in turn, the others continue with countersubjects that fit above or below, and the threads cross into figures shared between the voices. Here the subject is the first half of the ground, short enough for each voice to carry. The composer places each entry in view of what the other voices are doing. Bach could do this on the spot. At Hamburg in 1720 he improvised on a chorale for close to half an hour before the aged Reincken, and the G minor organ fugue, BWV 542, is thought to date from the same visit. At Potsdam in 1747 Frederick the Great gave him a theme, and he improvised a fugue on it, later written out in the Musical Offering. The fugue is both co-evolutionary and emergent. Its lines grow out of one another, and the figures they form arise from their combination. The composer guides that emergence entry by entry, with parts that are modular and iterable, a toolkit worked with a human in the loop. A designer can work in a similar way within a street, where shops, pedestrians, landlords, and residents compete and collaborate, and the character of the street grows out of their exchanges over time.</p>
+      <details class="refs"><summary>References</summary><ol><li>Wolff, C., Johann Sebastian Bach: The Learned Musician, 2000, pp. 97 to 98 (the permutation fugue: subject and two countersubjects never in the same voices twice) <a href="https://en.wikipedia.org/wiki/Passacaglia_and_Fugue_in_C_minor,_BWV_582">link</a></li><li>Kemmelmeyer, K.-J., J. S. Bach, Passacaglia BWV 582, Registerwahl, 2015 (both countersubjects drawn from the ground’s second half; fugue bar 1 = the Passacaglia’s last bar) <a href="http://www.prof-kemmelmeyer.de/docs/JSBach-Passacaglia-BWV582-Registerwahl-KJK-2015-V2.pdf">link</a></li><li>Passacaglia und Fuge c-Moll BWV 582 (twelve entries of the subject) <a href="https://de.wikipedia.org/wiki/Passacaglia_und_Fuge_c-Moll_BWV_582">link</a></li><li>bachs-orgelwerke.de on BWV 582 (E flat at m. 30, the pedal in G minor at m. 53, the Neapolitan at m. 119) <a href="https://www.bachs-orgelwerke.de/index.php/werkverzeichnis/61-bwv582">link</a></li><li>The New Bach Reader, 1998, no. 306, the Obituary of 1754 (Hamburg, 1720: An Wasserflüssen Babylon improvised for almost half an hour before Reincken; Potsdam, 1747: the royal theme, improvised on and then written out as the Musical Offering); Wolff, C., The Learned Musician, 2000, ch. 7 (BWV 542 and the Hamburg visit) <a href="https://en.wikipedia.org/wiki/Fantasia_and_Fugue_in_G_minor,_BWV_542">link</a></li><li>Hein, E., Bach’s Passacaglia and Fugue in C minor, 2021 (the subject treated like a cantus firmus) <a href="https://www.ethanhein.com/wp/2021/bachs-passacaglia-and-fugue-in-c-minor/">link</a></li><li>Giraud, M., Groult, R., Leguy, E. and Levé, F., Computational fugue analysis, Computer Music Journal 39(2), 77 to 96, 2015 (the themes and every statement of them in the fugues of WTC I on the fugue page; the corpus under the Open Database License) <a href="https://doi.org/10.1162/COMJ_a_00300">link</a></li><li>Rother, K. (ed.), J. S. Bach, The Well-Tempered Clavier, Book I, University of Cape Town, 2015, after the Bach-Gesellschaft edition (the notes of the WTC I fugues on the fugue page; CC BY 4.0) <a href="http://hdl.handle.net/11427/13106">link</a></li></ol></details>
+    </section>
+    <section data-scene="barcelona" data-fig="barcelona">
+      <h2>The human in the loop · In towns · Barcelona: the superblock</h2>
+      <p class="lead">In Barcelona the first superblock of the 2016 programme, on Salvador Rueda’s model, closed nine blocks in Poblenou to through traffic.</p>
+      <p>It was laid out almost overnight and met a petition of some two thousand signatures. It was made from a kit: paint on the carriageway, planters, benches, picnic tables, and play equipment, set on the asphalt and cheap enough to move. The city formed a steering group with the objectors, let a bus route through, and rearranged the kit, and only when the layout had settled were the trees planted and the streets rebuilt. Later superblocks were planned with residents from the start, each combining the same parts in its own way.</p>
+      <p>What stands now was settled in exchanges with the people it touched: residents who objected, shopkeepers who feared for their trade, the bus operator whose route had been cut, and the city, each acting on what the others had just done. The designers decided each change in view of them. Critics have since pointed to rising rents inside some superblocks.</p>
+      <details class="refs"><summary>References</summary><ol><li>Iturralde, Superblocks in Barcelona, TuneOurBlock case study, 2021 (Poblenou, Sant Antoni, Horta) <a href="https://www.tuneourblock.eu/wp-content/uploads/2024/09/TuneOurBlock_WP02_case-study_Superblocks-in-Barcelona.pdf">link</a></li><li>Poblenou’s superblock, PublicSpace (the traffic and noise figures) <a href="https://www.publicspace.org/works/-/project/k081-poblenou-s-superblock">link</a></li><li>Mueller, N. et al., Changing the urban design of cities for health: the superblock model, Environment International 134, 105132 (2020) <a href="https://www.isglobal.org/en/-/el-proyecto-original-de-las-supermanzanas-podria-evitar-cerca-de-700-muertes-prematuras-anuales-en-barcelona">link</a></li><li>León-Gómez et al., BMC Public Health, 2025 (Sant Antoni and Horta evaluated) <a href="https://idiapjgol.org/en/noticia/barcelonas-superblocks-improve-quality-of-life-and-environmental-health/">link</a></li><li>Dezeen, Barcelona’s Eixample plan, 19 November 2020 <a href="https://www.dezeen.com/2020/11/19/barcelona-eixample-masterplan-streets-green-space/">link</a></li><li>the court rulings on Consell de Cent, 2023 and 2025; the new mayor’s plan <a href="https://www.ara.cat/societat/barcelona/jutjat-ordena-desfer-l-eix-verd-consell-cent_1_4795063.html">link 1</a> <a href="https://www.vilaweb.cat/noticies/tsjc-sentencia-eix-verd-consell-de-cent/">link 2</a> <a href="https://beteve.cat/politica/que-mantindra-collboni-llegat-urbanistic-colau/">link 3</a></li></ol></details>
+    </section>
+    <section data-scene="game" data-fig="game">
+      <h2>The human in the loop · The game</h2>
+      <p class="lead">In the cases above a framework held while its parts were laid, turned, or rewritten within it, and in the towns someone read what each step produced before taking the next.</p>
+      <p>The game puts the reader in that position. It sets two streets in competition for one pool of households, for visitors from outside, and for through traffic. Each street is a loop of eight blocks, programmed in the manner of a Jacquard loom, and the reader chooses each move against what the earlier ones have produced.</p>
     </section>
   </div>
 
   <div class="hold">
     <div class="board" id="board">
-    <div class="stage" id="stage" data-panel="wheel"><div class="main">
-      <div><svg id="wheel" viewBox="0 0 700 700" role="img" aria-label="The wheel: the ground and the twenty variations round the face in the order they play, the current one at the top; inside, the ground ring and this lap's voices turning under the marker"></svg></div>
-      <div><svg id="bands" viewBox="0 -76 800 700" role="img" aria-label="The block, the measures and the individual voices"></svg></div>
-    </div></div>
+      <figure data-for="open"><svg class="wall" id="wall" role="img" aria-label="Girih lines grown from one decagon"></svg><div class="wall-count" id="wall-count" aria-hidden="true"></div><figcaption class="wall-caption"><span class="on">A wall of girih tiles, the five shapes laid out from one decagon at the centre. After Lu and Steinhardt, 2007.</span><span>Variations on girih tiling, showing how a set of simple, modular patterns can respond and adapt to local change while remaining an integral part of a larger, more complex fabric.</span></figcaption></figure>
+      <figure data-for="static"><div class="plates"><div><img src="images/overview/static-axis.webp" alt="The Monumental Axis of Brasília, laid out to Lúcio Costa&#x27;s plan of 1957, photographed in 2015." width="960" height="720" decoding="async" loading="lazy"><p>The Monumental Axis of Brasília, laid out to Lúcio Costa's plan of 1957, photographed in 2015.<a href="https://commons.wikimedia.org/wiki/File:Fotos_produzidas_pelo_Senado_(23427572015).jpg">Ana Volpe, Agência Senado. CC BY 2.0. Cropped and toned.</a></p></div><div><img src="images/overview/static-interchange.webp" alt="The interchange of the San Diego and Santa Monica freeways, Los Angeles, August 1964." width="960" height="720" decoding="async" loading="lazy"><p>The interchange of the San Diego and Santa Monica freeways, Los Angeles, August 1964.<a href="https://commons.wikimedia.org/wiki/File:San_Diego-Santa_Monica_Freeway_interchange.jpg">Los Angeles Times, UCLA Library. CC BY 4.0. Cropped and toned.</a></p></div><div><img src="images/overview/static-blocks.webp" alt="The Pruitt–Igoe housing complex, St Louis, photographed between 1963 and 1972." width="960" height="720" decoding="async" loading="lazy"><p>The Pruitt–Igoe housing complex, St Louis, photographed between 1963 and 1972.<a href="https://commons.wikimedia.org/wiki/File:Pruitt-igoeUSGS02.jpg">US Geological Survey. Public domain.</a></p></div><div><img src="images/overview/static-cityhall.webp" alt="Boston City Hall (dedicated in 1969) and its plaza, photographed in 2019. The Government Center it belongs to replaced more than 50 acres of the Scollay Square district." width="960" height="720" decoding="async" loading="lazy"><p>Boston City Hall (dedicated in 1969) and its plaza, photographed in 2019. The Government Center it belongs to replaced more than 50 acres of the Scollay Square district.<a href="https://commons.wikimedia.org/wiki/File:Boston_City_Hall_Plaza_2019_P1020783.jpg">NewtonCourt. CC BY-SA 4.0. Cropped and toned.</a></p></div></div></figure>
+      <figure data-for="alexander" class="drawn"><svg class="lattice-patch" role="img" aria-label="A tree and a web of overlapping groups, drawn on the same six parts; in both a group forms or dissolves every few seconds, the left kept a tree and the right free to overlap, the web filling to all fifty-seven subsets while the tree fills at five, and under each a count of the subsets it holds of the most its kind can hold"></svg><figcaption>Left, a tree: each group of parts sits wholly inside one larger group, as in Alexander’s “artificial cities”, laid out for visual order or engineered as systems. Right, a semilattice: groups overlap, so one part can belong to several, as in his “natural cities”, grown over time. Alexander noted that on twenty parts a tree allows at most nineteen groupings, and a semilattice more than a million. After Christopher Alexander, A City Is Not a Tree, 1965, redrawn.</figcaption></figure>
+      <figure data-for="mind" class="drawn"><svg class="dots" viewBox="0 0 320 60" role="img" aria-label="Four dots"><circle cx="40" cy="30" r="11"/><circle cx="120" cy="30" r="11"/><circle cx="200" cy="30" r="11"/><circle cx="280" cy="30" r="11"/></svg><figcaption>Four: what the mind holds at once (Cowan, 2001). </figcaption></figure>
+      <figure data-for="pace" class="drawn anim towns"><canvas id="pace" role="img" aria-label="Three discs side by side, towns on the same ground with the same food, labelled exploration bias, balanced, and consolidation bias. Red dots are agents wandering, black is road, and the harvest stands under each town with a tape of it over the last two minutes."></canvas><figcaption>In a complex system, layers that change at different rates can learn from each other. The fast layers try things and find what is there. The slow layers keep what works and make it cheap to use. The slow layers in turn are tested by the fast. Lean too far to the fast and nothing is kept. Lean too far to the slow and nothing new is found. Three towns run that trade on the same ground, with food that comes and goes: one leans to exploring, one excessively consolidates, and one keeps the balance. Red is the agents wandering, black is road, and the harvest under each town is what it has brought home, less what it has spent. After Tero and colleagues, Science, 2010.</figcaption></figure>
+      <figure data-for="science" class="drawn anim tall"><canvas id="ca" role="img" aria-label="Rule 110 run live from one cell: the eight cases of the rule above, the run row by row, and the newest row as ones and zeros"></canvas><figcaption>Rule 110, after Stephen Wolfram, A New Kind of Science, 2002.</figcaption></figure>
+      <figure data-for="emergence" class="drawn anim trio"><canvas id="weaver" role="img" aria-label="Warren Weaver&#x27;s three kinds of problem: simplicity, two balls on a table; disorganised complexity, many moving at random; organised complexity, a structure growing by accretion"></canvas><figcaption>After Warren Weaver, Science and Complexity, 1948. <a href="https://www.youtube.com/watch?v=BZUQQmcR5-g">Watch the slime mould lay out the Tokyo rail network (Tero et al., Science, 2010).</a></figcaption></figure>
+      <figure data-for="cases"><div class="sheet"><a href="truchet.html"><img src="images/overview/truchet-s.webp" alt="" width="480" height="480">Truchet</a><a href="girih.html"><img src="images/overview/girih-s.webp" alt="" width="480" height="480">Girih</a><a href="penrose.html"><img src="images/overview/penrose-s.webp" alt="" width="480" height="480">Penrose</a><a href="automata.html"><img src="images/overview/automata-s.webp" alt="" width="480" height="480">Automata</a><a href="solari.html"><img src="images/overview/solari-s.webp" alt="" width="480" height="480">Solari</a><a href="jacquard.html"><img src="images/overview/jacquard-s.webp" alt="" width="480" height="480">Jacquard</a><a href="passacaglia.html"><img src="images/overview/passacaglia-s.webp" alt="" width="480" height="480">Passacaglia</a><a href="fugue.html"><img src="images/overview/fugue-s.webp" alt="" width="480" height="480">Fugue</a></div></figure>
+      <figure data-for="truchet" class="drawn"><svg class="truchet-patch" role="img" aria-label="A board of 144 Truchet tiles, each turning on its own between ordered, symmetrical, and chaotic designs"></svg><figcaption>A board of 144 Truchet tiles. Each turns on its own, and the design above them changes with every turn.</figcaption><figcaption class="explore"><a href="truchet.html">Explore Truchet</a></figcaption></figure>
+      <figure data-for="medina"><div class="plates"><div><img src="images/overview/town-medina.webp" alt="The medina of Tunis from the air, 1932." width="960" height="720" decoding="async" loading="lazy"><p>The medina of Tunis from the air, 1932.<a href="https://commons.wikimedia.org/wiki/File:ETH-BIB-Blick_%C3%BCber_Tunis-Nordafrikaflug_1932-LBS_MH02-13-0040.tif">Walter Mittelholzer, ETH-Bibliothek Zürich. Public domain. Cropped and toned.</a></p></div><div><img src="images/overview/town-medina-plan.webp" alt="The medina on Henri Le François’s plan of 1893, with the first streets of the European quarter on a grid at its foot." width="960" height="720" decoding="async" loading="lazy"><p>The medina on Henri Le François’s plan of 1893, with the first streets of the European quarter on a grid at its foot.<a href="https://commons.wikimedia.org/wiki/File:TUNIS_1893,_PLAN_DE_VILLE.jpg">Guide-annuaire tunisien, 1893, British Library. Public domain. Cropped and toned.</a></p></div></div></figure>
+      <figure data-for="girih" class="drawn"><svg class="girih-patch" role="img" aria-label="A few girih tiles laid one at a time, taken up, and laid again, their lines meeting at every edge"></svg><figcaption>Girih tiles laid one at a time, taken up, and laid again. At every join the corners close and the lines run on.</figcaption><figcaption class="explore"><a href="girih.html">Explore Girih</a></figcaption></figure>
+      <figure data-for="savannah" class="photo"><img src="images/overview/town-savannah.webp" alt="Savannah in 1734, its first wards cut from the forest above the river" width="960" height="720" decoding="async" loading="lazy"><figcaption>A view of Savannah as it stood the 29th of March 1734. <a href="https://commons.wikimedia.org/wiki/File:A_view_of_Savannah_as_it_stood_the_29th_of_March_1734._LOC_97683565.jpg">Peter Gordon, engraved by Pierre Fourdrinier, Library of Congress. Public domain. Toned.</a></figcaption></figure>
+      <figure data-for="penrose" class="drawn"><svg class="penrose-patch" role="img" aria-label="A Penrose tiling laid by the rule a tile at a time from one seed, held, then divided, every tile into smaller ones, and laid again from a new seed"></svg><figcaption>A Penrose tiling laid by the rule, a tile at a time from one seed, then divided, every tile into smaller ones by the same rule, and laid again.</figcaption><figcaption class="explore"><a href="penrose.html">Explore Penrose</a></figcaption></figure>
+      <figure data-for="beadyring" class="drawn anim square"><canvas id="beady" role="img" aria-label="A beady ring growing live: houses added at random, each with a doorstep touching another, the doorsteps joining into one open space"></canvas><figcaption>After Bill Hillier and Julienne Hanson, The Social Logic of Space, 1984.</figcaption></figure>
+      <figure data-for="automata" class="drawn anim tall"><canvas id="automata-run" role="img" aria-label="Three cellular automata run live, each from its seed row: rule 30 from one cell, rule 110 from one cell, and rule 184 from a random row, as traffic"></canvas><figcaption>Rule 30 and rule 110 run from one cell, and rule 184 from a random row, as traffic. After Stephen Wolfram, A New Kind of Science, 2002.</figcaption><figcaption class="explore"><a href="automata.html">Explore Automata</a></figcaption></figure>
+      <figure data-for="subak" class="photo"><img src="images/overview/town-subak.webp" alt="The rice terraces of Jatiluwih, Bali" width="960" height="720" decoding="async" loading="lazy"><figcaption>The rice terraces of Jatiluwih, Bali, 2018. <a href="https://commons.wikimedia.org/wiki/File:Bali-_Jatiluwih_rice_terraces_-_50281829456.jpg">Jorge Franganillo. CC BY 2.0. Cropped and toned.</a></figcaption></figure>
+      <figure data-for="solari" class="drawn"><svg class="solari-patch" role="img" aria-label="A split-flap board reciting a line at a time, each new line arriving on the bottom row and the rows above moving up, the drums flipping where their letters change"></svg><figcaption>A board of split-flap drums reciting, a line at a time, from Blake, Heraclitus, and Whitman.</figcaption><figcaption class="explore"><a href="solari.html">Explore Solari</a></figcaption></figure>
+      <figure data-for="loom" class="drawn"><svg class="loom-patch" role="img" aria-label="A chain of six punched cards and the cloth they weave across fourteen warp threads, a row at a time; a hole punched or filled on a card changes the cloth from the next row that card weaves"></svg><figcaption>A chain of cards and the cloth they weave, row by row across a fixed warp. A hole punched or filled on one card changes the cloth from the next row that card weaves.</figcaption><figcaption class="explore"><a href="jacquard.html">Explore Jacquard</a></figcaption></figure>
+      <figure data-for="passacaglia"><a href="passacaglia.html" tabindex="-1"><div class="frames"><img class="frame now" src="images/overview/passacaglia-loop.webp" alt="The Passacaglia&#x27;s wheel turned through the ground and the twenty variations, one a second: each variation&#x27;s cell on the rim, and its voices inside the disc" width="504" height="620" decoding="async" loading="lazy"></div></a><figcaption>The ground and the twenty variations, one a second. Each variation’s cell stands on the rim, and its voices turn inside the disc over the ground ring.</figcaption><figcaption class="explore"><a href="passacaglia.html">Explore the Passacaglia</a></figcaption></figure>
+      <figure data-for="copenhagen" class="photo"><img src="images/overview/town-stroget.webp" alt="Amagertorv on Strøget, Copenhagen, full of people on foot" width="960" height="720" decoding="async" loading="lazy"><figcaption>Amagertorv, on Strøget, Copenhagen, 2007. <a href="https://commons.wikimedia.org/wiki/File:Str%C3%B8get,_Copenhagen.jpg">Olga Itenberg. CC BY 2.0. Cropped and toned.</a></figcaption></figure>
+      <figure data-for="newyork" class="photo"><img src="images/overview/town-timessquare.webp" alt="Times Square at night in February 2010, with a movable table and chair of the plaza kit on the gravel surface in the foreground, planters, and the closed roadway behind" width="960" height="720" decoding="async" loading="lazy"><figcaption>Times Square in February 2010, the plaza kit on Broadway: a movable table and chairs on the gravel, planters, and the closed roadway. <a href="https://commons.wikimedia.org/wiki/File:Time_Square_red_table_2010.jpg">Jérôme. CC BY-SA 3.0. Cropped and toned.</a></figcaption></figure>
+      <figure data-for="fugue"><a href="fugue.html" tabindex="-1"><div class="frames"><img class="frame now" src="images/overview/fugue-loop.webp" alt="The fugue&#x27;s wheel turning once through the whole fugue, the subject in ink and the countersubjects in blue and green on the outer ring, and the harmony on the dial at the hub" width="800" height="800" decoding="async" loading="lazy"></div></a><figcaption>The whole fugue once round, compressed. The subject in ink and the countersubjects in blue and green stand on the outer ring, and the hub shows the harmony of the moment.</figcaption><figcaption class="explore"><a href="fugue.html">Explore the Fugue</a></figcaption></figure>
+      <figure data-for="barcelona" class="photo"><img src="images/overview/town-poblenou.webp" alt="Carrer dels Almogàvers in the Poblenou superblock in its first winter, potted trees in painted circles on the carriageway and a bicycle lane painted beside them" width="960" height="720" decoding="async" loading="lazy"><figcaption>Carrer dels Almogàvers in the Poblenou superblock, January 2017, in its first winter: the kit of paint and planters on the carriageway. <a href="https://commons.wikimedia.org/wiki/File:Superilla_Poblenou_-_Carrer_Almog%C3%A0vers.jpg">Toniher. CC BY-SA 3.0. Cropped and toned.</a></figcaption></figure>
+      <figure data-for="game" class="crisp"><div class="frames"><img class="frame now" src="images/overview/game.webp" alt="The street loom: two streets woven tick by tick" width="2784" height="1298" decoding="async" loading="lazy"></div><figcaption class="explore note">The game is a work in progress. It will be linked here when it is ready.</figcaption></figure>
     </div>
-    <div class="tools" id="tools" hidden><div class="grp" id="g-play"><div class="controls" id="controls"><label class="tempo"><input type="range" id="tempo" min="60" max="108" value="84" aria-label="tempo"><output id="tempo-out">♩ = 84</output></label><span class="pair"><button id="chime" class="sc dot on">Chime</button><button id="glass" class="sc dot">Glass</button></span></div></div></div>
   </div>
 </main>
-<div class="page scroll-end" id="full">
-  <p class="back corner"><a href="overview.html#scene=passacaglia">Back to the overview</a></p>
-  <div id="full-main"></div>
-  <div class="bar" id="full-bar"></div>
-</div>
-<section class="scroll-end" id="renditions" data-scene="renditions">
-  <h2>Performances</h2>
-  <p>Example performances of the Passacaglia.</p>
-  <div class="cards" id="cards"></div>
-  <p class="credit">Score: J. S. Bach, Passacaglia and Fugue in C minor, BWV 582, Mutopia Project 741, typeset after the C. F. Peters edition, public domain, <a href="https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=741">https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=741</a>.</p>
-</section>
+<footer class="foot">Copyright Gareth Simons, 2026. The pictures are credited where they appear, and the live models are drawn for this page. <a href="#top">Back to the top</a></footer>
 <script src="scroll.js?v=a047a0cb"></script>
 <script>
-// the data files are fetched fresh each time the page opens, so a rebuilt file is never
-// shadowed by a cached one
-(() => {
-  const stamp = Date.now();
-  const load = src => new Promise((ok, fail) => { const s = document.createElement("script"); s.src = src + "?v=" + stamp; s.onload = ok; s.onerror = fail; document.head.appendChild(s); });
-  window.ready = load("data.js").then(() => load("clips.js"));
-})();
+"use strict";
+// each passage names the picture it shows, its own or an earlier one's, or none
+const figs = [...document.querySelectorAll(".board figure")], secs = [...document.querySelectorAll(".story section")];
+let scene = null;
+function enter(name) {
+  if (name === scene) return;
+  scene = name;
+  let fig = "";
+  for (const s of secs) { const here = s.dataset.scene === name; s.classList.toggle("on", here); if (here) fig = s.dataset.fig; }
+  for (const f of figs) f.classList.toggle("on", f.dataset.for === fig);
+}
+// the passage whose text is nearest the middle of the window is the one in view, scrolling down or back up. A passage's
+// text can sit at the foot of its section, so it is the text that is measured, not the section
+let still = false;
+function pick() {
+  if (still) return;
+  const mid = innerHeight / 2;
+  let best = null, gap = Infinity;
+  for (const s of secs) {
+    const a = s.firstElementChild, b = s.lastElementChild;
+    if (!a) continue;
+    const top = a.getBoundingClientRect().top, bottom = b.getBoundingClientRect().bottom;
+    const d = mid < top ? top - mid : mid > bottom ? mid - bottom : 0;
+    if (d < gap) { gap = d; best = s; }
+  }
+  if (best) enter(best.dataset.scene);
+}
+let ticking = false;
+addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(() => { ticking = false; pick(); }); } }, { passive: true });
+addEventListener("resize", pick);
+// a hash may open the page at a passage, #scene=girih; with &still that passage is shown alone, for checking it
+const want = (location.hash.match(/scene=(\w+)/) || [])[1], first = secs.some(s => s.dataset.scene === want) ? want : secs[0].dataset.scene;
+if (/still/.test(location.hash)) { still = true; for (const s of secs) s.hidden = s.dataset.scene !== first; }
+else if (first !== secs[0].dataset.scene) document.querySelector(`.story section[data-scene="${first}"]`).firstElementChild.scrollIntoView({ behavior: "instant", block: "start" });
+// a picture with several frames shows them in turn while it is in view
+for (const f of figs) {
+  const frames = [...f.querySelectorAll("img.frame")];
+  if (frames.length < 2) continue;
+  let k = 0;
+  let rest = false;
+  f.addEventListener("mouseenter", () => rest = true); f.addEventListener("mouseleave", () => rest = false);
+  f.addEventListener("focusin", () => rest = true); f.addEventListener("focusout", () => rest = false);
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) continue;
+  setInterval(() => { if (rest || !f.classList.contains("on") || document.hidden) return; frames[k].classList.remove("now"); k = (k + 1) % frames.length; frames[k].classList.add("now"); }, 2800);
+}
+enter(first);
 </script>
-<script>
-window.ready.then(() => {
-  const D = window.PASSACAGLIA, LAPS = D.laps, CYCLE = D.cycle, LEAD = D.lead, S = D.synth;
-  const HUE = ["#2b6f9e", "#3f7d4e", "#7b4a1e", "#8a5a6e", "#1c1a17", "#e01b24"];   // baritone is muted, so that the emergent red is the one bold colour
-  const NAMES = ["soprano", "alto", "tenor", "baritone", "ground", "emergent"];
-  const INK = "#1c1a17", RELAY = "#e01b24", WARM = "#d98c3a", PAPER = "#f6f0dc", LINE = "#cfc7ad", MUTED = "#6f6a60", GREY = "#9b968e", MIRROR = GREY;
-  const LO = 34, HI = 94, BAR = 3, HOLD = 1.0, EPS = 1e-6;
-  const SVG = "http://www.w3.org/2000/svg";
-  const $ = id => document.getElementById(id);
-
-  // ---------------------------------------------------------------- state
-  const order = Array.from({ length: 20 }, (_, i) => i + 1);   // the variations, in the score's order
-  const plan = () => [0, ...order];                              // the ground first, always
-  let pos = { i: 0, t: 0 };            // where we are: index into the plan, quarters into the lap
-  let playing = false, sound = "chime";  // chime or glass; the horn stays in the code, off the page
-  const loop = false;                    // as does the loop
-  const on = [true, true, true, true, true, true];    // the five voices, and emergent, shown from the start
-  let iso = null;                                    // the one row isolated, if any; 5 is emergent
-  let once = null;                                   // a single lap being played from a tap: { j, filter }
-  let shown = -1;                      // the plan index the views are built for
-
-  // ---------------------------------------------------------------- drawing helpers
-  function el(tag, attrs, parent) {
-    const e = document.createElementNS(SVG, tag);
-    for (const k in attrs) if (attrs[k] !== undefined && attrs[k] !== null) e.setAttribute(k, attrs[k]);
-    if (parent) parent.appendChild(e);
-    return e;
-  }
-  function text(parent, x, y, s, attrs = {}) {
-    const t = el("text", { x, y, ...attrs }, parent);
-    t.textContent = s;
-    return t;
-  }
-  // the emergent classes go on the block's notes only; the wheel and the lanes draw every
-  // note as its voice's own
-  function noteClass(n, extra = "", em = false) {
-    return `n v${n.v} ${n.cell ? "cell" : ""} ${em && n.em ? "em em-" + n.em : ""} ${n.lead ? "lead" : ""} ${extra}`.replace(/\s+/g, " ").trim();
-  }
-  // a cell drawn small in a box: level lines held, dots struck, in one colour
-  function glyph(parent, cell, x, y, w, h, color, lw, r, outline, risers = true) {
-    if (!cell.length) return;
-    const span = Math.max(...cell.map(n => n.t + n.d)) - cell[0].t;
-    const lo = Math.min(...cell.map(n => n.m)), hi = Math.max(...cell.map(n => n.m));
-    const sx = w / Math.max(span, 1), sy = Math.min(h / Math.max(hi - lo, 1), h / 6);
-    const gy = y + h / 2 + (hi - lo) * sy / 2;
-    let prev = null;
-    for (const n of cell) {
-      const x0 = x + (n.t - cell[0].t) * sx, x1 = x + (n.t + n.d - cell[0].t) * sx, yy = gy - (n.m - lo) * sy;
-      if (prev && risers) el("line", { x1: x0, y1: gy - (prev.m - lo) * sy, x2: x0, y2: yy, stroke: outline || color, "stroke-width": .8, opacity: .7 }, parent);
-      if (n.d >= HOLD - EPS) {
-        if (outline) el("line", { x1: x0, y1: yy, x2: x1 - 2, y2: yy, stroke: outline, "stroke-width": lw + 2.6 }, parent);
-        el("line", { x1: x0, y1: yy, x2: x1 - 2, y2: yy, stroke: color, "stroke-width": lw, class: "gl" }, parent);
-      } else {
-        if (outline) el("circle", { cx: x0 + r, cy: yy, r: r + 1.3, fill: outline }, parent);
-        el("circle", { cx: x0 + r, cy: yy, r, fill: color, class: "gl" }, parent);
-      }
-      prev = n;
-    }
-  }
-
-  // ---------------------------------------------------------------- the wheel
-  const R = 300, C = 350;             // the disc's radius, and the centre of the face
-  const ang = t => 2 * Math.PI * t / CYCLE - Math.PI / 2;
-  const pol = (t, r) => [C + r * Math.cos(ang(t)), C + r * Math.sin(ang(t))];
-  const rad = m => 128 + (m - LO) / (HI - LO) * 150;
-  function arcPath(t0, t1, r) {
-    const [x0, y0] = pol(t0, r), [x1, y1] = pol(t1, r);
-    return `M${x0.toFixed(1)},${y0.toFixed(1)} A${r},${r} 0 ${(t1 - t0) > CYCLE / 2 ? 1 : 0} 1 ${x1.toFixed(1)},${y1.toFixed(1)}`;
-  }
-  let disc = null, wheelNotes = [], face = null, band = null, hub = null;
-
-  // ---------------------------------------------------------------- the face: the laps round the rim
-  const SLOT = CYCLE / 21;             // one slot of the face, in the disc's own units of angle
-  function buildBand() {
-    // the band is built once per order and kept, so that it can tick from lap to lap
-    const svg = $("wheel");
-    if (band) band.remove();
-    band = el("g", { id: "band" }, svg);
-    svg.insertBefore(band, svg.firstChild);
-    const p = plan();
-    p.forEach((k, i) => {
-      const lap = LAPS[k];
-      const slot = el("g", { class: "slot", "data-i": i, "data-k": k, tabindex: 0, role: "button",
-                             "aria-label": (k ? "variation " + lap.roman : "the ground") + ", position " + (i + 1),
-                             transform: `rotate(${(i * 360 / 21).toFixed(3)} ${C} ${C})` }, band);
-      // the bar, centred on the slot, and the red arc that grows across it while the lap plays
-      // the bar, centred on the slot
-      el("path", { d: arcPath(-SLOT / 2 + .08, SLOT / 2 - .08, 294), fill: "none", stroke: LINE, "stroke-width": 2, class: "bar" }, slot);
-      // the cell, upright at the top of the face and turned with its slot, on a capsule that
-      // is dark while it plays and grey once it has
-      const gw = 62, gh = 22, gx = C - gw / 2, gy = C - 341;
-      // a wedge behind the cell: an arc at the bar, two radial sides, an arc at the rim
-      const wa0 = -SLOT / 2 + .05, wa1 = SLOT / 2 - .05, wro = 348, wri = 299;
-      const [wxa, wya] = pol(wa0, wro), [wxb, wyb] = pol(wa1, wro), [wxc, wyc] = pol(wa1, wri), [wxd, wyd] = pol(wa0, wri);
-      el("path", { d: `M${wxa},${wya} A${wro},${wro} 0 0 1 ${wxb},${wyb} L${wxc},${wyc} A${wri},${wri} 0 0 0 ${wxd},${wyd} Z`, fill: "none", class: "glyphbox" }, slot);
-      if (k === 0) {
-        const glo = Math.min(...D.theme.map(n => n.m)), ghi = Math.max(...D.theme.map(n => n.m));
-        const gsx = gw / CYCLE, gsy = (gh - 4) / (ghi - glo);
-        for (const n of D.theme) el("line", { x1: gx + n.t * gsx, y1: gy + gh - 2 - (n.m - glo) * gsy, x2: gx + (n.t + n.d) * gsx - .6, y2: gy + gh - 2 - (n.m - glo) * gsy, stroke: INK, "stroke-width": 1.6, class: "gl" }, slot);
-      } else {
-        glyph(slot, lap.cell, gx, gy, gw, gh, lap.cellVoice < 0 ? INK : HUE[lap.cellVoice], 1.8, 1.5, null, false);
-      }
-      // the numeral at the base of the wedge, just above the bar
-      text(slot, C, C - 306, k ? lap.roman : "ground", { "font-size": 9, "text-anchor": "middle", "dominant-baseline": "central", fill: MUTED, "letter-spacing": .5, class: "num" });
-      // the hit area: a wedge of the face, centred on the slot
-      const a0 = -SLOT / 2, a1 = SLOT / 2, ro = 348, ri = 298;
-      const [xa, ya] = pol(a0, ro), [xb, yb] = pol(a1, ro), [xc, yc] = pol(a1, ri), [xd, yd] = pol(a0, ri);
-      el("path", { d: `M${xa},${ya} A${ro},${ro} 0 0 1 ${xb},${yb} L${xc},${yc} A${ri},${ri} 0 0 0 ${xd},${yd} Z`, class: "hit" }, slot);
-    });
-    paintBand(true);
-  }
-  function paintBand(turned) {
-    if (!band) return;
-    if (turned) band.querySelectorAll(".slot").forEach((slot, i) => {
-      const bar = slot.querySelector(".bar"), box = slot.querySelector(".glyphbox"), num = slot.querySelector(".num");
-      const cur = i === pos.i, done = i < pos.i;
-      bar.setAttribute("stroke", cur ? INK : done ? INK : LINE);      // the current bar merges into its wedge
-      bar.setAttribute("stroke-width", cur ? 3 : done ? 2.4 : 2);
-      box.setAttribute("fill", cur ? INK : done ? "url(#hatch)" : "none");
-      num.setAttribute("fill", cur ? PAPER : done ? INK : MUTED);
-      slot.classList.toggle("cur", cur);
-    });
-    // the band turns one slot a lap: the current wedge's leading edge meets the north line
-    // as the lap begins and its trailing edge as the lap ends. The angle follows the
-    // position directly, so a jump forward turns forward by the whole distance and a jump
-    // back turns back, whichever way is shorter
-    const f = Math.max(-LEAD / CYCLE, Math.min(1, pos.t / CYCLE));
-    bandAngle = -(pos.i + f) * 360 / 21 + 360 / 42;
-    band.style.transform = `rotate(${bandAngle.toFixed(3)}deg)`;
-  }
-  let bandAngle = 0, discAngle = 0, jumpDir = 0;
-  function nearest(from, to) {
-    // the angle equivalent to `to` that lies closest to `from`
-    let d = ((to - from) % 360 + 540) % 360 - 180;
-    return from + d;
-  }
-  function onward(from, to, dir) {
-    // the angle equivalent to `to` reached from `from` by turning in direction dir, within
-    // one revolution: forward is the way the disc turns in play, which is negative here
-    let d = ((to - from) % 360 + 360) % 360;          // 0 to 360, turning positive
-    if (dir < 0) d -= 360;
-    return from + d;
-  }
-  // tap a slot of the face to jump there; the hub plays and pauses
-  $("wheel").addEventListener("click", e => {
-    const slot = e.target.closest(".slot");
-    if (slot) { const j = Number(slot.dataset.i); if (playing) jumpTo(j); else playLap(j, j === 0 ? null : ev => ev.cell); return; }
-    if (e.target.closest("#hub")) playing ? stop() : play();
-  });
-  $("wheel").addEventListener("keydown", e => {
-    if (e.key !== "Enter" && e.key !== " ") return;
-    const slot = e.target.closest(".slot");
-    if (slot) { e.preventDefault(); jumpTo(Number(slot.dataset.i)); return; }
-    if (e.target.closest("#hub")) { e.preventDefault(); playing ? stop() : play(); }
-  });
-
-  // the wheel is built once: the disc that turns, with its spokes, its bar numbers and the
-  // ground ring; the hub; the north line. Each lap's voices are a layer inside the disc,
-  // and a new lap fans open from the hub as the old one folds back into it
-  let layers = null, groundNotes = [];
-  function buildWheelOnce() {
-    const svg = $("wheel");
-    // the plate: cross-hatching for the wedges that have played, and faint concentric
-    // rings over the disc, as on brushed metal
-    const defs = el("defs", {}, svg);
-    const pat = el("pattern", { id: "hatch", width: 5, height: 5, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, defs);
-    el("line", { x1: 0, y1: 0, x2: 0, y2: 5, stroke: INK, "stroke-width": .7, opacity: .3 }, pat);
-    for (let r = 132; r <= 288; r += 4) el("circle", { cx: C, cy: C, r, fill: "none", stroke: INK, "stroke-width": .4, opacity: .045 }, svg);
-    face = el("g", { id: "face" }, svg);
-    disc = el("g", { id: "disc" }, face);
-    for (let b = 0; b < 8; b++) {
-      const t = 1 + b * BAR, [x, y] = pol(t, 284), [x2, y2] = pol(t, 112);
-      el("line", { x1: x2, y1: y2, x2: x, y2: y, stroke: LINE, "stroke-width": .7 }, disc);
-      // the bar's number at the base of the bar, just outside the ground ring, centred in
-      // the bar and turned with the disc as the numerals on the face are turned with the band
-      const tm = t + BAR / 2, [xn, yn] = pol(tm, 134);
-      text(disc, xn, yn, String(b + 1), { "font-size": 9, fill: MUTED, "text-anchor": "middle", "dominant-baseline": "central",
-                                          transform: `rotate(${(tm / CYCLE * 360).toFixed(2)} ${xn.toFixed(1)} ${yn.toFixed(1)})` });
-    }
-    layers = el("g", { id: "layers" }, disc);
-    const glo = Math.min(...D.theme.map(n => n.m)), ghi = Math.max(...D.theme.map(n => n.m));
-    groundNotes = [];
-    for (const n of D.theme) {
-      const r = 98 + (n.m - glo) / (ghi - glo) * 22;
-      const e = el("path", { d: arcPath(n.t, n.t + n.d - .12, r), class: "n v4 held cell", style: "--c:" + INK, "stroke-width": 6 }, disc);
-      groundNotes.push({ e, t: n.t, end: n.t + n.d });
-    }
-    hub = el("g", { id: "hub", role: "button", tabindex: 0, "aria-label": "play or pause" }, face);
-    paintHub();
-    el("line", { x1: C, y1: C - 78, x2: C, y2: C - 350, stroke: RELAY, "stroke-width": 2 }, face);
-    el("circle", { cx: C, cy: C - 78, r: 4, fill: RELAY }, face);
-  }
-  function buildWheel(j) {
-    if (!face) buildWheelOnce();
-    const p = plan(), k = p[j], lap = LAPS[k];
-    // the old layer folds into the hub and goes; the new one opens out of it
-    for (const old of layers.querySelectorAll(".layer")) {
-      old.classList.add("folded");
-      setTimeout(() => old.remove(), 800);
-    }
-    const layer = el("g", { class: "layer folded" }, layers);
-    for (const [t, lo, hi, u] of lap.field) {
-      if (u < .15) continue;    // the field of discord, in ink on the plate
-      el("path", { d: arcPath(t, t + .25, (rad(lo) + rad(hi)) / 2), fill: "none", stroke: INK, "stroke-width": Math.max(2, rad(hi) - rad(lo)), opacity: .03 + .1 * u }, layer);
-    }
-    wheelNotes = groundNotes.slice();
-    const draw = (n, tt, extra) => {
-      // two weights only: the cell bold on an ink outline, the other voices light. Every note is an arc, a short one
-      // for a struck note, and the lead-in notes of the next lap are left to the block
-      // the emergent statements, a cell passed from voice to voice or two voices twined, are bold and red here as on the block
-      const r = rad(n.m), cls = noteClass(n, extra, true), style = "--c:" + HUE[n.v], bold = n.cell || n.em;
-      if (n.v === 4 || n.lead) return;
-      const d = Math.max(n.d, .4);
-      if (n.cell && !n.em) el("path", { d: arcPath(tt, tt + d - .1, r), class: cls.replace("held", "") + " under", "stroke-width": 7.2, opacity: .9 }, layer);
-      const e = el("path", { d: arcPath(tt, tt + d - .1, r), class: cls + " held", style, "stroke-width": bold ? 4.8 : 3 }, layer);
-      wheelNotes.push({ e, t: tt, end: tt + n.d });
-    };
-    for (const n of lap.notes) draw(n, n.lead ? n.t + CYCLE : n.t, n.lead ? "lead-own" : "");
-    if (j + 1 < p.length) for (const n of LAPS[p[j + 1]].notes) if (n.lead) draw(n, n.t + CYCLE, "lead-next");
-    requestAnimationFrame(() => requestAnimationFrame(() => layer.classList.remove("folded")));
-    paintHub();
-  }
-  // the block's own play button, under the cell: the same mark as the hub, small, for the passages that show the block alone
-  function paintBandsGo() {
-    const g = $("bands-go");
-    if (!g) return;
-    g.innerHTML = "";
-    const cx = MX1 / 2, cy = B_TOP + 196;
-    el("circle", { cx, cy, r: 17, fill: INK }, g);
-    if (!playing) el("path", { d: `M${cx - 4},${cy - 6} L${cx + 7},${cy} L${cx - 4},${cy + 6} Z`, fill: PAPER }, g);
-    else { el("rect", { x: cx - 5.5, y: cy - 6, width: 4, height: 12, fill: PAPER }, g); el("rect", { x: cx + 1.5, y: cy - 6, width: 4, height: 12, fill: PAPER }, g); }
-    g.setAttribute("aria-label", playing ? "pause" : "play");
-  }
-  function paintHub() {
-    paintBandsGo();
-    if (!hub) return;
-    hub.innerHTML = "";
-    const k = plan()[pos.i], lap = LAPS[k];
-    el("circle", { cx: C, cy: C, r: 76, fill: INK }, hub);
-    if (!playing) {
-      el("path", { d: `M${C - 16},${C - 24} L${C + 26},${C} L${C - 16},${C + 24} Z`, fill: PAPER }, hub);
-    } else {   // playing: a pause mark, two bars
-      el("rect", { x: C - 20, y: C - 24, width: 14, height: 48, rx: 2, fill: PAPER }, hub);
-      el("rect", { x: C + 6, y: C - 24, width: 14, height: 48, rx: 2, fill: PAPER }, hub);
-    }
-    hub.setAttribute("aria-label", playing ? "pause" : "play");
-  }
-
-  // ---------------------------------------------------------------- the bands
-  const RW = 800, MX1 = 178, TX0 = 206, TSX = (RW - TX0 - 8) / (CYCLE + LEAD);
-  // top to bottom: the block, then the measures, then the individual voices; the first
-  // dividing line sits on the wheel's centre (the bands' viewBox is offset to put it there)
-  const B_TOP = 22, B_BOT = 260, DIV1 = 274, F_TOP = 282, F_H = 28, DIV2 = 372, L_TOP = 398, L_H = 33;
-  const tx = t => TX0 + (t + LEAD) * TSX;
-  const by = m => B_BOT - (m - LO) * (B_BOT - B_TOP) / (HI - LO);
-  let bandNotes = [], playheads = [], figNodes = {}, lapStrikes = [], emHue = RELAY;
-  function mark(parent, n, x0, x1, y, h, r, extra, em = false) {
-    const cls = noteClass(n, extra, em), style = "--c:" + HUE[n.v] + ";--own:" + HUE[n.v];
-    let e;
-    if (n.d >= HOLD - EPS) e = el("rect", { x: x0, y: y - h / 2, width: Math.max(1, x1 - x0), height: h, rx: h / 2, class: cls + " blk", style }, parent);
-    else e = el("circle", { cx: x0 + 2.2, cy: y, r, class: cls + " struck", style }, parent);
-    bandNotes.push({ e, t: n.t, end: n.t + n.d });
-    return e;
-  }
-  function twine(lap) {
-    // two voices twined (alto and tenor in I, II and XVIII), read as one line as the README
-    // has it: each attack lasts until the next attack in either voice, or until both fall
-    // silent. What a held note has left after the next attack is its tail, kept in its
-    // voice's colour. No line joins one note to the next
-    const ns = lap.notes.filter(n => n.em === "w" && n.v < 4 && !n.lead).sort((a, b) => a.t - b.t || b.m - a.m);
-    const segs = [];
-    let sounding = -Infinity;            // when the notes attacked so far have all ended
-    ns.forEach((n, i) => {
-      sounding = Math.max(sounding, n.t + n.d);
-      const next = ns.slice(i + 1).find(x => x.t > n.t + EPS);
-      const end = next && next.t <= sounding + EPS ? next.t : sounding;
-      const tail = n.t + n.d > end + .1 ? [end, n.t + n.d] : null;
-      segs.push({ n, end, tail });
-    });
-    return segs;
-  }
-  function buildBands(j) {
-    const svg = $("bands");
-    svg.innerHTML = "";
-    const p = plan(), k = p[j], lap = LAPS[k];
-    bandNotes = []; playheads = [];
-    $("stage").classList.toggle("twined-lap", (lap.kinds || []).some(([name]) => name === "twined"));
-    const bands = [[B_TOP - 8, B_BOT + 6], [F_TOP, F_TOP + F_H * 3], [L_TOP, L_TOP + L_H * 5]];
-    for (const [top, bot] of bands) {
-      el("rect", { x: tx(-LEAD), y: top, width: LEAD * TSX, height: bot - top, fill: INK, opacity: .04 }, svg);
-      for (let b = 0; b < 9; b++) {
-        const t = b < 8 ? 1 + b * BAR : CYCLE;
-        el("line", { x1: tx(t), y1: top, x2: tx(t), y2: bot, stroke: LINE, "stroke-width": .6 }, svg);
-      }
-      el("line", { x1: tx(0), y1: top, x2: tx(0), y2: bot, stroke: INK, "stroke-width": 1.2 }, svg);
-    }
-    for (let b = 0; b < 8; b++) text(svg, tx(1 + b * BAR) + 3, B_TOP - 12, String(b + 1), { "font-size": 10, fill: MUTED });
-    el("line", { x1: 0, y1: DIV1, x2: RW, y2: DIV1, stroke: INK, "stroke-width": 1 }, svg);
-    el("line", { x1: 0, y1: DIV2, x2: RW, y2: DIV2, stroke: INK, "stroke-width": 1 }, svg);
-    text(svg, 12, DIV2 + 18, "Individual voices \u00b7 click a name to solo it, its dot to switch it off", { class: "heading engraved" });
-    text(svg, 12, L_TOP + L_H * 6 + 12, "Paused: tap a wedge for its cell alone, the block for every voice, a lane for one voice, the rhythm row for the attacks as drums.", { class: "hint" });
-    // the legend: the five voices and, beneath them, emergent, each a dot to switch it
-    // off or on and a name to click to isolate it
-    const legend = el("g", { class: "legend" }, svg);
-    // emergent's dot is grey where the lap's only reading is twined, as its line is
-    emHue = RELAY;
-    const hue = v => v === 5 ? emHue : HUE[v];
-    for (let v = 0; v < 6; v++) {
-      const y0 = L_TOP + v * L_H, ym = y0 + L_H / 2;
-      const row = el("g", { class: "row", "data-v": v, id: "row-" + v }, legend);
-      if (v < 4) el("line", { x1: 12, y1: y0 + L_H, x2: RW, y2: y0 + L_H, stroke: LINE, "stroke-width": .5 }, svg);
-      if (v === 4) el("line", { x1: 12, y1: y0 + L_H, x2: MX1, y2: y0 + L_H, stroke: LINE, "stroke-width": .5 }, svg);
-      const dot = el("g", { class: "sw", role: "button", "aria-label": "switch " + NAMES[v] + " off or on", id: "dot-" + v }, row);
-      el("circle", { cx: 22, cy: ym, r: 8.5, fill: "none", stroke: MUTED, "stroke-width": 1, class: "ring" }, dot);   // the button's rim
-      el("circle", { cx: 22, cy: ym, r: 5.5, fill: hue(v), stroke: hue(v), "stroke-width": 1.4, class: "dotmark" }, dot);
-      el("circle", { cx: 22, cy: ym, r: 11, fill: "transparent" }, dot);
-      dot.addEventListener("click", () => { on[v] = !on[v]; if (!on[v] && iso === v) iso = null; applySwitches(); });
-      const name = el("g", { class: "sw", role: "button", "aria-label": "isolate " + NAMES[v], id: "name-" + v }, row);
-      text(name, 36, ym + 4, NAMES[v], { class: "rowname" });
-      el("line", { x1: 36, y1: ym + 9, x2: 36 + NAMES[v].length * 6.4, y2: ym + 9, stroke: MUTED, "stroke-width": .8, "stroke-dasharray": "1.5 2.5", class: "name-cue" }, name);
-      el("rect", { x: 34, y: ym + 7, width: NAMES[v].length * 6.4, height: 1.2, fill: hue(v), class: "iso-mark", opacity: 0 }, name);
-      el("rect", { x: 32, y: ym - 10, width: 130, height: 20, fill: "transparent" }, name);
-      name.addEventListener("click", () => { iso = iso === v ? null : v; if (iso === v) on[v] = true; applySwitches(); });
-      if (v === 5) {                                  // emergent has no lane of its own, but a count, each in its colour
-        const counts = text(row, MX1 - 6, ym + 4, "", { "font-size": 9, "text-anchor": "end" });
-        (lap.kinds || []).forEach(([name, n], q) => {
-          const s = el("tspan", { fill: RELAY }, counts);
-          s.textContent = (q ? " · " : "") + (name === "twined" ? "alto+tenor" : name) + ` ×${n}`;
-        });
-        continue;
-      }
-      // the lane
-      const ns = lap.notes.filter(n => n.v === v);
-      if (!ns.length) continue;
-      const vlo = Math.min(...ns.map(n => n.m)), vhi = Math.max(...ns.map(n => n.m));
-      for (const n of ns) {
-        const yy = y0 + L_H - 8 - (n.m - vlo) / Math.max(vhi - vlo, 1) * (L_H - 16);
-        mark(svg, n, tx(n.t), tx(n.t + n.d) - 2, yy, v === 4 ? 3.6 : n.cell ? 3.2 : 2, n.cell ? 2.3 : 1.7, n.lead ? "lead-own" : n.em === "w" ? "twined-lane" : "");
-      }
-    }
-    if (j + 1 < p.length) for (const n of LAPS[p[j + 1]].notes) if (n.lead) {
-      const ns = lap.notes.filter(x => x.v === n.v);
-      const vlo = ns.length ? Math.min(...ns.map(x => x.m)) : n.m, vhi = ns.length ? Math.max(...ns.map(x => x.m)) : n.m;
-      const y0 = L_TOP + n.v * L_H, yy = y0 + L_H - 8 - (n.m - vlo) / Math.max(vhi - vlo, 1) * (L_H - 16);
-      mark(svg, { ...n, t: n.t + CYCLE }, tx(n.t + CYCLE), tx(n.t + CYCLE + n.d) - 2, yy, 2, 1.7, "lead-next");
-    }
-    // the middle: the numeral, the count, the cell
-    text(svg, MX1 / 2, B_TOP + 44, k ? lap.roman : "ground", { "font-size": k ? 46 : 22, "text-anchor": "middle", class: "engraved" });
-    text(svg, MX1 / 2, B_TOP + 64, `${j + 1} OF ${p.length}`, { "font-size": 9, "letter-spacing": 2.4, "text-anchor": "middle", fill: MUTED, class: "engraved" });
-    if (k) glyph(svg, lap.cell, 12, B_TOP + 96, MX1 - 24, 48, HUE[Math.max(0, lap.cellVoice)], 3.4, 2.5, INK, false);
-    const go = el("g", { id: "bands-go", class: "sw", role: "button", tabindex: 0 }, svg);
-    go.addEventListener("click", () => { playing ? stop() : play(); });
-    paintBandsGo();
-    // the block
-    for (const [t, lo, hi, u] of lap.field) {
-      if (u < .15) continue;
-      el("rect", { x: tx(t), y: by(hi) - 3, width: .25 * TSX, height: by(lo) - by(hi) + 6, fill: WARM, opacity: .05 + .22 * u }, svg);
-    }
-    for (const n of lap.notes) {
-      if (n.v === 4) { mark(svg, n, tx(n.t), tx(n.t + n.d) - 2, by(n.m), 4.2, 2.6, ""); continue; }
-      // a twined note is drawn as its voice's own here, and hidden while emergent is on,
-      // when the grey line below takes its place
-      const twined = n.em === "w" && !n.lead;
-      mark(svg, n, tx(n.t), tx(n.t + n.d) - 2, by(n.m), n.cell ? 3.6 : 2.2, n.cell ? 2.5 : 1.8, n.lead ? "lead-own" : twined ? "twined" : "", !twined);
-    }
-    if (j + 1 < p.length) for (const n of LAPS[p[j + 1]].notes) if (n.lead)
-      mark(svg, { ...n, t: n.t + CYCLE }, tx(n.t + CYCLE), tx(n.t + CYCLE + n.d) - 2, by(n.m), 2.2, 1.8, "lead-next");
-    // the twined line, shown with emergent: each attack in grey until the next, a held
-    // note's tail in its voice's colour
-    const tw = el("g", { class: "twine" }, svg);
-    for (const { n, end, tail } of twine(lap)) {
-      mark(tw, { ...n, d: end - n.t }, tx(n.t), tx(end) - 2, by(n.m), n.cell ? 3.6 : 3, n.cell ? 2.5 : 2.1, "", true);
-      if (tail) mark(tw, { ...n, em: null, t: tail[0], d: Math.max(HOLD, tail[1] - tail[0]) }, tx(tail[0]), tx(tail[1]) - 2, by(n.m), n.cell ? 3.6 : 2.2, 1.8, "");
-    }
-    // tap targets: the block for every voice, each lane for its own
-    const blockTap = el("rect", { x: tx(-LEAD), y: B_TOP - 8, width: tx(CYCLE + LEAD) - tx(-LEAD), height: B_BOT - B_TOP + 14, class: "tap" }, svg);
-    blockTap.addEventListener("click", () => { if (!playing) playLap(pos.i, null); });
-    for (let v = 0; v < 5; v++) {
-      const laneTap = el("rect", { x: MX1, y: L_TOP + v * L_H, width: RW - MX1, height: L_H, class: "tap" }, svg);
-      laneTap.addEventListener("click", () => { if (!playing) playLap(pos.i, ev => ev.v === v); });
-    }
-    // the measures: a live figure each, and its curve over the lap. Co-occurrences has a
-    // midline: the cell upright counts upward from it, its mirror downward, so the two
-    // diverge where both are stated at once
-    const grid = lap.field.map(f => f[0]);
-    const inv = lap.coocInv || [];
-    const cmax = Math.max(1, ...lap.cooc, ...inv);
-    figNodes = {};
-    {
-      const y0 = F_TOP, ym = y0 + F_H / 2, top = y0 + 6, bot = y0 + F_H - 6;
-      el("line", { x1: 0, y1: y0 + F_H, x2: RW, y2: y0 + F_H, stroke: LINE, "stroke-width": .5 }, svg);
-      text(svg, 12, ym + 4, "co-occurrences", { "font-size": 11 });
-      figNodes.cooc = text(svg, MX1 - 6, ym + 2, "", { "font-size": 16, "text-anchor": "end" });
-      figNodes.inv = text(svg, MX1 - 6, ym + 11, "", { "font-size": 9, "text-anchor": "end", fill: MIRROR, "letter-spacing": .4 });
-      if (grid.length) {
-        el("line", { x1: tx(0), y1: ym, x2: tx(CYCLE), y2: ym, stroke: LINE, "stroke-width": .6 }, svg);
-        const upPts = grid.map((t, q) => `${tx(t).toFixed(1)},${(ym - lap.cooc[q] / cmax * (ym - top)).toFixed(1)}`);
-        el("polyline", { points: upPts.join(" "), fill: "none", stroke: INK, "stroke-width": 1.4 }, svg);
-        if (inv.some(c => c > 0)) {
-          const dnPts = grid.map((t, q) => `${tx(t).toFixed(1)},${(ym + inv[q] / cmax * (bot - ym)).toFixed(1)}`);
-          el("polyline", { points: dnPts.join(" "), fill: "none", stroke: MIRROR, "stroke-width": 1.4 }, svg);
-        }
-      }
-    }
-    {
-      const y0 = F_TOP + F_H, ym = y0 + F_H / 2, top = y0 + 7, bot = y0 + F_H - 7;
-      text(svg, 12, ym + 4, "discordance", { "font-size": 11 });
-      figNodes.disc = text(svg, MX1 - 6, ym + 6, "", { "font-size": 17, "text-anchor": "end" });
-      if (grid.length) {
-        const pts = grid.map((t, q) => [tx(t), bot - lap.field[q][3] * (bot - top)]);
-        el("path", { d: `M${pts[0][0].toFixed(1)},${bot} ` + pts.map(([x, y]) => `L${x.toFixed(1)},${y.toFixed(1)}`).join(" ") + ` L${pts[pts.length - 1][0].toFixed(1)},${bot} Z`, fill: WARM, opacity: .55 }, svg);
-      }
-    }
-    {
-      // the rhythm: every attack in the lap as a tick, taller the more voices strike
-      // together; the live figure is the interval to the next attack, in beats
-      const y0 = F_TOP + F_H * 2, ym = y0 + F_H / 2, top = y0 + 5, bot = y0 + F_H - 5;
-      el("line", { x1: 0, y1: y0, x2: RW, y2: y0, stroke: LINE, "stroke-width": .5 }, svg);
-      text(svg, 12, ym + 4, "rhythm", { "font-size": 11 });
-      figNodes.rhy = text(svg, MX1 - 6, ym + 2, "", { "font-size": 16, "text-anchor": "end" });
-      const strikes = new Map();
-      for (const n of lap.notes) if (!n.lead) { const key = Math.round(n.t * 8); strikes.set(key, (strikes.get(key) || 0) + 1); }
-      lapStrikes = [...strikes.keys()].sort((a, b) => a - b).map(key => key / 8);
-      text(svg, MX1 - 6, ym + 11, `${(strikes.size / 8).toFixed(1)} attacks a bar`, { "font-size": 9, "text-anchor": "end", fill: MUTED, "letter-spacing": .4 });
-      el("line", { x1: tx(0), y1: bot, x2: tx(CYCLE), y2: bot, stroke: LINE, "stroke-width": .6 }, svg);
-      for (const [key, c] of strikes) {
-        const x = tx(key / 8);
-        el("line", { x1: x, y1: bot, x2: x, y2: bot - (bot - top) * Math.min(1, .35 + c / 5), stroke: INK, "stroke-width": c > 1 ? 1.6 : .9, class: "strike" }, svg);
-      }
-      const rhythmTap = el("rect", { x: MX1, y: y0, width: RW - MX1, height: F_H, class: "tap" }, svg);
-      rhythmTap.addEventListener("click", () => { if (!playing) playLap(pos.i, null, true); });
-    }
-    for (const [top, bot] of bands) playheads.push(el("line", { x1: tx(0), y1: top, x2: tx(0), y2: bot, stroke: RELAY, "stroke-width": 1.5 }, svg));
-    playheads.push(el("circle", { cx: tx(0), cy: B_TOP - 8, r: 4.5, fill: RELAY }, svg));
-    applySwitches();
-    // a soft turn of the page
-    svg.classList.add("fresh");
-    requestAnimationFrame(() => requestAnimationFrame(() => svg.classList.remove("fresh")));
-  }
-
-  // ---------------------------------------------------------------- the switches
-  function applySwitches() {
-    // the state as classes on the stage: off-v hides a voice, iso-v fades all but one,
-    // em-on paints the block's emergent notes, iso-5 paints them and fades the rest
-    const st = $("stage");
-    let cls = "stage";
-    for (let v = 0; v < 5; v++) if (!on[v]) cls += " off-" + v;
-    if (iso !== null) cls += " iso-" + iso;
-    if (on[5]) cls += " em-on";
-    if (st.classList.contains("twined-lap")) cls += " twined-lap";
-    st.className = cls;
-    for (let v = 0; v < 6; v++) {
-      const row = $("row-" + v);
-      if (!row) continue;
-      const lit = on[v] && (iso === null || iso === v);
-      row.querySelector(".dotmark").setAttribute("fill", on[v] ? (v === 5 ? emHue : HUE[v]) : "none");
-      row.querySelector(".rowname").setAttribute("fill", lit ? INK : MUTED);
-      row.querySelector(".iso-mark").setAttribute("opacity", iso === v ? 1 : 0);
-      $("dot-" + v).setAttribute("aria-pressed", String(on[v]));
-      $("name-" + v).setAttribute("aria-pressed", String(iso === v));
-    }
-  }
-  function audible(ev) {
-    if (once && once.filter) return once.filter(ev);
-    if (iso === 5) return ev.em;
-    if (iso !== null) return ev.v === iso;
-    return on[ev.v];
-  }
-
-  // ---------------------------------------------------------------- the frame
-  function refresh(force) {
-    const turned = pos.i !== shown || force;
-    if (turned) { shown = pos.i; buildWheel(pos.i); buildBands(pos.i); }
-    const t = pos.t, lap = LAPS[plan()[pos.i]];
-    discAngle = jumpDir ? onward(discAngle, -t / CYCLE * 360, jumpDir) : nearest(discAngle, -t / CYCLE * 360);
-    jumpDir = 0;
-    disc.style.transform = `rotate(${discAngle.toFixed(2)}deg)`;
-    paintBand(turned);
-    for (const ph of playheads) { if (ph.tagName === "line") { ph.setAttribute("x1", tx(t)); ph.setAttribute("x2", tx(t)); } else ph.setAttribute("cx", tx(t)); }
-    document.querySelectorAll(".lead-own").forEach(e => e.style.opacity = t < 0 ? 1 : 0);
-    document.querySelectorAll(".lead-next").forEach(e => e.style.opacity = t >= CYCLE - LEAD ? 1 : 0);
-    for (const list of [wheelNotes, bandNotes]) for (const n of list) n.e.classList.toggle("on", n.t <= t && t < n.end);
-    const q = Math.max(0, Math.min(lap.cooc.length - 1, Math.floor(t / .25)));
-    if (figNodes.cooc) figNodes.cooc.textContent = lap.cooc.length ? String(lap.cooc[q]) : "";
-    if (figNodes.inv) { const n = lap.coocInv && lap.coocInv.length ? lap.coocInv[q] : 0; figNodes.inv.textContent = n ? `${n} inverted` : ""; }
-    if (figNodes.disc) figNodes.disc.textContent = lap.field.length ? Math.round(lap.field[q][4] * 100) + "%" : "";
-    if (figNodes.rhy) {
-      let k = -1; while (k + 1 < lapStrikes.length && lapStrikes[k + 1] <= t + EPS) k++;
-      const gap = k >= 0 && k + 1 < lapStrikes.length ? lapStrikes[k + 1] - lapStrikes[k] : 0;
-      figNodes.rhy.textContent = gap ? String(Math.round(gap * 100) / 100).replace(/^0\./, ".") : "";
-    }
-  }
-
-  // ---------------------------------------------------------------- the sound
-  let ctx = null, master = null, comp = null, wet = null, buses = [], pans = [], knock = null, timer = null, raf = null;
-  let take = null;                     // the output of the current run: silenced and dropped when the run ends or jumps
-  let events = [], next = 0, startAt = 0, spq = 60 / 84, scheduledUntil = 0;
-  const HORIZON = .25;                 // how far ahead notes are handed to the audio engine
-  function makeRoom(c) {
-    const n = Math.floor(S.ROOM * 1.2 * c.sampleRate), pre = Math.floor(.018 * c.sampleRate);
-    const buf = c.createBuffer(2, n + pre, c.sampleRate);
-    for (let ch = 0; ch < 2; ch++) {
-      const d = buf.getChannelData(ch); let lp = 0;
-      for (let i = 0; i < n; i++) { const x = (Math.random() * 2 - 1) * Math.exp(-6.91 * (i / c.sampleRate) / S.ROOM); lp += .35 * (x - lp); d[pre + i] = lp; }
-    }
-    return buf;
-  }
-  function makeKnock(c) {
-    const n = Math.floor(.03 * c.sampleRate), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
-    let lp = 0;
-    for (let i = 0; i < n; i++) { lp += .08 * ((Math.random() * 2 - 1) - lp); d[i] = lp * 6; }
-    return buf;
-  }
-  function setup() {
-    if (ctx) return;
-    ctx = new (window.AudioContext || window.webkitAudioContext)();
-    master = ctx.createGain(); master.gain.value = .22;
-    comp = ctx.createDynamicsCompressor(); comp.threshold.value = -12; comp.ratio.value = 4; comp.attack.value = .003; comp.release.value = .25;
-    master.connect(comp).connect(ctx.destination);
-    wet = ctx.createGain(); wet.gain.value = S.ROOM_WET;
-    const conv = ctx.createConvolver(); conv.buffer = makeRoom(ctx);
-    wet.connect(conv).connect(comp);
-    pans = [];
-    buses = S.PANS.map((p, v) => {
-      const g = ctx.createGain(); g.gain.value = S.LEVELS[v];
-      const pan = ctx.createStereoPanner(); pan.pan.value = p;
-      g.connect(pan); pans.push(pan);
-      return g;
-    });
-    knock = makeKnock(ctx);
-    shard = makeShard(ctx);
-  }
-  let shard = null;
-  function makeShard(c) {
-    // the break of a glass: bright noise, a hundredth of a second, high-passed by differencing
-    const n = Math.floor(.015 * c.sampleRate), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
-    let prev = 0;
-    for (let i = 0; i < n; i++) { const x = Math.random() * 2 - 1; d[i] = (x - prev) * .7; prev = x; }
-    return buf;
-  }
-  // the glass: the strike's shape, but inharmonic partials, a whole-note detune and a
-  // small one per partial, a brighter and shorter ring, a bright break in the attack, and
-  // little thump; the tables come from bachlang/synth.py
-  function glass(v, midi, t) {
-    const f = 440 * Math.pow(2, (midi - 69) / 12) * Math.pow(2, ((Math.random() * 2 - 1) * S.GLASS_DETUNE) / 1200);
-    const ring = Math.min(S.RING_MAX, S.GLASS_RING * Math.pow(2, (60 - midi) / 20));
-    const out = buses[v], end = t + Math.min(4, ring * 6);
-    for (const [ratio, amp, share] of S.GLASS[v]) {
-      const fr = f * ratio * Math.pow(2, ((Math.random() * 2 - 1) * 3) / 1200); if (fr > 18000) continue;
-      const osc = ctx.createOscillator(); osc.frequency.value = fr;
-      const gs = ctx.createGain(); gs.gain.setValueAtTime(0, t); gs.gain.linearRampToValueAtTime(amp, t + .001); gs.gain.setTargetAtTime(0, t + .001, S.ATTACK * .6 * Math.sqrt(share));
-      const bright = ratio < 1.5 ? 1 : S.GLASS_BRIGHT, hold = ratio < 1.5 ? share : Math.max(share, S.GLASS_HOLD);
-      const gr = ctx.createGain(); gr.gain.setValueAtTime(0, t); gr.gain.linearRampToValueAtTime(S.RING_LEVEL * amp * bright, t + .001); gr.gain.setTargetAtTime(0, t + .001, ring * hold);
-      osc.connect(gs).connect(out); osc.connect(gr).connect(out); osc.start(t); osc.stop(end);
-    }
-    const src = ctx.createBufferSource(); src.buffer = shard;
-    const gk = ctx.createGain(); gk.gain.setValueAtTime(.5, t); gk.gain.setTargetAtTime(0, t, .004);
-    src.connect(gk).connect(out); src.start(t); src.stop(t + .03);
-    const th = ctx.createOscillator(); th.frequency.value = f / 2;
-    const gt = ctx.createGain(); gt.gain.setValueAtTime(0, t); gt.gain.linearRampToValueAtTime(S.GLASS_THUMP, t + .001); gt.gain.setTargetAtTime(0, t + .001, .03);
-    th.connect(gt).connect(out); th.start(t); th.stop(t + .15);
-  }
-  function newTake() {
-    // a fresh output for this run; the old one fades out with whatever was still queued on it
-    const old = take;
-    take = ctx.createGain(); take.connect(master); take.connect(wet);
-    for (const p of pans) p.connect(take);
-    if (old) {
-      old.gain.setTargetAtTime(0, ctx.currentTime, .015);
-      setTimeout(() => { for (const p of pans) { try { p.disconnect(old); } catch (e) {} } old.disconnect(); }, 250);
-    }
-  }
-  // the chime: the struck bar, as bachlang/synth.py has it
-  function chime(v, midi, t) {
-    const f = 440 * Math.pow(2, (midi - 69) / 12), ring = Math.min(S.RING_MAX, S.RING * Math.pow(2, (60 - midi) / 20));
-    const out = buses[v], end = t + Math.min(4, ring * 6);
-    for (const [ratio, amp, share] of S.MALLETS[v]) {
-      const fr = f * ratio; if (fr > 18000) continue;
-      const osc = ctx.createOscillator(); osc.frequency.value = fr;
-      const gs = ctx.createGain(); gs.gain.setValueAtTime(0, t); gs.gain.linearRampToValueAtTime(amp, t + .001); gs.gain.setTargetAtTime(0, t + .001, S.ATTACK * Math.sqrt(share));
-      const bright = ratio < 1.5 ? 1 : S.RING_BRIGHT, hold = ratio < 1.5 ? share : Math.max(share, S.RING_HOLD);
-      const gr = ctx.createGain(); gr.gain.setValueAtTime(0, t); gr.gain.linearRampToValueAtTime(S.RING_LEVEL * amp * bright, t + .001); gr.gain.setTargetAtTime(0, t + .001, ring * hold);
-      osc.connect(gs).connect(out); osc.connect(gr).connect(out); osc.start(t); osc.stop(end);
-    }
-    const src = ctx.createBufferSource(); src.buffer = knock;
-    const gk = ctx.createGain(); gk.gain.setValueAtTime(.6, t); gk.gain.setTargetAtTime(0, t, .008);
-    src.connect(gk).connect(out); src.start(t); src.stop(t + .05);
-    const th = ctx.createOscillator(); th.frequency.value = f / 2;
-    const gt = ctx.createGain(); gt.gain.setValueAtTime(0, t); gt.gain.linearRampToValueAtTime(.5, t + .001); gt.gain.setTargetAtTime(0, t + .001, .04);
-    th.connect(gt).connect(out); th.start(t); th.stop(t + .2);
-  }
-  // the drum: the attack alone, a filtered knock and a falling thump, one pitch a voice,
-  // the pedal lowest and longest; the lap heard as its rhythm
-  function drum(v, t) {
-    const out = buses[v], f = [420, 300, 210, 150, 95][v];
-    const src = ctx.createBufferSource(); src.buffer = knock;
-    const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = f * 4; bp.Q.value = 1.2;
-    const gk = ctx.createGain(); gk.gain.setValueAtTime(1.2, t); gk.gain.setTargetAtTime(0, t, .012);
-    src.connect(bp).connect(gk).connect(out); src.start(t); src.stop(t + .06);
-    const th = ctx.createOscillator(); th.frequency.setValueAtTime(f * 1.6, t); th.frequency.exponentialRampToValueAtTime(f, t + .04);
-    const gt = ctx.createGain(); gt.gain.setValueAtTime(0, t); gt.gain.linearRampToValueAtTime(.7, t + .002); gt.gain.setTargetAtTime(0, t + .002, v === 4 ? .09 : .05);
-    th.connect(gt).connect(out); th.start(t); th.stop(t + .4);
-  }
-  // the horn: a sustained reedy tone, two oscillators a few cents apart so held notes beat,
-  // a slow vibrato, a warm low-pass; the harmonics follow the sustained timbres in synth.py
-  function horn(v, midi, t, dur) {
-    const f = 440 * Math.pow(2, (midi - 69) / 12), out = buses[v];
-    const end = t + dur, rel = .12;
-    const filt = ctx.createBiquadFilter(); filt.type = "lowpass"; filt.frequency.value = Math.min(9000, f * 3.2); filt.Q.value = .8;
-    const env = ctx.createGain(); env.gain.setValueAtTime(0, t); env.gain.linearRampToValueAtTime(.16, t + .05);
-    env.gain.setValueAtTime(.16, Math.max(t + .05, end - .01)); env.gain.linearRampToValueAtTime(0, end + rel);
-    filt.connect(env).connect(out);
-    const lfo = ctx.createOscillator(); lfo.frequency.value = 5.2;
-    const depth = ctx.createGain(); depth.gain.value = f * .0025;
-    lfo.connect(depth);
-    for (const cents of [-4, 4]) {
-      const osc = ctx.createOscillator(); osc.type = "sawtooth"; osc.frequency.value = f * Math.pow(2, cents / 1200);
-      depth.connect(osc.frequency);
-      const g = ctx.createGain(); g.gain.value = .5;
-      osc.connect(g).connect(filt); osc.start(t); osc.stop(end + rel + .05);
-    }
-    lfo.start(t); lfo.stop(end + rel + .05);
-  }
-  let lapStartQ = 0, base = 0;         // where the next lap's events begin, in quarters from startAt; the plan index we started from
-  function appendLap(j, lapStart) {
-    for (const n of LAPS[plan()[j]].notes) {
-      const tt = lapStart + n.t;
-      events.push({ time: startAt + tt * spq, v: n.v, m: n.m, d: n.d * spq, em: n.em, cell: n.cell, t: tt });
-    }
-    events.sort((a, b) => a.time - b.time);
-    lapStartQ = lapStart + CYCLE;
-  }
-  function rebuildEvents(offset = 0, fresh = false) {
-    // from where we are, every note to come: this lap from its current time, then the laps
-    // after it in the plan; while looping, this lap again and again, appended as it is
-    // needed. A rebuild in mid-run skips what was already handed to the engine; a fresh run
-    // starts clean
-    spq = 60 / Number($("tempo").value);
-    startAt = ctx.currentTime + offset - pos.t * spq;
-    base = pos.i;
-    events = []; next = 0; lapStartQ = 0;
-    if (fresh) scheduledUntil = 0;
-    const p = plan();
-    if (once) appendLap(pos.i, 0);
-    else if (loop) appendLap(pos.i, 0);
-    else for (let i = pos.i; i < p.length; i++) appendLap(i, (i - pos.i) * CYCLE);
-    while (next < events.length && (events[next].t < pos.t - EPS || events[next].time < scheduledUntil)) next++;
-  }
-  function schedule() {
-    if (!playing) return;
-    const horizon = ctx.currentTime + HORIZON;
-    while (next < events.length && events[next].time < horizon) {
-      const ev = events[next++];
-      if (ev.time < scheduledUntil) continue;           // queued before a rebuild
-      if (!audible(ev)) continue;
-      if (once && once.perc) drum(ev.v, ev.time);
-      else if (sound === "horn") horn(ev.v, ev.m, ev.time, ev.d); else if (sound === "glass") glass(ev.v, ev.m, ev.time); else chime(ev.v, ev.m, ev.time);
-    }
-    scheduledUntil = Math.max(scheduledUntil, horizon);
-    if (loop && next >= events.length) appendLap(pos.i, lapStartQ);   // the lap again, on the same clock
-  }
-  function tick() {
-    if (!playing) return;
-    const el = (ctx.currentTime - startAt) / spq;         // quarters since the lap we started from began
-    const p = plan();
-    let i = base, t = el;
-    if (once) { if (t >= CYCLE + 1.5) { stop(); pos = { i: base, t: 0 }; refresh(true); return; } }
-    else if (loop) { t = el < 0 ? el : el % CYCLE; }
-    else { while (t >= CYCLE && i + 1 < p.length) { t -= CYCLE; i++; } }
-    if (!loop && i === p.length - 1 && t >= CYCLE + 5) { stop(); pos = { i: 0, t: 0 }; refresh(true); return; }   // the closing chord rings out
-    pos = { i, t };
-    refresh(false);
-    raf = requestAnimationFrame(tick);
-  }
-  function play() {
-    setup();
-    if (ctx.state === "suspended") ctx.resume();
-    playing = true;
-    paintHub();
-    newTake();
-    rebuildEvents(.08, true);
-    schedule();
-    if (!timer) timer = setInterval(schedule, 40);
-    if (!raf) raf = requestAnimationFrame(tick);
-  }
-  function stop() {
-    playing = false;
-    once = null;
-    paintHub();
-    if (timer) clearInterval(timer);
-    if (raf) cancelAnimationFrame(raf);
-    timer = raf = null;
-    if (take) { const old = take; take = null; old.gain.setTargetAtTime(0, ctx.currentTime, .015);
-      setTimeout(() => { for (const p of pans) { try { p.disconnect(old); } catch (e) {} } old.disconnect(); }, 250); }
-  }
-  let turnTimer = null;
-  function jumpTo(j) {
-    jumpDir = j > pos.i ? -1 : j < pos.i ? 1 : 0;      // forward in the piece is a negative turn
-    pos = { i: j, t: j === 0 ? 0 : -LEAD };
-    // the ring and the disc turn to the new place rather than snapping
-    for (const g of [band, disc]) if (g) g.classList.add("turning");
-    if (turnTimer) clearTimeout(turnTimer);
-    turnTimer = setTimeout(() => { for (const g of [band, disc]) if (g) g.classList.remove("turning"); turnTimer = null; }, 800);
-    if (playing) { newTake(); rebuildEvents(.05, true); schedule(); refresh(true); } else refresh(false);
-  }
-
-  // paused, a tap plays one lap once: the cell alone from a wedge, every voice from the
-  // block, one voice from its lane
-  function playLap(j, filter, perc = false) {
-    if (playing) stop();
-    if (j !== pos.i) jumpTo(j); else pos = { i: j, t: j === 0 ? 0 : -LEAD };
-    once = { j, filter, perc };
-    play();
-  }
-
-  // ---------------------------------------------------------------- controls
-  $("tempo").addEventListener("input", () => { $("tempo-out").textContent = "♩ = " + $("tempo").value; if (playing) rebuildEvents(); });
-  $("chime").addEventListener("click", () => { sound = "chime"; $("chime").classList.add("on"); $("glass").classList.remove("on"); });
-  $("glass").addEventListener("click", () => { sound = "glass"; $("glass").classList.add("on"); $("chime").classList.remove("on"); });
-  document.addEventListener("keydown", e => {
-    if (e.target.tagName === "INPUT" || e.target.tagName === "BUTTON") return;
-    if (e.key === " ") { e.preventDefault(); playing ? stop() : play(); }
-  });
-
-  // ---------------------------------------------------------------- example performances
-  for (const c of (window.CLIPS || [])) {
-    const a = document.createElement("a");
-    a.className = "card"; a.href = c.url; a.target = "_blank"; a.rel = "noopener";
-    a.innerHTML = `<img src="${c.thumb}" alt=""><div class="body"><p class="title"></p><p class="chan"></p><p class="desc"></p>${c.chapters.length ? '<p class="chap"></p>' : ""}</div>`;
-    a.querySelector(".title").textContent = c.title;
-    a.querySelector(".chan").textContent = c.channel;
-    a.querySelector(".desc").textContent = c.blurb;
-    if (c.chapters.length) a.querySelector(".chap").textContent = c.chapters.map(([t, n]) => `${t} ${n}`).join(" · ");
-    $("cards").appendChild(a);
-  }
-
-  // a position in the hash opens the page there: #7 is the seventh slot, #7@9.5 nine and a
-  // half quarters into it
-  const m = /^#(\d+)(?:@(-?[\d.]+))?(?:&iso=(\d))?(?:&em)?(?:&click=[\w-]+)?$/.exec(location.hash);
-  if (m) { pos = { i: Math.min(20, Number(m[1])), t: m[2] !== undefined ? Number(m[2]) : 0 }; if (m[3] !== undefined) { iso = Number(m[3]); on[iso] = true; } if (/&em/.test(location.hash)) on[5] = true; }
-  buildBand();
-  refresh(true);
-  // for checking: &click=<id> in the hash clicks that element once the page is up
-  const ck = /&click=([\w-]+)/.exec(location.hash);
-  if (ck) setTimeout(() => { const e = document.getElementById(ck[1]); if (e) e.dispatchEvent(new MouseEvent("click", { bubbles: true })); }, 50);
-
-  // ---------------------------------------------------------------- the scrolled page: each passage sets the stage, and the whole page follows
-  const stageEl = $("stage"), controls = $("controls");
-  const PASSAGES = {
-    ground:     { panel: "wheel", i: 0, em: true },
-    cell:       { panel: "bands", i: 7, em: true },
-  };
-  let passage = null, whole = false, panel = "wheel";
-  // one stage, moved: beside the story it shows the wheel or the block; on the whole page, both, with the controls under them
-  function toWhole(yes) {
-    if (yes === whole) return;
-    whole = yes;
-    (yes ? $("full-main") : $("board")).appendChild(stageEl);
-    (yes ? $("full-bar") : $("g-play")).appendChild(controls);
-    stageEl.dataset.panel = yes ? "both" : panel;
-  }
-  function enter(name) {
-    if (!PASSAGES[name]) return;
-    toWhole(false);
-    if (name === passage) return;
-    passage = name;
-    const P = PASSAGES[name];
-    for (const sec of document.querySelectorAll(".story section")) sec.classList.toggle("on", sec.dataset.scene === name);
-    panel = P.panel; stageEl.dataset.panel = panel;
-    iso = null; on[5] = P.em; applySwitches();
-    if (!playing && P.i !== pos.i) jumpTo(P.i);            // a passage moves the wheel, but never interrupts the music
-  }
-  const io = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting) enter(e.target.dataset.scene); }, { rootMargin: "-45% 0px -45% 0px" });
-  for (const sec of document.querySelectorAll(".story section")) io.observe(sec);
-  const wholeIo = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting) toWhole(true); }, { threshold: .5 });
-  wholeIo.observe($("full"));
-  // a place in the hash (#7, as the talk links it) opens the whole page there; #scene=cell opens a passage, with &still to hold it
-  if (m) { $("full").scrollIntoView({ behavior: "instant" }); toWhole(true); }
-  else {
-    const want = (location.hash.match(/scene=(\w+)/) || [])[1], first = PASSAGES[want] ? want : "ground";
-    if (/still/.test(location.hash)) { io.disconnect(); wholeIo.disconnect(); }
-    else if (first !== "ground") document.querySelector(`.story section[data-scene="${first}"]`).scrollIntoView({ behavior: "instant", block: "center" });
-    enter(first);
-    if (want === "whole" && /still/.test(location.hash)) { document.querySelector(".scrolly").hidden = true; toWhole(true); }   // for checking the whole page
-  }
-});
-// the page links back to the deck, and to the slide it was opened from when the hash says
-(function backToTalk() { const f = new URLSearchParams(location.hash.slice(1)).get("from"), a = document.getElementById("to-talk"); if (f && a) a.href = "talk.html#" + f; })();
-</script>
+<script src="girih-wall.js?v=352eecb5"></script>
+<script src="truchet-live.js?v=0a92569e"></script>
+<script src="penrose-live.js?v=d8417084"></script>
+<script src="solari-live.js?v=d8699146"></script>
+<script src="loom-live.js?v=b60c045f"></script>
+<script src="lattice-live.js?v=88a8cc31"></script>
+<script src="live-figure.js?v=f64fa480"></script>
+<script src="pace-live.js?v=fef6a8f9"></script>
+<script src="ca-live.js?v=8c36d8ac"></script>
+<script src="automata-run.js?v=e349bb28"></script>
+<script src="beady.js?v=7b2dd0e4"></script>
+<script src="weaver.js?v=aedc77cf"></script>
 <script src="noselect.js?v=e60814a2"></script>
 </body>
 </html>
