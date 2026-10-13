@@ -40,7 +40,6 @@
   .bar .controls { gap: 22px; align-items: center; }
   .tools .controls { display: flex; gap: 22px; align-items: center; }
   .tools #controls button, .tools .tempo output, .bar button, .bar .tempo output { font-family: Cinzel, "Trajan Pro", serif; font-size: 10px; font-weight: 500; letter-spacing: .16em; }
-  #explore { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-top: 10px; }
   .stage { flex: 1; min-height: 0; display: flex; justify-content: center; align-items: center; }
   .main { height: 100%; max-width: 100%; aspect-ratio: 1526 / 700; display: grid; grid-template-columns: 700fr 800fr; gap: 26px; }
   #band, #disc { transform-box: view-box; transform-origin: 350px 350px; }
@@ -91,20 +90,9 @@
   #renditions > p { font-size: 20px; line-height: 1.5; margin: 0 0 24px; }
   #renditions .cards { gap: 24px; }
   #renditions .card .title { font-size: 15px; }
-  /* the landing: a sheet over the explorer, laid out as spreads, a figure above each caption */
-  #explore { position: relative; }
-  .landing { position: absolute; left: 0; right: 0; top: 10px; bottom: 0; background: var(--paper); z-index: 3; overflow: auto; padding: 8px 0 8px; display: flex; flex-direction: column; cursor: pointer; }
-  .landing .lead { margin: 0 0 12px; font-size: 15px; line-height: 20px; color: var(--ink); }
-  .landing .figs { display: grid; grid-template-columns: 1fr; gap: 12px; align-content: start; max-width: 1100px; counter-reset: step; }
-  .landing .fig { border-top: 1px solid var(--line); padding-top: 12px; display: grid; grid-template-columns: 24px 320px 1fr; column-gap: 24px; align-items: start; }
-  .landing .fig::before { counter-increment: step; content: counter(step); grid-column: 1; grid-row: 1; font-family: Cinzel, serif; font-size: 11px; letter-spacing: .1em; line-height: 18px; color: var(--muted); }
-  .landing .fig > svg, .landing .fig > .four { grid-column: 2; grid-row: 1 / span 8; }
-  .landing .fig > p { grid-column: 3; max-width: 66ch; }
-  .landing .fig svg { display: block; width: 100%; height: 132px; overflow: visible; }
-  .landing .fig p { margin: 0; font-size: 14px; line-height: 1.4; color: var(--ink); }
-  .landing .fig b { font-family: Cinzel, serif; font-weight: 500; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; margin-right: 6px; }
-  .landing .fig text { font-family: Cinzel, serif; font-size: 7.5px; letter-spacing: .1em; text-transform: uppercase; fill: var(--muted); }
-  .landing .begin { margin-top: auto; padding-top: 12px; font-family: Cinzel, serif; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  /* the source of the score, across the foot of the page */
+  #renditions .credit { margin: 32px 0 0; font-size: 11px; line-height: 1.35; color: var(--muted); text-align: center; }
+  #renditions .credit a { color: inherit; }
 
   /* the notes: every mark carries its voice's colour in --c; the state of the switches
      is a set of classes on the stage, and these rules do the rest */
@@ -206,6 +194,7 @@
   <h2>Performances</h2>
   <p>Example performances of the Passacaglia.</p>
   <div class="cards" id="cards"></div>
+  <p class="credit">Score: J. S. Bach, Passacaglia and Fugue in C minor, BWV 582, Mutopia Project 741, typeset after the C. F. Peters edition, public domain, <a href="https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=741">https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=741</a>.</p>
 </section>
 <script src="scroll.js?v=a047a0cb"></script>
 <script>
