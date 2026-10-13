@@ -185,8 +185,7 @@
 <script>
 (() => {
   const s = document.createElement("script");
-  const piece = (new URLSearchParams(location.search).get("piece") || "").replace(/[^\w-]/g, "");
-  s.src = (piece ? "fugue-data-" + piece + ".js" : "fugue-data.js") + "?v=" + Date.now();
+  s.src = "fugue-data.js?v=" + Date.now();
   s.onload = start;
   document.head.appendChild(s);
 })();
