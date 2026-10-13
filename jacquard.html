@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jacquard</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="top.css?v=f32dc556">
+<link rel="stylesheet" href="scroll.css?v=da4efe7e">
+<style>
+  .card { fill: #eadcb8; stroke: #c9b98f; stroke-width: .04; }
+  .hole { fill: #f6efdc; stroke: #b9a877; stroke-width: .05; cursor: pointer; }
+  .hole.on { fill: #1c1a17; stroke: #1c1a17; }
+  @media (hover: hover) { .hole:hover { stroke: var(--warm); stroke-width: .09; } }
+  .lace { fill: #d8c89c; }
+  .cardno { font-family: var(--sans); font-size: .6px; fill: var(--grey); text-anchor: end; }
+  .slbl { font-family: var(--caps); font-size: .5px; letter-spacing: .08em; fill: var(--muted); text-transform: uppercase; }
+  .draftcell { stroke: #c9c0a6; stroke-width: .03; }
+  .shuttle { stroke: var(--warm); stroke-width: .12; }
+  .addcard { fill: none; stroke: var(--grey); stroke-width: .06; stroke-dasharray: .28 .2; cursor: pointer; pointer-events: all; }
+  @media (hover: hover) { .addcard:hover { stroke: var(--warm); } }
+  .addplus { font-family: var(--sans); font-size: 1.2px; fill: var(--grey); text-anchor: middle; pointer-events: none; }
+  .addhole { fill: none; stroke: var(--grey); stroke-width: .06; stroke-dasharray: .2 .14; cursor: pointer; pointer-events: all; }
+  @media (hover: hover) { .addhole:hover { stroke: var(--warm); } }
+  .thr { fill: transparent; cursor: pointer; }
+  @media (hover: hover) { .thr:hover { fill: rgba(217, 140, 58, .22); } }
+  .hookno, .rowno { font-family: var(--sans); font-size: .6px; fill: var(--muted); text-anchor: middle; }
+  .rowno { text-anchor: end; font-size: .55px; }
+  .hookline { stroke: var(--line); stroke-width: .04; }
+  .warpline { stroke: var(--grey); stroke-width: .035; opacity: .7; }
+  .warpline.up { stroke: var(--ink); stroke-width: .09; opacity: 1; }
+  .reads { stroke: var(--line); stroke-width: .05; cursor: pointer; }
+  @media (hover: hover) { .reads:hover { stroke: var(--warm); stroke-width: .1; } }
+  .readno { font-family: var(--sans); font-size: .62px; text-anchor: middle; pointer-events: none; }
+  .curcard { fill: none; stroke: var(--ink); stroke-width: .08; }
+  .rowline { stroke: var(--line); stroke-width: .03; }
+  .chainline { fill: none; stroke: var(--warm); stroke-width: .07; stroke-dasharray: .3 .2; }
+  .hi-row { fill: var(--warm); fill-opacity: .2; }
+  .hi-line { stroke: var(--warm); stroke-width: .12; }
+  .hi-ring { fill: none; stroke: var(--warm); stroke-width: .12; }
+</style>
+</head>
+<body class="grain">
+<header class="top">
+  <a class="mark" href="#top">Jacquard</a>
+  <nav class="nav"><a class="home" href="overview.html#scene=loom">Overview</a><a href="truchet.html">Truchet</a><a href="girih.html">Girih</a><a href="penrose.html">Penrose</a><a href="automata.html">Automata</a><a href="solari.html">Solari</a><a href="jacquard.html" class="here">Jacquard</a><a href="index.html">Passacaglia</a><a href="fugue.html">Fugue</a></nav>
+</header>
+
+<main class="scrolly">
+  <div class="story">
+    <section data-scene="plain" id="top">
+      <h1>Jacquard</h1>
+      <p class="lead">A card with holes in it, and a length of cloth. Punch a hole, and the cloth changes.</p>
+      <p class="cue">Scroll to read. Tap the cards at any point.</p>
+    </section>
+    <section data-scene="plain2">
+      <h2>Warp and weft</h2>
+      <p>A loom holds the warp, threads stretched along its length and fixed for the whole piece. The weft passes across it one row at a time. On each pass some warp threads are lifted and the weft runs beneath them. The warp shows where it is lifted, and the weft shows elsewhere.</p>
+      <p>In plain weave, one row lifts alternate threads and the next row lifts the rest.</p>
+    </section>
+    <section data-scene="card">
+      <h2>The card</h2>
+      <p>Joseph Marie Jacquard's loom of 1804 read which threads to lift from punched cards, taken in turn, one for each row of cloth. The places for holes are numbered across the card. Place 3 on each card is punch column 3. Each thread is mapped to one punch column. A hole punched in a card lifts the threads mapped to its column in each row that card weaves.</p>
+      <p>Plain weave needs two punch columns, one for the odd threads and one for the even, and two cards, one for each row. Twill needs at least three punch columns and satin at least five. Tap the dashed hole on a card to add a column, up to eight.</p>
+      <p>Hover over a hole, or tap one, to see the threads mapped to its column and the rows its card weaves. A tap also punches or fills it.</p>
+      <p>The board starts with one card of four punch columns. With a single card the rows are identical, so the threads a hole lifts run as stripes down the cloth. Tap the holes.</p>
+    </section>
+    <section data-scene="chain">
+      <h2>A chain of cards</h2>
+      <p>The cards are laced into a chain, one card a row, and the chain loops. Four cards give a twill, the diagonal weave of denim.</p>
+      <div class="picks" id="presets"><button data-p="plain">Plain</button><button data-p="twill">Twill</button><button data-p="satin">Satin</button><button data-p="broken">Broken twill</button></div>
+      <p class="small">Tap the dashed card to add another, up to eight. The Cards − button beneath the board takes one away.</p>
+    </section>
+    <section data-scene="threading">
+      <h2>The thread mapping</h2>
+      <p>The numbers above the cloth give each thread's punch column. Any thread can be mapped to any column, and several threads, side by side or apart, can share one. In the Straight mapping the columns run 1, 2, 3, 4 and repeat across the width. In the Mirror mapping they run forwards and back, 1, 2, 3, 4, 3, 2, and the same four cards weave zigzags.</p>
+      <p>The mapping is made once, when the loom is set up, and it holds for the whole piece. On the loom each punch column is a hook, and the mapping is the harness, the cords that tie each thread to its hook. Tap a number to map that thread to the next column.</p>
+    </section>
+    <section data-scene="lovelace">
+      <h2>Lovelace</h2>
+      <blockquote>We may say most aptly that the Analytical Engine weaves algebraical patterns just as the Jacquard-loom weaves flowers and leaves.<cite>Ada Lovelace, note A, 1843</cite></blockquote>
+      <p>Charles Babbage meant his engine to be programmed with punched cards taken from the loom. He owned a portrait of Jacquard woven in silk in 1839 on a Jacquard loom, from some 24,000 cards.</p>
+    </section>
+    <section data-scene="draft">
+      <h2>Albers's draft</h2>
+      <p>Anni Albers drafted before she wove. A draft writes the thread mapping along the top (weavers call it the threading), the cards down the side, and the cloth where they cross, in black and white squares on squared paper.</p>
+      <p>The board is now drawn as a draft. Change the cards or the mapping, and the cloth follows.</p>
+    </section>
+    <section data-scene="free">
+      <h2>Sources</h2>
+      <ol class="refs">
+        <li><a href="https://en.wikipedia.org/wiki/Jacquard_machine">Jacquard machine</a>, Wikipedia.<span>The loom of 1804, the cards and the hooks; the woven portrait of 1839.</span></li>
+        <li>Ada Augusta Lovelace, notes by the translator, in L. F. Menabrea, <a href="https://www.fourmilab.ch/babbage/sketch.html">Sketch of the Analytical Engine</a>, Scientific Memoirs 3, 1843.<span>Note A holds the sentence quoted.</span></li>
+        <li>Anni Albers, On Weaving, Wesleyan University Press, 1965; expanded edition, Princeton University Press, 2017. <a href="https://www.albersfoundation.org/alberses/teaching/on-weaving">The Albers Foundation</a>.<span>Plain weave, twill, and satin set out as systems, each with its draft.</span></li>
+      </ol>
+      <p class="back"><a href="overview.html#scene=loom">Back to the overview</a></p>
+    </section>
+  </div>
+
+  <div class="hold">
+    <div class="board"><svg id="sv" xmlns="http://www.w3.org/2000/svg" aria-label="the cards and the cloth"></svg></div>
+    <div class="readout" id="readout"></div>
+    <div class="tools" id="tools">
+      <div class="grp" id="g-cards"><span class="lbl">Cards</span><button id="fewer">−</button><button id="more">+</button></div>
+      <div class="grp" id="g-cols"><span class="lbl">Punch columns</span><button id="colfewer">−</button><button id="colmore">+</button></div>
+      <div class="grp" id="threads"><span class="lbl">Mapping</span><button class="ring" data-t="straight">Straight</button><button class="ring" data-t="mirror">Mirror</button><button class="ring" data-t="blocks">Blocks</button></div>
+      <div class="grp" id="colours"><button class="ring" data-c="ink">Ink</button><button class="ring" data-c="indigo">Indigo</button></div>
+    </div>
+  </div>
+</main>
+<script src="scroll.js?v=a047a0cb"></script>
+
+<script>
+"use strict";
+const NS = "http://www.w3.org/2000/svg";
+const $ = id => document.getElementById(id);
+const sv = $("sv");
+const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+
+const WARPS = 40, PICKS = 28, MAXC = 8, MAXH = 8;
+const PALETTE = { ink: { warp: "#1c1a17", weft: "#efe5c8", gap: "#d9ceae" }, indigo: { warp: "#27406b", weft: "#eadbb8", gap: "#cdbf98" } };
+// the loom has as many hooks as the pattern needs: two for plain weave, four for twill, eight for satin
+let hooks = 2;
+const THREADING = {
+  straight: (j, n) => j % n,
+  mirror: (j, n) => { if (n < 3) return j % n; const p = 2 * n - 2, k = j % p; return k < n ? k : p - k; },
+  blocks: (j, n) => n < 4 ? j % n : 2 * (Math.floor(j / 4) % (n / 2)) + (j % 2),
+};
+const PRESETS = {
+  plain:  { hooks: 2, cards: ["10", "01"] },
+  twill:  { hooks: 4, cards: ["1100", "0110", "0011", "1001"] },
+  broken: { hooks: 4, cards: ["1100", "0110", "0011", "1001", "0011", "0110"] },
+  satin:  { hooks: 8, cards: ["10000000", "00010000", "00000010", "01000000", "00001000", "00000001", "00100000", "00000100"] },
+};
+
+let cards = [], threading = "straight", thr = [], colours = "ink", draft = false, scene = null;
+let cur = 0;                    // the card last touched: the strip shows which threads it lifts
+// the threading as the hook each warp thread is on; a preset fills it, a tap or a drag changes it
+function setThreading(name) { threading = name; thr = Array.from({ length: WARPS }, (_, j) => THREADING[name](j, hooks)); }
+// a punch column added or taken away on every card; a preset mapping is laid again over the new count, a mapping of your own is kept
+function setHooks(n) {
+  n = Math.max(1, Math.min(MAXH, n));
+  cards = cards.map(c => Array.from({ length: n }, (_, h) => c[h] || 0));
+  hooks = n;
+  if (THREADING[threading]) setThreading(threading); else thr = thr.map(h => h % n);
+}
+const saved = {};
+
+// -- the geometry, in cell units: the chain of cards at the left, large enough to tap, the threading over the cloth at the right.
+// Each thread hangs from one of the hook lines above the cloth and runs down through it; each row of cloth is numbered
+// with the card that wove it; a card's holes are numbered with the hooks they lift
+const PITCH = 1.6;
+const TOP = 1.3;
+const CARD = { x: 0, y: TOP + .7, w: MAXH * PITCH + 1.4, h: 2.4, gap: .6 };
+const ROW = .7;                 // the height of one hook's line in the threading, large enough to tap
+const CLOTH = { x: CARD.w + 2.2, y: TOP + MAXH * ROW + 1.2 };
+const HOOKX = h => CARD.x + (CARD.w - hooks * PITCH) / 2 + (h + .5) * PITCH;
+const HOOKY = r => TOP + (r + .5) * ROW;
+function layout() {
+  const w = CLOTH.x + WARPS + .4, h = CLOTH.y + PICKS + .4;
+  sv.setAttribute("viewBox", `-.8 -.2 ${w + .8} ${h + .2}`);
+  const box = sv.parentNode, W = box.clientWidth || 800, H = Math.max(300, window.innerHeight - 170);
+  const s = Math.min(W / (w + .8), H / (h + .2));
+  sv.setAttribute("width", Math.floor(s * (w + .8))); sv.setAttribute("height", Math.floor(s * (h + .2)));
+}
+
+let weaving = null, gHi = null;
+function draw(animate) {
+  while (sv.firstChild) sv.removeChild(sv.firstChild);
+  // where the cloth starts, before the board is sized: one row of numbers above it, or the draft's grid of hooks
+  CLOTH.y = draft ? TOP + hooks * ROW + 1.2 : TOP + 2.8;
+  layout();
+  const pal = PALETTE[colours], K = Math.max(1, cards.length);
+  // the chain of cards, the holes numbered with their hooks
+  const gC = el("g", {}, sv);
+  const lbl = el("text", { class: "slbl", x: 0, y: .45 }, gC); lbl.textContent = draft ? "the cards, as a draft writes them" : "the cards, punch columns numbered";
+  // above the cloth, one row: for each column, the hole of the card it reads. The draft keeps the weaver's grid of hooks
+  CLOTH.y = draft ? TOP + hooks * ROW + 1.2 : TOP + 2.8;
+  for (let h = 0; h < hooks; h++) { const t = el("text", { class: "hookno", x: HOOKX(h), y: CARD.y - .22 }, gC); t.textContent = h + 1; }
+  cards.forEach((c, k) => {
+    const y = CARD.y + k * (CARD.h + CARD.gap);
+    if (!draft) {
+      el("rect", { class: "card", x: CARD.x, y, width: CARD.w, height: CARD.h, rx: .18, "data-card": k }, gC);
+      el("circle", { class: "lace", cx: CARD.x + .3, cy: y + CARD.h / 2, r: .12 }, gC);
+      el("circle", { class: "lace", cx: CARD.x + CARD.w - .3, cy: y + CARD.h / 2, r: .12 }, gC);
+    }
+    const no = el("text", { class: "cardno", x: -.2, y: y + CARD.h / 2 + .2 }, gC); no.textContent = k + 1;
+    if (k === cur) el("rect", { class: "curcard", x: CARD.x - .12, y: y - .12, width: CARD.w + .24, height: CARD.h + .24, rx: .26 }, gC);
+    for (let h = 0; h < hooks; h++) {
+      const cx = HOOKX(h), cy = y + CARD.h / 2;
+      if (draft) el("rect", { class: "draftcell hole" + (c[h] ? " on" : ""), x: cx - PITCH / 2, y: cy - PITCH / 2, width: PITCH, height: PITCH, "data-k": k, "data-h": h }, gC);
+      else el("circle", { class: "hole" + (c[h] ? " on" : ""), cx, cy, r: .5, "data-k": k, "data-h": h }, gC);
+    }
+    // a dashed hole after the last column, to add another punch column to every card
+    if (hooks < MAXH && !draft) el("circle", { class: "addhole", cx: HOOKX(hooks), cy: y + CARD.h / 2, r: .5, "data-addcol": 1 }, gC);
+  });
+  // a dashed card after the last, to add another
+  if (cards.length < MAXC) {
+    const y = CARD.y + cards.length * (CARD.h + CARD.gap);
+    el("rect", { class: "addcard", x: CARD.x, y, width: CARD.w, height: CARD.h, rx: .18, "data-add": 1 }, gC);
+    const p = el("text", { class: "addplus", x: CARD.x + CARD.w / 2, y: y + CARD.h / 2 + .42 }, gC); p.textContent = "+";
+  }
+  // the threading: eight hook lines, numbered as on the cards; each thread hangs from its hook's line and runs down through the cloth
+  const gT = el("g", {}, sv);
+  if (cur >= cards.length) cur = Math.max(0, cards.length - 1);
+  const lifts = cards[cur] || [];
+  if (!draft) {
+    const tl = el("text", { class: "slbl", x: CLOTH.x, y: .45 }, gT); tl.textContent = `thread mapping: the punch column each thread is mapped to; dark where card ${cur + 1} has punched that column`;
+    for (let j = 0; j < WARPS; j++) {
+      const up = !!lifts[thr[j]], x = CLOTH.x + j;
+      el("line", { class: "warpline" + (up ? " up" : ""), x1: x + .5, x2: x + .5, y1: TOP + 1.4, y2: CLOTH.y - .05 }, gT);
+      el("line", { class: "warpline", x1: x + .5, x2: x + .5, y1: CLOTH.y, y2: CLOTH.y + PICKS }, gT);
+      el("rect", { class: "reads", x: x + .06, y: TOP + .25, width: .88, height: 1.1, rx: .16, fill: up ? pal.warp : "#f6efdc", "data-cyc": j }, gT);
+      const t = el("text", { class: "readno", x: x + .5, y: TOP + 1.02, fill: up ? "#f6efdc" : "#6f6a60" }, gT); t.textContent = thr[j] + 1;
+    }
+  }
+  if (draft) for (let r = 0; r < hooks; r++) {
+    el("line", { class: "hookline", x1: CLOTH.x - .1, x2: CLOTH.x + WARPS, y1: HOOKY(r), y2: HOOKY(r) }, gT);
+    const t = el("text", { class: "hookno", x: CLOTH.x - .45, y: HOOKY(r) + .2 }, gT); t.textContent = r + 1;
+  }
+  if (draft) for (let j = 0; j < WARPS; j++) {
+    const h = thr[j], x = CLOTH.x + j + .5, up = !!lifts[h];
+    // above the cloth the thread is dark when the current card lifts it; through the cloth it stays faint
+    el("line", { class: "warpline" + (up ? " up" : ""), x1: x, x2: x, y1: HOOKY(h), y2: CLOTH.y - .05 }, gT);
+    el("line", { class: "warpline", x1: x, x2: x, y1: CLOTH.y, y2: CLOTH.y + PICKS }, gT);
+    if (draft) for (let r = 0; r < hooks; r++) el("rect", { class: "draftcell", x: CLOTH.x + j, y: TOP + r * ROW, width: 1, height: ROW, fill: r === h ? pal.warp : "none" }, gT);
+    else el("circle", { cx: x, cy: HOOKY(h), r: .2, fill: up ? pal.warp : "#f9f4e5", stroke: pal.warp, "stroke-width": .06 }, gT);
+    for (let r = 0; r < hooks; r++) el("rect", { class: "thr", x: CLOTH.x + j, y: TOP + r * ROW, width: 1, height: ROW, "data-j": j, "data-r": r }, gT);
+  }
+  // the cloth: each row numbered with the card that wove it, one pass of the chain outlined
+  const gW = el("g", {}, sv);
+  const cl = el("text", { class: "slbl", x: CLOTH.x, y: CLOTH.y - .3 }, gW); cl.textContent = draft ? "the cloth, drawn down" : "the cloth: each row woven by one card";
+  for (let i = 0; i < PICKS; i++) {
+    el("line", { class: "rowline", x1: CLOTH.x - .1, x2: CLOTH.x + WARPS, y1: CLOTH.y + i + 1, y2: CLOTH.y + i + 1 }, gW);
+    const t = el("text", { class: "rowno", x: CLOTH.x - .3, y: CLOTH.y + i + .72 }, gW); t.textContent = (i % K) + 1;
+  }
+  // the cells in the order a loom weaves them: a row at a time from the top, the weft crossing each row from the side
+  // where the last row ended
+  const order = [];
+  for (let i = 0; i < PICKS; i++) {
+    const card = cards.length ? cards[i % cards.length] : null, y = CLOTH.y + i, row = [];
+    for (let j = 0; j < WARPS; j++) {
+      const up = card ? card[thr[j]] : 0, x = CLOTH.x + j, at = { "data-i": i, "data-j": j };
+      if (animate) at.opacity = 0;
+      if (draft) row.push(el("rect", Object.assign({ class: "draftcell", x, y, width: 1, height: 1, fill: up ? pal.warp : "#f6efdc" }, at), gW));
+      else if (up) row.push(el("rect", Object.assign({ x: x + .2, y: y + .02, width: .6, height: .96, rx: .28, fill: pal.warp }, at), gW));
+      else row.push(el("rect", Object.assign({ x: x + .02, y: y + .2, width: .96, height: .6, rx: .28, fill: pal.weft }, at), gW));
+    }
+    order.push(...(i % 2 ? row.reverse() : row));
+  }
+  el("rect", { class: "chainline", x: CLOTH.x - .12, y: CLOTH.y - .06, width: WARPS + .24, height: K + .12, rx: .2 }, gW);
+  gHi = el("g", { "pointer-events": "none" }, sv);
+  if (lit) highlight(lit.k, lit.h);
+  // on a change the cloth is cleared and filled again cell by cell in that order, a row every 60 ms
+  if (weaving) cancelAnimationFrame(weaving.id);
+  weaving = null;
+  if (animate) {
+    const t0 = performance.now(), per = 60 / WARPS;
+    let done = 0;
+    const go = now => {
+      const n = Math.min(order.length, Math.floor((now - t0) / per));
+      for (; done < n; done++) order[done].removeAttribute("opacity");
+      weaving = done < order.length ? { id: requestAnimationFrame(go) } : null;
+    };
+    weaving = { id: requestAnimationFrame(go) };
+  }
+  readout();
+  marks();
+}
+
+function readout() {
+  let across = WARPS;
+  for (let p = 1; p <= WARPS; p++) { let ok = true; for (let j = 0; j + p < WARPS && ok; j++) if (thr[j] !== thr[j + p]) ok = false; if (ok) { across = p; break; } }
+  $("readout").innerHTML = `<b>${cards.length}</b> card${cards.length === 1 ? "" : "s"} · <b>${hooks}</b> punch columns · <b>${WARPS}</b> threads<br>the pattern repeats every <b>${across}</b> threads and <b>${Math.max(1, cards.length)}</b> row${cards.length === 1 ? "" : "s"}`;
+}
+
+// -- moves ------------------------------------------------------------------------------------
+sv.addEventListener("click", ev => {
+  if (ev.target.closest && ev.target.closest("[data-add]")) { if (cards.length < MAXC) { cards.push(new Array(hooks).fill(0)); touched(); draw(true); } return; }
+  if (ev.target.closest && ev.target.closest("[data-addcol]")) { setHooks(hooks + 1); touched(); draw(true); return; }
+  const rd = ev.target.closest && ev.target.closest("[data-cyc]");
+  if (rd) { const j = +rd.dataset.cyc; thr[j] = (thr[j] + 1) % hooks; threading = "own"; touched(); draw(true); return; }
+  const c = ev.target.closest && ev.target.closest("[data-card]");
+  if (c) { cur = +c.dataset.card; draw(false); return; }
+  const t = ev.target.closest && ev.target.closest("[data-k]"); if (!t) return;
+  const k = +t.dataset.k, h = +t.dataset.h;
+  cards[k][h] ^= 1; cur = k; touched(); draw(true);
+});
+// the threading: press on a cell and drag along the row of threads to draw it
+let drawing = false;
+// only the threading's own cells count: they carry a hook (data-r); the cloth's squares carry a thread but no hook
+const isThreadCell = t => t && t.dataset && t.dataset.r != null && t.dataset.j != null;
+function threadAt(ev) {
+  const t = document.elementFromPoint(ev.clientX, ev.clientY);
+  if (!isThreadCell(t)) return false;
+  const j = +t.dataset.j, r = +t.dataset.r;
+  if (thr[j] === r) return false;
+  thr[j] = r; threading = "own"; return true;
+}
+sv.addEventListener("pointerdown", ev => { if (isThreadCell(ev.target)) { drawing = true; if (threadAt(ev)) { touched(); draw(false); } } });
+sv.addEventListener("pointermove", ev => { if (drawing && threadAt(ev)) { touched(); draw(false); } });
+window.addEventListener("pointerup", () => { drawing = false; });
+window.addEventListener("pointercancel", () => { drawing = false; });
+// on a touch screen, a drag along the threading draws it and does not scroll the page
+sv.addEventListener("touchstart", ev => { if (isThreadCell(ev.target)) ev.preventDefault(); }, { passive: false });
+
+// hovering shows what goes with what: a hole lights its card's rows and its hook's threads; a square of cloth lights its card and hole
+function highlight(k, h) {
+  if (!gHi) return;
+  while (gHi.firstChild) gHi.removeChild(gHi.firstChild);
+  const K = Math.max(1, cards.length);
+  if (k != null && k < cards.length) {
+    for (let i = k; i < PICKS; i += K) el("rect", { class: "hi-row", x: CLOTH.x, y: CLOTH.y + i, width: WARPS, height: 1 }, gHi);
+    el("rect", { class: "hi-ring", x: CARD.x - .1, y: CARD.y + k * (CARD.h + CARD.gap) - .1, width: CARD.w + .2, height: CARD.h + .2, rx: .25 }, gHi);
+  }
+  if (h != null) {
+    if (draft) el("line", { class: "hi-line", x1: CLOTH.x - .1, x2: CLOTH.x + WARPS, y1: HOOKY(h), y2: HOOKY(h) }, gHi);
+    const top = draft ? null : TOP + .2;
+    for (let j = 0; j < WARPS; j++) if (thr[j] === h) {
+      el("line", { class: "hi-line", x1: CLOTH.x + j + .5, x2: CLOTH.x + j + .5, y1: draft ? HOOKY(h) : TOP + 1.4, y2: CLOTH.y + PICKS }, gHi);
+      if (!draft) el("rect", { class: "hi-ring", x: CLOTH.x + j + .02, y: top, width: .96, height: 1.2, rx: .2 }, gHi);
+    }
+    if (k != null && k < cards.length) el("circle", { class: "hi-ring", cx: HOOKX(h), cy: CARD.y + k * (CARD.h + CARD.gap) + CARD.h / 2, r: .66 }, gHi);
+    else el("rect", { class: "hi-ring", x: HOOKX(h) - PITCH / 2, y: CARD.y - .1, width: PITCH, height: cards.length * (CARD.h + CARD.gap) - CARD.gap + .2, rx: .3 }, gHi);
+  }
+}
+// the card and the hook a part of the board stands for
+function partOf(t) {
+  const d = (t && t.dataset) || {};
+  let k = null, h = null;
+  if (d.k != null) { k = +d.k; h = +d.h; }
+  else if (d.card != null) k = +d.card;
+  else if (d.i != null) { k = +d.i % Math.max(1, cards.length); h = thr[+d.j]; }
+  else if (d.r != null) h = +d.r;
+  else if (d.cyc != null) h = thr[+d.cyc];
+  return { k, h };
+}
+sv.addEventListener("pointermove", ev => { if (ev.pointerType !== "mouse") return; const p = partOf(ev.target); highlight(p.k, p.h); });
+sv.addEventListener("pointerleave", ev => { if (ev.pointerType === "mouse") highlight(null, null); });
+// a touch screen has no hover: a tap lights what the part tapped goes with, and it stays lit through the redraw until the next tap
+let lit = null;
+sv.addEventListener("pointerdown", ev => { if (ev.pointerType === "mouse") { lit = null; return; } lit = partOf(ev.target); highlight(lit.k, lit.h); });
+function touched() { saved[scene] = { hooks, cards: cards.map(c => c.slice()), threading, thr: thr.slice(), draft }; }
+// a preset brings its own number of hooks; the threading keeps its kind and is laid again over them
+function load(p) { const P = PRESETS[p]; hooks = P.hooks; cards = P.cards.map(s => [...s].map(Number)); setThreading(THREADING[threading] ? threading : "straight"); }
+$("fewer").addEventListener("click", () => { if (cards.length > 1) { cards.pop(); touched(); draw(true); } });
+$("more").addEventListener("click", () => { if (cards.length < MAXC) { cards.push(new Array(hooks).fill(0)); touched(); draw(true); } });
+$("colfewer").addEventListener("click", () => { if (hooks > 1) { setHooks(hooks - 1); touched(); draw(true); } });
+$("colmore").addEventListener("click", () => { if (hooks < MAXH) { setHooks(hooks + 1); touched(); draw(true); } });
+for (const b of $("threads").querySelectorAll("button")) b.addEventListener("click", () => { setThreading(b.dataset.t); touched(); draw(true); });
+for (const b of $("colours").querySelectorAll("button")) b.addEventListener("click", () => { colours = b.dataset.c; draw(false); });
+for (const b of $("presets").children) b.addEventListener("click", () => { load(b.dataset.p); touched(); draw(true); });
+function marks() {
+  for (const b of $("threads").querySelectorAll("button")) b.classList.toggle("on", b.dataset.t === threading);
+  for (const b of $("colours").querySelectorAll("button")) b.classList.toggle("on", b.dataset.c === colours);
+}
+
+// -- scenes -----------------------------------------------------------------------------------------
+const SCENES = {
+  plain:     () => { load("plain"); setThreading("straight"); draft = false; },
+  plain2:    () => { load("plain"); setThreading("straight"); draft = false; },
+  card:      () => { hooks = 4; cards = [[1, 0, 0, 1]]; setThreading("straight"); draft = false; },
+  chain:     () => { load("twill"); setThreading("straight"); draft = false; },
+  threading: () => { load("twill"); setThreading("mirror"); draft = false; },
+  lovelace:  () => { load("broken"); setThreading("mirror"); draft = false; },
+  draft:     () => { load("twill"); setThreading("mirror"); draft = true; },
+  free:      () => {},
+};
+// the controls each passage needs, and no others
+const TOOLS = {
+  plain: [], plain2: [], card: ["g-cols"], chain: ["g-cards"], threading: ["threads", "g-cols"],
+  lovelace: ["colours"], draft: ["threads"], free: [],
+};
+function applyTools(name) {
+  const want = new Set(TOOLS[name] || []);
+  for (const id of ["g-cards", "g-cols", "threads", "colours"]) $(id).hidden = !want.has(id);
+  $("tools").hidden = want.size === 0;
+}
+function enter(name) {
+  if (name === scene) return;
+  applyTools(name);
+  scene = name; cur = 0;
+  const s = saved[name];
+  if (s) { hooks = s.hooks; cards = s.cards.map(c => c.slice()); threading = s.threading; thr = s.thr.slice(); draft = s.draft; }
+  else SCENES[name]();
+  for (const sec of document.querySelectorAll(".story section")) sec.classList.toggle("on", sec.dataset.scene === name);
+  draw(true);
+}
+const io = new IntersectionObserver(entries => { for (const e of entries) if (e.isIntersecting) enter(e.target.dataset.scene); }, { rootMargin: "-45% 0px -45% 0px" });
+for (const sec of document.querySelectorAll(".story section")) io.observe(sec);
+window.addEventListener("resize", () => draw(false));
+// a hash may open the page at a passage: #draft, or #scene=threading
+const want = (location.hash.match(/scene=(\w+)/) || [])[1] || (location.hash === "#draft" ? "draft" : "plain");
+const start = SCENES[want] ? want : "plain";
+const still = /still/.test(location.hash);           // for checking a scene's board without scrolling to it
+if (still) io.disconnect();
+else if (start !== "plain") { const sec = document.querySelector(`.story section[data-scene="${start}"]`); if (sec) sec.scrollIntoView({ behavior: "instant", block: "center" }); }
+enter(start);
+</script>
+<script src="noselect.js?v=e60814a2"></script>
+</body>
+</html>

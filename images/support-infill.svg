@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" font-family="'Cormorant Garamond', Garamond, 'Times New Roman', serif">
+  <!-- Support and infill, drawn by us after Habraken's principle (Supports, 1961). One support, built once, shown
+       twice; the infill in each bay belongs to a household, and the second section shows it rebuilt as households
+       changed. A diagram of the idea, not a drawing of Molenvliet or Next21. -->
+  <rect width="1200" height="560" fill="#f9f4e5"/>
+  <defs>
+    <!-- the support: four floors on five columns, a slab at every level -->
+    <g id="support" stroke="#1c1a17" stroke-linecap="square">
+      <path d="M0 420h440M0 320h440M0 220h440M0 120h440M0 20h440" stroke-width="7"/>
+      <path d="M0 20v400M110 20v400M220 20v400M330 20v400M440 20v400" stroke-width="7"/>
+      <path d="M-20 426h480" stroke-width="3"/>
+    </g>
+  </defs>
+  <!-- the first infill -->
+  <g transform="translate(90 90)">
+    <g stroke="#1c1a17" stroke-opacity=".25" stroke-width="1">
+      <rect x="7" y="27" width="96" height="86" fill="#d98c3a" fill-opacity=".45"/>
+      <rect x="117" y="27" width="206" height="86" fill="#2b6f9e" fill-opacity=".35"/>
+      <rect x="337" y="27" width="96" height="86" fill="#8a2f5c" fill-opacity=".3"/>
+      <rect x="7" y="127" width="206" height="86" fill="#5f7a3a" fill-opacity=".4"/>
+      <rect x="227" y="127" width="206" height="86" fill="#d98c3a" fill-opacity=".3"/>
+      <rect x="7" y="227" width="96" height="86" fill="#8a2f5c" fill-opacity=".35"/>
+      <rect x="117" y="227" width="96" height="86" fill="#2b6f9e" fill-opacity=".25"/>
+      <rect x="227" y="227" width="206" height="86" fill="#5f7a3a" fill-opacity=".3"/>
+      <rect x="7" y="327" width="426" height="86" fill="#d98c3a" fill-opacity=".2"/>
+    </g>
+    <use href="#support"/>
+  </g>
+  <!-- the second infill, on the same support -->
+  <g transform="translate(670 90)">
+    <g stroke="#1c1a17" stroke-opacity=".25" stroke-width="1">
+      <rect x="7" y="27" width="206" height="86" fill="#5f7a3a" fill-opacity=".4"/>
+      <rect x="227" y="27" width="96" height="86" fill="#d98c3a" fill-opacity=".45"/>
+      <rect x="337" y="27" width="96" height="86" fill="#8a2f5c" fill-opacity=".3"/>
+      <rect x="7" y="127" width="96" height="86" fill="#2b6f9e" fill-opacity=".35"/>
+      <rect x="117" y="127" width="96" height="86" fill="#8a2f5c" fill-opacity=".25"/>
+      <rect x="227" y="127" width="206" height="86" fill="#d98c3a" fill-opacity=".3"/>
+      <rect x="7" y="227" width="316" height="86" fill="#2b6f9e" fill-opacity=".3"/>
+      <rect x="337" y="227" width="96" height="86" fill="#5f7a3a" fill-opacity=".35"/>
+      <rect x="7" y="327" width="206" height="86" fill="#d98c3a" fill-opacity=".25"/>
+      <rect x="227" y="327" width="206" height="86" fill="#8a2f5c" fill-opacity=".2"/>
+    </g>
+    <use href="#support"/>
+  </g>
+  <g font-family="Cinzel, 'Trajan Pro', serif" font-size="14" letter-spacing="2.5" fill="#6f6a60" text-anchor="middle">
+    <text x="310" y="60">AS BUILT</text>
+    <text x="890" y="60">YEARS LATER</text>
+  </g>
+</svg>

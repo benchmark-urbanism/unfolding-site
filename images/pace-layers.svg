@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" font-family="'Cormorant Garamond', Garamond, 'Times New Roman', serif">
+  <!-- The pace layers, redrawn after Stewart Brand, Pace layering: how complex systems learn and keep learning,
+       Journal of Design and Science, 2018 (CC BY 4.0). Six bands, fastest above; each band thicker than the
+       one above it, and its ticks further apart, as the layer is slower. The two arrows are his two sentences on
+       how the layers act on each other. -->
+  <rect width="1200" height="700" fill="#f9f4e5"/>
+  <g font-family="Cinzel, 'Trajan Pro', serif" font-size="17" letter-spacing="3">
+    <rect x="280" y="40" width="700" height="44" rx="22" fill="#f1e2c2"/>
+    <path d="M308 62h650" stroke="#b58a4a" stroke-width="1" stroke-dasharray="1 11" stroke-linecap="round" opacity=".8"/>
+    <text x="262" y="68" text-anchor="end" fill="#1c1a17">FASHION</text>
+    <rect x="280" y="96" width="700" height="62" rx="31" fill="#e8d2a6"/>
+    <path d="M318 127h630" stroke="#9c7a3f" stroke-width="1.2" stroke-dasharray="1 23" stroke-linecap="round" opacity=".8"/>
+    <text x="262" y="133" text-anchor="end" fill="#1c1a17">COMMERCE</text>
+    <rect x="280" y="170" width="700" height="84" rx="42" fill="#d6bc8c"/>
+    <path d="M328 212h610" stroke="#7d6232" stroke-width="1.4" stroke-dasharray="1 45" stroke-linecap="round" opacity=".8"/>
+    <text x="262" y="218" text-anchor="end" fill="#1c1a17">INFRASTRUCTURE</text>
+    <rect x="280" y="266" width="700" height="108" rx="54" fill="#a99a78"/>
+    <path d="M340 320h590" stroke="#4f4632" stroke-width="1.6" stroke-dasharray="1 89" stroke-linecap="round" opacity=".8"/>
+    <text x="262" y="326" text-anchor="end" fill="#1c1a17">GOVERNANCE</text>
+    <rect x="280" y="386" width="700" height="136" rx="68" fill="#6f7563"/>
+    <path d="M360 454h550" stroke="#f9f4e5" stroke-width="1.8" stroke-dasharray="1 169" stroke-linecap="round" opacity=".7"/>
+    <text x="262" y="460" text-anchor="end" fill="#1c1a17">CULTURE</text>
+    <rect x="280" y="534" width="700" height="136" rx="68" fill="#3d4a3b"/>
+    <path d="M380 602h510" stroke="#f9f4e5" stroke-width="2" stroke-dasharray="1 319" stroke-linecap="round" opacity=".7"/>
+    <text x="262" y="608" text-anchor="end" fill="#1c1a17">NATURE</text>
+  </g>
+  <g stroke="#1c1a17" stroke-width="1.4" fill="none">
+    <path d="M1030 70 V 630"/><path d="M1022 616 l8 16 l8 -16"/>
+    <path d="M1100 630 V 70"/><path d="M1092 84 l8 -16 l8 16"/>
+  </g>
+  <g font-size="19" fill="#1c1a17" font-style="italic">
+    <text transform="translate(1054 350) rotate(90)" text-anchor="middle">fast instructs slow: innovation, revolution</text>
+    <text transform="translate(1124 350) rotate(90)" text-anchor="middle">slow controls fast: constraint, constancy</text>
+  </g>
+  <g font-family="Cinzel, 'Trajan Pro', serif" font-size="12" letter-spacing="2.5" fill="#6f6a60">
+    <text x="630" y="28" text-anchor="middle">FASTEST</text>
+    <text x="630" y="692" text-anchor="middle">SLOWEST</text>
+  </g>
+</svg>

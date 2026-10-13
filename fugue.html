@@ -1,0 +1,951 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fugue</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="top.css?v=f32dc556">
+<link rel="stylesheet" href="scroll.css?v=da4efe7e">
+<style>
+  :root { --paper: #f6f0dc; --ink: #1c1a17; --muted: #6f6a60; --line: #cfc7ad; --emerge: #e01b24; --warm: #d98c3a;
+          --counter: #2b6f9e; --second: #3f7d4e; --episode: #7b4a1e; --grey: #9b968e; --third: #6e4c9e; --second-subject: #9c4f1f; --third-subject: #8a2f5c; --found-a: #1f7f78; --found-b: #7d7a1c; --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+         font-family: "Cormorant Garamond", Garamond, "Times New Roman", serif; font-size: 15px; font-weight: 500; line-height: 1.4; }
+  body.grain::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9; opacity: .035; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  .page { height: 100vh; display: flex; flex-direction: column; padding: 16px 24px 16px; }
+  /* the fugue, chosen from the fugues built: a menu set in the tagline's type */
+  .pick { font: inherit; font-size: 15px; font-style: italic; color: var(--muted); background: none; border: 0; border-bottom: 1px solid var(--line); padding: 0 18px 1px 0; margin: 0; cursor: pointer;
+          -webkit-appearance: none; appearance: none; max-width: 40vw; text-overflow: ellipsis;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236f6a60'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 2px center; }
+  .pick:focus { outline: none; border-bottom-color: var(--ink); }
+  /* the plates' labels, numerals and the controls in a humanist sans with tabular figures;
+     Cinzel keeps the title, Cormorant the running text */
+  .sc { font-family: var(--sans); font-size: 11px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; line-height: 16px; }
+  .controls { display: flex; gap: 24px; align-items: baseline; white-space: nowrap; }
+  button { font: inherit; font-family: var(--sans); font-weight: 500; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink);
+           background: none; border: 0; border-radius: 0; padding: 0; margin: 0; cursor: pointer; line-height: 16px; }
+  .tempo { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .tempo output { font-family: var(--sans); font-weight: 500; font-size: 11px; letter-spacing: .06em; font-variant-numeric: tabular-nums; min-width: 6ch; color: var(--ink); }
+  input[type="range"] { -webkit-appearance: none; appearance: none; width: 96px; height: 1px; background: var(--line); outline: none; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); border: 0; }
+  input[type="range"]::-moz-range-thumb { width: 9px; height: 9px; border-radius: 50%; background: var(--ink); border: 0; }
+  .pair { display: inline-flex; gap: 24px; }
+  /* the page's own controls, in one quiet row at its foot, as on the scrolled pages */
+  .bar { flex: 0 0 auto; align-self: center; display: flex; align-items: center; gap: 22px; margin-top: 10px; padding: 9px 20px; border-radius: 22px; white-space: nowrap;
+         background: rgba(249, 244, 229, .92); box-shadow: 0 1px 0 var(--line), 0 6px 24px rgba(28, 26, 23, .06); }
+  .bar .controls { gap: 22px; align-items: center; }
+  .bar button, .bar .tempo output { font-family: Cinzel, "Trajan Pro", serif; font-size: 10px; font-weight: 500; letter-spacing: .16em; }
+  #explore { flex: 1; min-height: 0; position: relative; padding-top: 10px; display: flex; flex-direction: column; }
+  .stage { flex: 1; min-height: 0; display: flex; justify-content: center; align-items: center; }
+  /* the two plates fill the stage; each SVG keeps its own ratio inside its cell, so on a
+     wide stage they are limited by height and on a narrow one by width, at one scale */
+  .main { width: 100%; height: 100%; display: grid; grid-template-columns: 700fr 800fr; gap: 48px; min-width: 0; }
+  /* each plate keeps its drawing's proportions and sits centred in its column; the wheel's
+     column leaves room for the transport, which follows the wheel at a fixed distance */
+  .main > div { min-width: 0; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .main > div > svg { display: block; width: 100%; height: auto; max-height: 100%; }
+  .main > div:first-child > svg { max-height: calc(100% - 64px); }
+  .transport { flex: 0 0 auto; padding-top: 22px; display: flex; justify-content: center; }
+  .tbtn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--ink); background: none; padding: 0; margin: 0; cursor: pointer;
+          display: inline-flex; align-items: center; justify-content: center; color: var(--ink); }
+  .tbtn svg { width: 12px; height: 12px; fill: currentColor; }
+  /* the sources across the foot of the page under both plates, one a line, centred */
+  .credit { flex: 0 0 auto; margin: 6px 0 0; font-size: 11px; line-height: 1.35; color: var(--muted); text-align: center; }
+  .credit a { color: inherit; }
+  .tbtn .ic-pause { display: none; } .tbtn.on .ic-play { display: none; } .tbtn.on .ic-pause { display: block; }
+  #wheel, #dash { cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: none; }
+  #wheel text, #dash text { pointer-events: none; }
+  #hub:focus { outline: none; }
+  /* the material by kind: the subject in ink, the first countersubject blue, the second
+     green; a fragment broken off either is the same colour, lighter; free notes grey */
+  .wn { fill: none; stroke: var(--grey); opacity: .45; }
+  .wn.s, .wn.c1, .wn.c2 { opacity: 1; }
+  .wn.s { stroke: var(--ink); } .wn.c1, .wn.fc1 { stroke: var(--counter); } .wn.c2, .wn.fc2 { stroke: var(--second); }
+  .wn.fe { stroke: var(--episode); }
+  .wn.fc1, .wn.fc2, .wn.fe { opacity: .6; }
+  .wn.on { stroke: var(--warm); opacity: 1; }
+  .sa { fill: none; opacity: .22; }
+  .sa.s { stroke: var(--ink); } .sa.c1 { stroke: var(--counter); } .sa.c2 { stroke: var(--second); }
+  .sa.heard { opacity: 1; }
+  .ca { fill: none; stroke-dasharray: 3 2; opacity: .35; }
+  .ca.heard { opacity: 1; }
+  .newtick { stroke: var(--emerge); }
+  .rn { fill: var(--grey); opacity: .45; }
+  .rn.s, .rn.c1, .rn.c2 { opacity: 1; }
+  .rn.s { fill: var(--ink); } .rn.c1, .rn.fc1 { fill: var(--counter); } .rn.c2, .rn.fc2 { fill: var(--second); }
+  .rn.fe { fill: var(--episode); }
+  .rn.fc1, .rn.fc2, .rn.fe { opacity: .6; }
+  .rn.on { fill: var(--warm); opacity: 1; }
+  .rlab { font-size: 9px; letter-spacing: .1em; text-transform: uppercase; fill: var(--ink); }
+  .rlab.c1 { fill: var(--counter); } .rlab.c2 { fill: var(--second); } .rlab.e { fill: var(--episode); }
+  .now { font-family: var(--sans); font-size: 12px; font-weight: 400; font-style: italic; }
+  .now.c1 { fill: var(--counter); } .now.c2 { fill: var(--second); }
+  .lbl.ink { fill: var(--ink); }
+  .num.c1, .lbl.c1 { fill: var(--counter); } .num.c2, .lbl.c2 { fill: var(--second); }
+  .num.sm { font-size: 16px; }
+  .remark { font-size: 10.5px; font-style: italic; font-weight: 400; fill: var(--muted); }
+  .key { font-size: 9px; font-weight: 400; letter-spacing: .1em; text-transform: uppercase; fill: var(--muted); }
+  /* the themes drawn large at the top, each note lit as it is played anywhere */
+  .tn { fill: var(--ink); }
+  .tn.c1 { fill: var(--counter); } .tn.c2 { fill: var(--second); }
+  .rn.c3, .rn.fc3, .tn.c3, .rlab.c3, .now.c3, .num.c3, .lbl.c3 { fill: var(--third); } .rn.c3 { opacity: 1; }
+  .rn.s2, .rn.fs2, .tn.s2, .rlab.s2, .now.s2, .num.s2, .lbl.s2 { fill: var(--second-subject); } .rn.s2 { opacity: 1; }
+  .rn.s3, .rn.fs3, .tn.s3, .rlab.s3, .now.s3, .num.s3, .lbl.s3 { fill: var(--third-subject); } .rn.s3 { opacity: 1; }
+  .wn.s2, .wn.fs2, .sa.s2 { stroke: var(--second-subject); } .wn.s3, .wn.fs3, .sa.s3 { stroke: var(--third-subject); }
+  .wn.c3, .wn.fc3, .sa.c3 { stroke: var(--third); } .wn.s2, .wn.s3, .wn.c3 { opacity: 1; }
+  /* figures found by matching, not named in the reference */
+  .rn.a1, .rn.fa1, .tn.a1, .rlab.a1, .now.a1, .num.a1, .lbl.a1 { fill: var(--found-a); } .wn.a1, .wn.fa1, .sa.a1 { stroke: var(--found-a); }
+  .rn.a2, .rn.fa2, .tn.a2, .rlab.a2, .now.a2, .num.a2, .lbl.a2 { fill: var(--found-b); } .wn.a2, .wn.fa2, .sa.a2 { stroke: var(--found-b); }
+  .rn.a1, .rn.a2, .wn.a1, .wn.a2 { opacity: 1; }
+  .tn.on { fill: var(--warm); opacity: 1; }
+  /* the hub's web: the twelve semitones, every interval sounded etched in paper, the last
+     beats' intervals glowing */
+  .hub-pc { fill: var(--ink); }
+  .hub-lab { font-size: 7.5px; letter-spacing: .04em; fill: var(--ink); paint-order: stroke; stroke: var(--paper); stroke-width: 2.5px; stroke-linejoin: round; }
+  .hub-disc { fill: var(--paper); stroke: var(--ink); stroke-width: .6; }
+  .hub-deg { font-size: 6.5px; letter-spacing: .02em; fill: var(--ink); }
+  .etch { stroke: var(--ink); fill: none; }
+  .live { fill: none; stroke-linecap: round; }
+  .acc { mix-blend-mode: multiply; stroke: none; }
+  .imlab { font-size: 9px; letter-spacing: .1em; text-transform: uppercase; fill: var(--warm); }
+  .thread { fill: var(--warm); opacity: .55; }
+  .farlab { font-size: 9px; letter-spacing: .1em; text-transform: uppercase; fill: var(--emerge); }
+  /* the circle of fifths round the hub */
+
+  svg text { fill: var(--ink); font-family: var(--sans); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .lbl { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; fill: var(--muted); }
+  .num { font-size: 20px; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+  .of { font-size: 11px; fill: var(--muted); letter-spacing: .06em; }
+  [hidden] { display: none !important; }
+  /* the scrolled page: beside the story the stage shows the wheel, or the dashboard, as large as the board allows;
+     after the story the whole page holds both, as it always has */
+  .board > .stage { width: 100%; height: 100%; }
+  .board .main { width: 100%; height: 100%; grid-template-columns: 1fr; grid-template-rows: 100%; gap: 0; }
+  .board .main > div { min-height: 0; height: 100%; }
+  .stage[data-panel="wheel"] .main > div:nth-child(2), .stage[data-panel="dash"] .main > div:first-child { display: none; }
+  #full { padding-top: 64px; }
+  span.pick { background-image: none; cursor: default; border-bottom: 0; padding-right: 0; }
+  @media (max-width: 900px) {
+    body { overflow: auto; } .page { height: auto; } header { flex-wrap: wrap; } .nav { margin-left: 0; }
+  }
+</style>
+</head>
+<body class="grain">
+<header class="top">
+    <a class="mark" href="fugue.html">Fugue</a>
+    <nav class="nav"><a class="home" href="overview.html#scene=fugue">Overview</a><a href="truchet.html">Truchet</a><a href="girih.html">Girih</a><a href="penrose.html">Penrose</a><a href="automata.html">Automata</a><a href="solari.html">Solari</a><a href="jacquard.html">Jacquard</a><a href="index.html">Passacaglia</a><a href="fugue.html" class="here">Fugue</a></nav>
+  </header>
+
+<main class="scrolly">
+  <div class="story">
+    <section data-scene="fugue" id="top">
+      <h1>Fugue</h1>
+      <p class="lead">One subject, two countersubjects, and four voices.</p>
+      <p>A fugue begins with one voice playing a theme, its subject. A second voice then takes up the subject at another pitch, as the answer, while the first goes on to a line of its own. A third voice enters, then a fourth. After that the subject returns in one voice or another, and the other voices play against it. Here the subject is the first half of the Passacaglia’s ground, and the fugue follows the Passacaglia without a break.</p>
+      <p class="cue">Scroll to read. The button under the wheel plays.</p>
+    </section>
+    <section data-scene="themes">
+      <h2>The subject and its companions</h2>
+      <p>Two other lines travel with the subject, the countersubjects, one in blue and one in green. When a voice takes up the subject, other voices take up the countersubjects above or below it, and across the twelve entries the three are dealt to the voices in changing combinations. On the wheel the subject is in ink, and the entries of the three stand on the outer ring.</p>
+    </section>
+    <section data-scene="episodes">
+      <h2>Between the entries</h2>
+      <p>In the episodes between entries, Bach works with fragments of the themes. A figure may be repeated a step higher, or taken up by another voice a beat later. The fragments join into lines that pass between voices, and the harmony forms from the voices sounding together. The lines and the harmony are emergent, and Bach wrote each note of them. He could do the same at the keyboard, improvising a fugue on a theme handed to him.</p>
+    </section>
+    <section data-scene="reading">
+      <h2>Reading the page</h2>
+      <p>The wheel carries the fugue once round and turns under the red line, with the notes sounding at the line and pitch rising outwards. Its hub shows the harmony, the chord of the moment drawn on a dial of the twelve notes. The dashboard shows the three themes and how often each has been heard, whole or in pieces, the twelve bars now passing, and four readings of the whole fugue.</p>
+      <p class="small">The page follows the playing, with the wheel and the dashboard together.</p>
+    </section>
+  </div>
+  <div class="hold"><div class="board" id="board"></div></div>
+</main>
+<div class="page scroll-end" id="full">
+  <p class="back corner"><a href="overview.html#scene=fugue">Back to the overview</a></p>
+  <div id="explore">
+    <div class="stage" id="stage" data-panel="both"><div class="main">
+      <div><svg id="wheel" viewBox="0 0 700 700" role="img" aria-label="The wheel: the whole fugue once round, turning under the red line; pitch outward from the hub; the statements on the outer ring; the hub is the harmony"></svg>
+        <div class="transport"><button id="play" class="tbtn" aria-label="play"><svg viewBox="0 0 12 12" class="ic-play" aria-hidden="true"><path d="M2.5 1 L11 6 L2.5 11 Z"/></svg><svg viewBox="0 0 12 12" class="ic-pause" aria-hidden="true"><rect x="2" y="1.5" width="3" height="9"/><rect x="7" y="1.5" width="3" height="9"/></svg></button></div>
+      </div>
+      <div><svg id="dash" viewBox="0 4 800 800" role="img" aria-label="The dashboard: what is sounding now, the counters, twelve bars of notes scrolling past, and the measures of the whole fugue"></svg></div>
+    </div></div>
+    <div class="bar">
+      <span class="pick" id="pick">Bach, BWV 582. The fugue on half the ground.</span>
+      <div class="controls">
+        <label class="tempo"><input type="range" id="tempo" min="60" max="120" value="80" aria-label="tempo"><output id="tempo-out">♩ = 80</output></label>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(() => {
+  const s = document.createElement("script");
+  const piece = (new URLSearchParams(location.search).get("piece") || "").replace(/[^\w-]/g, "");
+  s.src = (piece ? "fugue-data-" + piece + ".js" : "fugue-data.js") + "?v=" + Date.now();
+  s.onload = start;
+  document.head.appendChild(s);
+})();
+
+function start() {
+  const F = window.FUGUE, S = F.synth, NOTES = F.notes, ST = F.statements, BEATS = F.beats, END = F.end;
+  const SVG = "http://www.w3.org/2000/svg", $ = id => document.getElementById(id);
+  const INK = "#1c1a17", MUTED = "#6f6a60", LINE = "#cfc7ad", RED = "#e01b24", WARM = "#d98c3a", BLUE = "#2b6f9e", GREEN = "#3f7d4e", BROWN = "#7b4a1e", GREY = "#9b968e", VIOLET = "#6e4c9e", SIENNA = "#9c4f1f", PLUM = "#8a2f5c", TEAL = "#1f7f78", OLIVE = "#7d7a1c";
+  const SUBJ = ST.filter(s => s.kind === "s"), CS1 = ST.filter(s => s.kind === "c1"), CS2 = ST.filter(s => s.kind === "c2");
+  // the themes as the build found or was given them; BWV 582 brings its ground, another fugue its title
+  const THEMES = F.themes || [{ key: "s", name: "subject", notes: F.subject }, { key: "c1", name: "countersubject 1", notes: F.counter1 }, { key: "c2", name: "countersubject 2", notes: F.counter2 }];
+  const IS582 = !!(F.ground && F.ground.length);
+  if (!IS582) { F.ground = []; F.subject = F.subject || THEMES[0].notes; F.counter1 = F.counter1 || []; F.counter2 = F.counter2 || []; if (F.title) { const o = document.querySelector("#pick"); if (o) o.textContent = F.title; } }
+  const FR = F.fragments, CH = F.chains, IM = F.imitations, HM = F.harmony, TH = F.threads || [], WV = F.weave;
+  // momentum, beat by beat: the notes starting in the beat, the highest note sounding, and
+  // whether the chord changes; the drive of the surface, the climb, and the harmonic rhythm
+  const MOM = F.beats.map((b, i) => {
+    const on = NOTES.filter(([t]) => b.q <= t && t < b.q + 1), sounding = NOTES.filter(([t, d]) => t <= b.q + 1e-6 && b.q < t + d);
+    return { q: b.q, notes: on.length, top: sounding.length ? Math.max(...sounding.map(n => n[2])) : null,
+             change: i > 0 && b.chord && F.beats[i - 1].chord !== b.chord ? 1 : 0 };
+  });
+  const MOM_MAX = Math.max(...MOM.map(m => m.notes)), TOP_LO = 55, TOP_HI = 89;
+  const vname = v => NAMES[v] === "pedal" ? "the pedal" : "the " + NAMES[v] + " voice";
+  const cap = s => s[0].toUpperCase() + s.slice(1);
+  const laterWords = d => ({ .5: "half a beat", 1: "a beat", 1.5: "a beat and a half", 2: "two beats", 2.5: "two and a half beats", 3: "a bar",
+                             4: "a bar and a beat", 5: "a bar and two beats", 6: "two bars" })[d] || d + " beats";
+  const fifthsWords = n => n === 0 ? "at home" : n === 1 ? "a fifth from C" : `${["", "", "two", "three", "four", "five", "six"][n]} fifths from C`;
+  const COLOUR = { s: INK, s2: SIENNA, s3: PLUM, c1: BLUE, c2: GREEN, c3: VIOLET, a1: TEAL, a2: OLIVE, e: BROWN };
+  const LONG = IS582 ? { s: "subject", c1: "first countersubject", c2: "second countersubject", e: "episode" }
+    : Object.assign({ e: "episode" }, ...THEMES.map(th => ({ [th.key]: th.name })));
+  const PIECE = IS582 ? { s: "head", c1: "bar", c2: "figure", e: "figure" } : Object.assign({ e: "figure" }, ...THEMES.map(th => ({ [th.key]: "cell" })));
+  // a fragment or a chain in words: whose piece it is, and in what form
+  function pieceWords(of, form) {
+    if (of === "e") return form === "a figure of its own" ? "a figure of the episode's own" : form;
+    const base = `the ${LONG[of]}'s ${PIECE[of]}`;
+    return form && form !== "as written" ? `${base}, ${form}` : base;
+  }
+  const COUNT = Object.fromEntries(THEMES.map(th => [th.key, ST.filter(s => s.kind === th.key).length]));
+  // what each note belongs to: a statement (s, c1, c2), a fragment (fc1, fc2), or nothing
+  const at = new Map(F.notes.map((n, i) => [n[0] + "|" + n[2], i]));
+  const kindOf = F.notes.map(() => "");
+  for (const f of FR) for (const [t, m] of f.notes) { const i = at.get(t + "|" + m); if (i !== undefined) kindOf[i] = "f" + f.of; }
+  for (const s of ST) for (const [t, m] of s.notes) { const i = at.get(t + "|" + m); if (i !== undefined) kindOf[i] = s.kind; }
+  // a move in words: a step, a third, a fourth, a fifth, up or down
+  const SIZE = ["the same", "a step", "a step", "a third", "a third", "a fourth", "a tritone", "a fifth", "a sixth", "a sixth", "a seventh", "a seventh"];
+  const moveWords = d => (Math.abs(d) === 12 ? "an octave" : SIZE[Math.abs(d) % 12]) + (d < 0 ? " lower" : " higher");
+  const chainWords = c => c.relay
+    ? `${pieceWords(c.of, c.form)}, passed from voice to voice: ${c.voices.map(v => NAMES[v]).join(", ")}`
+    : `${pieceWords(c.of, c.form)}, ${c.links} links, each ${moveWords(c.shifts[0])}${c.handed ? ", from voice to voice" : ""}`;
+  const barOf = q => Math.max(1, Math.floor((q - F.upbeat) / F.bar) + 1);      // bar 1 starts after the upbeat
+  const BARS = barOf(Math.max(...NOTES.map(n => n[0])));   // the bar of the last chord
+  const NAMES = F.names, SUB = F.subject, PAPER = "#f6f0dc";
+
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(SVG, tag);
+    for (const k in attrs) if (attrs[k] !== undefined && attrs[k] !== null) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function text(parent, x, y, s, attrs = {}) { const t = el("text", { x, y, ...attrs }, parent); t.textContent = s; return t; }
+  function wrap(s, n) { const out = [""]; for (const w of s.split(" ")) { if ((out[out.length - 1] + " " + w).trim().length > n) out.push(w); else out[out.length - 1] = (out[out.length - 1] + " " + w).trim(); } return out; }
+
+  // ---------------------------------------------------------------- the wheel: the whole fugue once round
+  // The disc turns under the red line at the top, so the note at the line is the one
+  // sounding. Distance from the centre is pitch, as on the Passacaglia's wheel: the pedal
+  // near the hub, the upper voice at the rim. The ring outside the notes carries the
+  // statements, the subject in ink and the countersubject in blue; the ring inside them
+  // carries a red tick wherever a chord is heard for the first time.
+  const wheel = $("wheel"), C = 350;
+  const LO = 34, HI = 90;
+  const rad = m => 132 + (m - LO) / (HI - LO) * 150;
+  const ang = t => 2 * Math.PI * t / END - Math.PI / 2;
+  const pol = (t, r) => [C + r * Math.cos(ang(t)), C + r * Math.sin(ang(t))];
+  function arc(t0, t1, r) {
+    const [x0, y0] = pol(t0, r), [x1, y1] = pol(t1, r);
+    return `M${x0.toFixed(1)},${y0.toFixed(1)} A${r},${r} 0 ${(t1 - t0) > END / 2 ? 1 : 0} 1 ${x1.toFixed(1)},${y1.toFixed(1)}`;
+  }
+  el("circle", { cx: C, cy: C, r: 320, fill: "none", stroke: LINE, "stroke-width": .8 }, wheel);
+  const disc = el("g", { id: "disc" }, wheel), barLabels = [];
+  // the part played, shaded lightly from the start of the fugue round to the red line, and
+  // the start itself, which is also the end, marked by a line that turns with the disc
+  const played = el("path", { d: "", fill: INK, opacity: .05, stroke: "none" }, disc);
+  const sector = (t0, t1, r0, r1) => { if (t1 - t0 < 1e-3) return ""; const [ax, ay] = pol(t0, r1), [bx, by] = pol(t1, r1), [cx, cy] = pol(t1, r0), [dx, dy] = pol(t0, r0), big = (t1 - t0) > END / 2 ? 1 : 0;
+    return `M${ax.toFixed(1)},${ay.toFixed(1)} A${r1},${r1} 0 ${big} 1 ${bx.toFixed(1)},${by.toFixed(1)} L${cx.toFixed(1)},${cy.toFixed(1)} A${r0},${r0} 0 ${big} 0 ${dx.toFixed(1)},${dy.toFixed(1)} Z`; };
+  { const [x1, y1] = pol(0, 124), [x2, y2] = pol(0, 320); el("line", { x1, y1, x2, y2, stroke: INK, "stroke-width": .8, opacity: .55 }, disc); }
+  el("circle", { cx: C, cy: C, r: 290, fill: "none", stroke: LINE, "stroke-width": .5 }, disc);
+  el("circle", { cx: C, cy: C, r: 124, fill: "none", stroke: LINE, "stroke-width": .5 }, disc);
+  for (let b = 10; b <= BARS; b += 10) {
+    const qb = F.upbeat + (b - 1) * F.bar, [x1, y1] = pol(qb, 323), [x2, y2] = pol(qb, 329), [tx, ty] = pol(qb, 333);
+    el("line", { x1, y1, x2, y2, stroke: MUTED, "stroke-width": .6 }, disc);
+    barLabels.push({ e: text(disc, tx, ty + 3, String(b), { class: "of", "text-anchor": "middle" }), tx, ty });
+  }
+  const wheelNotes = NOTES.map(([t, d, m], i) => el("path", { d: arc(t, t + Math.max(d - .06, .12), rad(m)), class: "wn " + kindOf[i], "stroke-width": kindOf[i] && kindOf[i][0] !== "f" ? 3.2 : kindOf[i] ? 2.6 : 2 }, disc));
+  // the statements on three rings outside the notes, the subject innermost; the chains
+  // dashed, just inside them
+  // one ring a theme, the first innermost, 7 units apart
+  const RING = Object.fromEntries(THEMES.map((th, i) => [th.key, 296 + 7 * i]));
+  const stArcs = ST.map(s => el("path", { d: arc(s.t, s.end, RING[s.kind]), class: "sa " + s.kind, "stroke-width": 5 }, disc));
+  const chArcs = CH.map(c => el("path", { d: arc(c.t, c.end, 288), class: "ca", stroke: COLOUR[c.of], "stroke-width": 3 }, disc));
+  // the pulse: a ring inside the notes shaded by the notes a beat, the momentum at a glance
+  // the fixed marker, and the hub that plays and pauses
+  el("line", { x1: C, y1: C - 140, x2: C, y2: C - 320, stroke: RED, "stroke-width": 2 }, wheel);
+  const FIFTHS = [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5], FNAME = ["C", "G", "D", "A", "E", "B", "G♭", "D♭", "A♭", "E♭", "B♭", "F"];
+  const hub = el("g", { id: "hub" }, wheel);
+  const HALO = `fill:${INK};paint-order:stroke;stroke:${PAPER};stroke-width:3px;stroke-linejoin:round`;
+  function paintHub() {
+    hub.innerHTML = "";
+    el("circle", { cx: C, cy: C, r: 121, fill: PAPER, stroke: LINE, "stroke-width": .8 }, hub);
+    // the chord and the key sit in the centre, haloed in paper; Play is in the header
+  }
+  let hubLitFor = null;
+  // the hub's dial. The twelve semitones round a ring that turns so that the key's tonic
+  // sits at the top, under a fixed ring of degrees (I, ♭II, II ... VII) that names each
+  // chord's place in the key. Every sonority is taken at the moment it forms, whenever a
+  // note starts or stops, and drawn as the polygon of the pitch classes sounding with
+  // every chord across it, coloured on one scale by its discord (the weighted share of
+  // its intervals that are dissonant, as the Tension row weights them): cool where
+  // consonant, amber between, red where discordant. Every interval that has sounded so
+  // far is etched in ink, weighted by how long it has sounded. Outside the disc each pitch
+  // class has a circle that grows with the time its note has sounded (the nodes, below).
+  // Everything anchored to a pitch class turns with the ring.
+  const CHROMA = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"], HR = 76;
+  const DEG = ["I", "♭II", "II", "♭III", "III", "IV", "♯IV", "V", "♭VI", "VI", "♭VII", "VII"];
+  const hubPos = pc => { const a = pc / 12 * 2 * Math.PI - Math.PI / 2; return [C + HR * Math.cos(a), C + HR * Math.sin(a)]; };
+  const hubWeb = el("g", { id: "hubweb" }, wheel), rot = el("g", { id: "rot" }, hubWeb);
+  const nodeGroup = el("g", { id: "nodes" }, rot);                // the nodes' circles, under everything
+  // the mass: a raster under the etching that every sonority's polygon is added to and
+  // that fades with a time constant of sixteen bars, so the middle darkens where the
+  // harmony has lived and the whole fugue leaves its shape; the polygons above it are the
+  // short-lived residue. Drawn on a canvas and shown as an image that turns with the ring.
+  const MASS_R = 110, MASS_PX = 320, MASS_K = MASS_PX / (2 * MASS_R), MASS_TAU = 48;
+  const massCanvas = document.createElement("canvas"); massCanvas.width = massCanvas.height = MASS_PX;
+  const massCtx = massCanvas.getContext ? massCanvas.getContext("2d") : null;
+  const massImage = el("image", { x: C - MASS_R, y: C - MASS_R, width: 2 * MASS_R, height: 2 * MASS_R, class: "acc", opacity: .55, preserveAspectRatio: "none" }, rot);
+  const etchLines = {};
+  for (let a = 0; a < 12; a++) for (let b = a + 1; b < 12; b++) {
+    const [x1, y1] = hubPos(a), [x2, y2] = hubPos(b);
+    etchLines[a * 12 + b] = el("line", { x1, y1, x2, y2, class: "etch", "stroke-width": 0, opacity: 0 }, rot);
+  }
+  const liveGroup = el("g", {}, rot);
+  // the names on a ring outside the vertices, turning with them; the degrees fixed on the
+  // disc's edge like the hours of a watch, each in a small paper disc that sits across
+  // the edge
+  const LABEL_K = 100 / HR, DEG_R = 121, DISC_R = 9;
+  const pcLabels = CHROMA.map((nm, pc) => { const [x, y] = hubPos(pc); el("circle", { cx: x, cy: y, r: 1.6, class: "hub-pc" }, rot);
+    return text(rot, (C + (x - C) * LABEL_K).toFixed(1), (C + (y - C) * LABEL_K + 2.5).toFixed(1), nm, { class: "hub-lab", "text-anchor": "middle" }); });
+  // the degrees outside the names: anchored outward at the sides so a wide numeral and a
+  // two-character name never meet, whichever name the turning ring brings under it
+  DEG.forEach((nm, k) => { const a = k / 12 * 2 * Math.PI - Math.PI / 2, x = C + DEG_R * Math.cos(a), y = C + DEG_R * Math.sin(a);
+    el("circle", { cx: x.toFixed(1), cy: y.toFixed(1), r: DISC_R, class: "hub-disc" }, hubWeb);
+    text(hubWeb, x.toFixed(1), (y + 2.2).toFixed(1), nm, { class: "hub-deg", "text-anchor": "middle" }); });
+  // the dial turns the shortest way to put the tonic at the top, eased over a few frames;
+  // each name turns back about its own anchor, so it stays upright and rides with the ring
+  const labelAt = pc => { const [x, y] = hubPos(pc); return [C + (x - C) * LABEL_K, C + (y - C) * LABEL_K + 2.5]; };
+  let dialTonic = 0, dialTarget = 0, dialCur = 0, dialAnim = 0;
+  function setDial(deg) {
+    rot.setAttribute("transform", `rotate(${deg.toFixed(2)} ${C} ${C})`);
+    pcLabels.forEach((l, pc) => { const [x, y] = labelAt(pc); l.setAttribute("transform", `rotate(${(-deg).toFixed(2)} ${x.toFixed(1)} ${y.toFixed(1)})`); });
+  }
+  function tweenDial() {
+    const d = dialTarget - dialCur;
+    dialCur = Math.abs(d) < .05 ? dialTarget : dialCur + d * .1;
+    setDial(dialCur);
+    dialAnim = dialCur === dialTarget ? 0 : requestAnimationFrame(tweenDial);
+  }
+  function turnDial(tonic) {
+    dialTarget += ((-tonic * 30 - dialTarget) % 360 + 540) % 360 - 180; dialTonic = tonic;
+    if (!dialAnim) dialAnim = requestAnimationFrame(tweenDial);
+  }
+  // the sonorities, from the build: every moment a note starts or stops, with the chord
+  // named from the pitch classes sounding
+  const SON = F.sons;
+  const DISS_PC = new Set([1, 2, 6, 10, 11]);
+  const pairsOf = pcs => { const o = []; for (let i = 0; i < pcs.length; i++) for (let j = i + 1; j < pcs.length; j++) o.push(pcs[i] * 12 + pcs[j]); return o; };
+  const mixHex = (a, b, k) => { const h = s => [1, 3, 5].map(i => parseInt(s.slice(i, i + 2), 16)); const A = h(a), B = h(b); return "#" + A.map((v, i) => Math.round(v + (B[i] - v) * k).toString(16).padStart(2, "0")).join(""); };
+  // one scale for the harmony's colour: cool grey-blue at 0, ochre by .35, hot orange by
+  // .7, crimson at 1
+  // the red line ends above the tonic's name at the top; the chord's root is dotted on the
+  // ring as it sounds, and the chord and its degree in the key are named in the centre
+  const rootDot = el("circle", { cx: 0, cy: 0, r: 3, fill: INK, display: "none" }, rot);
+  const hubChord = text(hubWeb, C, C - 4, "", { "font-size": 8, "text-anchor": "middle", style: HALO, "letter-spacing": .8, opacity: .85 });
+  const hubKey = text(hubWeb, C, C + 8, "", { "font-size": 8, "text-anchor": "middle", style: HALO, "letter-spacing": .8, opacity: .85 });
+  const COOL = "#8fb2c8", OCHRE = "#d9a441", HOT = "#e0521f", CRIM = "#b3001b", DISS_W = { 1: 1, 11: 1, 2: .6, 10: .6, 6: .8 };
+  const tensionColour = x => x < .35 ? mixHex(COOL, OCHRE, x / .35) : x < .7 ? mixHex(OCHRE, HOT, (x - .35) / .35) : mixHex(HOT, CRIM, (x - .7) / .3);
+  const discord = pcs => { const pr = pairsOf(pcs); if (!pr.length) return 0; let s = 0; for (const k of pr) s += DISS_W[(k % 12 - Math.floor(k / 12)) % 12] || 0; return s / pr.length; };
+  const beatAt = qq => BEATS[Math.min(BEATS.length - 1, Math.max(0, Math.floor(qq)))];
+  // the nodes: one circle a pitch class, centred on it, its area growing with the time
+  // its note has sounded so far and its colour the discord of the sonorities of two or
+  // more notes it sounded in, weighted by their length, set against the range of the
+  // twelve at the end (their means run only from .1 to .2 on the scale). The sizes at the
+  // end of the fugue set the scale, so the largest circle ends at NODE_MAX.
+  const NODE_MAX = 16;
+  const NODE_END = (() => {
+    const W = new Float64Array(12), D = new Float64Array(12), DW = new Float64Array(12);
+    for (const s of SON) { const dur = s.end - s.t, d = discord(s.pcs); for (const pc of s.pcs) { W[pc] += dur; if (s.pcs.length >= 2) { D[pc] += d * dur; DW[pc] += dur; } } }
+    const md = [...Array(12).keys()].map(pc => DW[pc] ? D[pc] / DW[pc] : 0), lo = Math.min(...md), hi = Math.max(...md);
+    return { W, D, DW, top: Math.max(.01, ...W), lo, hi, md, span: x => hi > lo ? (x - lo) / (hi - lo) : 0 };
+  })();
+  const nodeCircles = CHROMA.map((nm, pc) => { const [x, y] = hubPos(pc); return el("circle", { cx: x.toFixed(1), cy: y.toFixed(1), r: 0, fill: COOL, opacity: .55, stroke: INK, "stroke-width": 1.2, "stroke-opacity": 0 }, nodeGroup); });
+  const ONSETS = CHROMA.map((_, pc) => [...new Set(NOTES.filter(n => n[2] % 12 === pc).map(n => n[0]))].sort((a, b) => a - b));
+  let nodesTo = -1;
+  const nodeW = new Float64Array(12), nodeD = new Float64Array(12), nodeDW = new Float64Array(12);
+  function paintNodes(si) {
+    if (si < nodesTo) { nodeW.fill(0); nodeD.fill(0); nodeDW.fill(0); nodesTo = -1; }
+    for (let i = nodesTo + 1; i <= si; i++) { const s = SON[i], dur = s.end - s.t, d = discord(s.pcs); for (const pc of s.pcs) { nodeW[pc] += dur; if (s.pcs.length >= 2) { nodeD[pc] += d * dur; nodeDW[pc] += dur; } } }
+    nodesTo = si;
+    // each circle pulses when a note of its pitch class is struck: a swell of a few units
+    // and a ring in ink, both gone within a beat
+    nodeCircles.forEach((c, pc) => {
+      const on = ONSETS[pc]; let lo = 0, hi = on.length;
+      while (lo < hi) { const mid = (lo + hi) >> 1; if (on[mid] <= q + 1e-6) lo = mid + 1; else hi = mid; }
+      const pulse = lo ? Math.exp(-(q - on[lo - 1]) / .22) : 0;
+      c.setAttribute("r", (NODE_MAX * Math.sqrt(nodeW[pc] / NODE_END.top) + 5 * pulse).toFixed(2));
+      c.setAttribute("fill", tensionColour(NODE_END.span(nodeDW[pc] ? nodeD[pc] / nodeDW[pc] : 0)));
+      c.setAttribute("stroke-opacity", (.9 * pulse).toFixed(3));
+    });
+  }
+  let massTo = -1, massShown = 0;
+  function paintMass(si) {
+    if (!massCtx) return;
+    if (si < massTo) { massCtx.clearRect(0, 0, MASS_PX, MASS_PX); massTo = -1; }
+    if (si === massTo) return;
+    for (let i = massTo + 1; i <= si; i++) {
+      const s = SON[i], dur = s.end - s.t;
+      // the fade, by the sonority's length, then its polygon added
+      massCtx.globalCompositeOperation = "destination-out";
+      massCtx.fillStyle = `rgba(0,0,0,${(1 - Math.exp(-dur / MASS_TAU)).toFixed(4)})`;
+      massCtx.fillRect(0, 0, MASS_PX, MASS_PX);
+      if (s.pcs.length < 3) continue;
+      massCtx.globalCompositeOperation = "source-over";
+      massCtx.globalAlpha = Math.min(1, .1 * dur);
+      massCtx.fillStyle = tensionColour(discord(s.pcs));
+      massCtx.beginPath();
+      s.pcs.forEach((pc, k) => { const [x, y] = hubPos(pc); massCtx[k ? "lineTo" : "moveTo"]((x - C + MASS_R) * MASS_K, (y - C + MASS_R) * MASS_K); });
+      massCtx.closePath(); massCtx.fill();
+      massCtx.globalAlpha = 1;
+    }
+    massTo = si;
+    // the image re-encoded at most four times a second, since encoding it costs the frame
+    const now = performance.now();
+    if (now - massShown < 250 && playing) return;
+    massShown = now;
+    const url = massCanvas.toDataURL();
+    massImage.setAttribute("href", url); massImage.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", url);
+  }
+  let etchedTo = -1, etchWeight = new Map();
+  function paintWeb() {
+    // the etching, up to here
+    let si = 0;
+    while (si + 1 < SON.length && SON[si + 1].t <= q) si++;
+    if (si < etchedTo) { etchWeight = new Map(); etchedTo = -1; }
+    for (let i = etchedTo + 1; i <= si; i++) for (const k of pairsOf(SON[i].pcs)) etchWeight.set(k, (etchWeight.get(k) || 0) + (SON[i].end - SON[i].t));
+    etchedTo = si;
+    let top = .01; for (const v of etchWeight.values()) top = Math.max(top, v);
+    for (const k in etchLines) { const w = etchWeight.get(Number(k)) || 0; etchLines[k].setAttribute("opacity", w ? .06 + .3 * Math.sqrt(w / top) : 0); etchLines[k].setAttribute("stroke-width", w ? .4 + 1.4 * Math.sqrt(w / top) : 0); }
+    // the sonorities of the last three beats, oldest first, the current one last and full
+    liveGroup.innerHTML = "";
+    paintNodes(si); paintMass(si);
+    // the residue: every sonority of the last eight bars as a blended fill that decays with
+    // its age, a discordant one more slowly and more strongly coloured, oldest drawn first;
+    // then the current sonority, filled the more the more discordant, with its chords, the
+    // dissonant ones heavy and crimson with a glow
+    let first = si;
+    while (first > 0 && SON[first - 1].end > q - 24) first--;
+    for (let i = first; i < si; i++) {
+      const s = SON[i];
+      if (s.pcs.length < 3) continue;
+      const d = discord(s.pcs), age = Math.max(0, q - s.end), weight = Math.min(1, s.end - s.t) * Math.exp(-age / (4 + 10 * d));
+      if (weight < .02) continue;
+      const pts = s.pcs.map(pc => hubPos(pc));
+      el("path", { d: pts.map((p, k) => (k ? "L" : "M") + p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ") + " Z", fill: tensionColour(d), opacity: ((.12 + .4 * d) * weight).toFixed(3), class: "acc" }, liveGroup);
+    }
+    const nb = beatAt(q), key = nb && nb.key, s = SON[si];
+    if (key && key[0] !== dialTonic) turnDial(key[0]);
+    // the chord of the sonority sounding, named the moment it forms; a sonority too thin
+    // to name takes the beat's chord
+    const cur = s && s.root !== null && s.root !== undefined ? s : nb;
+    if (cur && cur.root !== null && cur.root !== undefined) {
+      const [rx, ry] = hubPos(cur.root); rootDot.setAttribute("cx", rx.toFixed(1)); rootDot.setAttribute("cy", ry.toFixed(1)); rootDot.removeAttribute("display");
+      hubChord.textContent = cur.chord.split(",")[0]; hubKey.textContent = key ? `${DEG[(cur.root - key[0] + 12) % 12]} of ${CHROMA[key[0]]} ${key[1]}` : "";
+    } else { rootDot.setAttribute("display", "none"); hubChord.textContent = ""; hubKey.textContent = key ? `${CHROMA[key[0]]} ${key[1]}` : ""; }
+    if (s && s.pcs.length >= 2) {
+      const d = discord(s.pcs), pts = s.pcs.map(pc => hubPos(pc)), colour = tensionColour(d);
+      if (s.pcs.length >= 3) el("path", { d: pts.map((p, k) => (k ? "L" : "M") + p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ") + " Z", fill: colour, opacity: (.2 + .5 * d).toFixed(2), class: "acc" }, liveGroup);
+      for (let a = 0; a < s.pcs.length; a++) for (let b = a + 1; b < s.pcs.length; b++) {
+        const diss = DISS_PC.has((s.pcs[b] - s.pcs[a]) % 12), at = { x1: pts[a][0], y1: pts[a][1], x2: pts[b][0], y2: pts[b][1], class: "live" };
+        if (diss) el("line", { ...at, stroke: CRIM, opacity: .22, "stroke-width": 7 }, liveGroup);
+        el("line", { ...at, stroke: diss ? CRIM : colour, opacity: diss ? 1 : .8, "stroke-width": diss ? 2.8 : 1.6 }, liveGroup);
+      }
+    }
+  }
+
+
+  // ---------------------------------------------------------------- the dashboard
+  // Four bands on a fixed budget of 800, each held off its rules by sixteen units: the
+  // themes (to 212), the structures (to 256), the notes (to 626) and the whole fugue.
+  // The plate is taller than the wheel's, since the stage has the room. The themes are the picture, drawn
+  // large, and the counts sit small at their right. Nothing here repeats the hub, which
+  // holds the chord, the key, the discord and the harmony's record.
+  const dash = $("dash"), DW = 800;
+  const rule = (y, x0 = 0, x1 = DW, w = 1) => el("line", { x1: x0, y1: y, x2: x1, y2: y, stroke: LINE, "stroke-width": w }, dash);
+  const PIECES = WV && WV.pieces ? WV.pieces : { s: 0, c1: 0, c2: 0 };
+  const SEQ = CH.filter(c => !c.relay && !c.handed), HAND = CH.filter(c => c.relay || c.handed);
+  const THEME = Object.assign({ e: "episode" }, ...THEMES.map(th => ({ [th.key]: th.name })));
+  // the themes: a strip each, the theme drawn on one time scale with a semitone four units
+  // tall, every note lit as it is played anywhere, whole or in a piece (a piece lights the
+  // cell of the theme it comes from); the counts at the right
+  const TPL = Object.fromEntries(THEMES.map(th => [th.key, th.notes]));
+  const TSPAN = Math.max(...THEMES.map(th => Math.max(...th.notes.map(m => m.t + m.d)) - th.notes[0].t));
+  const NT = THEMES.length, NF = (F.found_keys || []).length, NR = Math.min(3, ((F.remarks && F.remarks.length) || (!IS582 && NT - NF === 1 ? 1 : 0)) + (NF ? 1 : 0)), NOTE_H = 13 * NR + (NR ? 2 : 0);
+  const SH = (190 - NOTE_H - 5 * (NT - 1)) / NT;                     // the strips share the band, above any remark
+  // a form: the sign of the pitches about the strip's centre and the scale of the time
+  const FORM = { "as written": [1, 1], "upside down": [-1, 1], "augmented": [1, 2], "diminished": [1, .5], "upside down, augmented": [-1, 2], "upside down, diminished": [-1, .5] };
+  const themeRows = THEMES.map((th, i) => {
+      const k = th.key, cls = k === "s" ? "" : k, mm = /^countersubject (\d+)$/.exec(th.name);
+      const found = (F.found_keys || []).includes(k);
+      const lines = k === "s" ? ["Subject"] : mm ? ["Counter-", "subject " + mm[1]] : found ? [cap(th.name), "by matching"] : [cap(th.name)];
+      const y0 = 6 + i * (SH + 5), yc = y0 + SH / 2;
+      if (i) rule(y0 - 2, 0, DW, .5);
+      lines.forEach((s, j) => text(dash, 0, lines.length > 1 ? yc - 6.5 + j * 20 : yc + 3.5, s, { class: "lbl " + (cls || "ink") }));
+      const ny = PIECES[k] ? yc - 4 : yc + 5.5;
+      const num = text(dash, 616, ny, "0", { class: "num sm" + (cls ? " " + cls : ""), "text-anchor": "middle" });
+      text(dash, 640, ny - 2, "whole", { class: "key" });
+      const tier = PIECES[k] ? text(dash, 616, yc + 16, "0", { class: "num sm" + (cls ? " " + cls : ""), "text-anchor": "middle" }) : null;
+      if (PIECES[k]) text(dash, 640, yc + 14, "fragments", { class: "key" });
+      const tpl = th.notes, t0 = tpl[0].t, span = Math.max(...tpl.map(m => m.t + m.d)) - t0, lo = Math.min(...tpl.map(m => m.m)), hi = Math.max(...tpl.map(m => m.m));
+      const u = Math.min(4.5, (SH - 4) / (hi - lo + 1));
+      const notes = tpl.map(() => el("rect", { class: "tn " + (cls || "s") }, dash));
+      // the strip drawn in a form: upside down mirrors the pitches about the strip's centre;
+      // augmented and diminished stretch or shrink the time, the strip's scale giving way
+      const lay = form => {
+        const [sign, sc] = FORM[form] || FORM["as written"], kx = 480 / Math.max(TSPAN, span * sc);
+        const X = tt => 100 + (tt - t0) * sc * kx, Y = m => yc + sign * ((lo + hi) / 2 - m) * u - u / 2;
+        tpl.forEach((m, j) => { const e = notes[j]; e.setAttribute("x", X(m.t).toFixed(1)); e.setAttribute("y", Y(m.m).toFixed(1)); e.setAttribute("width", Math.max(1.5, X(m.t + m.d) - X(m.t) - 1).toFixed(1)); e.setAttribute("height", u.toFixed(2)); });
+      };
+      lay("as written");
+      return { k, num, tier, notes, tpl, offs: tpl.map(m => m.t - t0), lay, form: "as written" };
+    });
+  // what the reference says of the themes, at the foot of the band: the analysts' remarks,
+  // or, for a fugue with a subject alone, that no countersubject is named
+  const nFound = (F.found_keys || []).length;
+  const REMARKS = [...((F.remarks && F.remarks.length) ? F.remarks : (!IS582 && THEMES.length - nFound === 1 ? ["The reference names no countersubject in this fugue."] : [])),
+    ...(nFound ? [`${nFound === 1 ? "Figure A is" : "Figures A and B are"} found by matching the score, not named in the reference.`] : [])];
+  REMARKS.slice(-3).forEach((r, i, a) => text(dash, 100, 206 - (a.length - 1 - i) * 13, r.length > 110 ? r.slice(0, 107) + "…" : r, { class: "remark" }));
+  rule(212);
+  // the structures made from the pieces, on one line, each counting up as its line
+  // appears under the notes
+  const structCells = [["chains", SEQ.length], ["relays", HAND.length], ["answers", IM.length], ["composite lines", TH.length]]
+    .map(([label], i) => { const n = text(dash, i * 200 + 28, 238, "0", { class: "num sm", "text-anchor": "end" }); text(dash, i * 200 + 36, 236, label, { class: "key" }); return { n }; });
+  rule(256);
+  // the notes: twelve bars scrolling past a fixed playhead. The head names the statements
+  // sounding, each in its colour, and the bar at the right
+  const headLine = text(dash, 0, 280, "", { class: "now" });
+  text(dash, 764, 278, "Bar", { class: "key", "text-anchor": "end" });
+  const barNum = text(dash, 798, 280, "0", { class: "num sm", "text-anchor": "end" });
+  const RX0 = 0, RX1 = DW, RY0 = 296, RY1 = 536, SPAN = 36, SX = (RX1 - RX0) / SPAN, PX = RX0 + (RX1 - RX0) * .3;
+  const ry = m => RY1 - (m - LO) / (HI - LO) * (RY1 - RY0);
+  const rollClip = el("clipPath", { id: "roll-clip" }, el("defs", {}, dash));
+  el("rect", { x: RX0, y: 270, width: RX1 - RX0, height: 626 - 270 }, rollClip);
+  const rollWrap = el("g", { "clip-path": "url(#roll-clip)" }, dash);
+  const roll = el("g", {}, rollWrap);
+  for (let b = 1; b <= BARS + 1; b++) {
+    const qb = F.upbeat + (b - 1) * F.bar;
+    el("line", { x1: qb * SX, y1: RY0, x2: qb * SX, y2: RY1, stroke: LINE, "stroke-width": b % 10 ? .3 : .8 }, roll);
+    if (b % 2 === 1 && b <= BARS) text(roll, qb * SX + 3, 552, String(b), { class: "key" });
+  }
+  const rollNotes = NOTES.map(([t, d, m], i) => el("rect", { x: t * SX, y: ry(m) - 2.3, width: Math.max(2, d * SX - 1.5), height: 4.6, class: "rn " + kindOf[i] }, roll));
+  const num = { s: 0, c1: 0, c2: 0 };
+  const edgeLabels = [];               // labels that keep inside the window as it scrolls
+  const voiceWords = v => NAMES[v] === "pedal" ? "pedal" : NAMES[v] + " voice";
+  for (const s of ST) s.num = ++num[s.kind];
+  // every event below the notes, chains, relays and answers, takes one of three rows, a
+  // straight line over its span with its label beneath; an event that would need a fourth
+  // row is not drawn
+  const CODE = Object.fromEntries(THEMES.map(th => [th.key, th.key.toUpperCase()]));   // S, C1, C2 for the lines under the notes
+  const shortPiece = of => of === "e" ? "an episode figure" : `${CODE[of]}'s ${PIECE[of]}`;
+  const events = [];
+  CH.forEach((c, i) => { c.num = i + 1; events.push({ t: c.t, end: c.end, of: c.of, colour: COLOUR[c.of],
+    label: c.relay ? `Relay, ${shortPiece(c.of)}, ${c.voices.map(v => NAMES[v]).join(", ")}` : `Chain, ${shortPiece(c.of)}, ${c.links} links, each ${moveWords(c.shifts[0])}` }); });
+  const noteAt = (v, t) => NOTES.find(n => n[3] === v && n[0] >= t - 1e-6);
+  IM.forEach((im, i) => {
+    im.num = i + 1;
+    const a = noteAt(im.a, im.t), b = noteAt(im.b, im.t + im.d);
+    if (!a || !b || im.score < .7) return;                        // the clear ones only
+    if (im.score >= .85) events.push({ t: im.t, end: im.end + im.d, of: "im", label: `${NAMES[im.b]} answers ${NAMES[im.a]}, ${laterWords(im.d)} later`, colour: WARM, cls: "imlab" });
+  });
+  events.sort((x, y) => x.t - y.t);
+  const rowEnd = [0, 0, 0], rowLast = [];
+  for (const ev of events) {
+    const width = (ev.end - ev.t) * SX, labelEnd = ev.t * SX + 2 + ev.label.length * 6.2;
+    const row = rowEnd.findIndex(e => e < ev.t * SX - 8);
+    if (row < 0) continue;
+    rowEnd[row] = Math.max(ev.t * SX + width, labelEnd);
+    const y0 = 566 + row * 18;
+    el("line", { x1: ev.t * SX, y1: y0, x2: ev.end * SX, y2: y0, stroke: ev.colour, "stroke-width": 1 }, roll);
+    const L = { e: text(roll, ev.t * SX + 2, y0 + 11, ev.label, { class: ev.cls || ("rlab " + ev.of) }), t: ev.t, end: ev.end, w: ev.label.length * 6.2, next: Infinity };
+    if (rowLast[row]) rowLast[row].next = ev.t;          // the label may slide right only up to the next event in its row
+    rowLast[row] = L;
+    edgeLabels.push(L);
+  }
+  el("line", { x1: PX, y1: 292, x2: PX, y2: 540, stroke: RED, "stroke-width": 1.4 }, dash);
+  const DISSONANT = new Set([1, 2, 6, 10, 11]);
+  // the whole fugue: four measures, named at the left with the gloss on hover, the curves
+  // beside. From home and tension are not drawn: the dial and the discord colour carry them.
+  rule(626);
+  text(dash, 0, 646, "The whole fugue", { class: "lbl ink" });
+  const MX0 = 100, MX1 = DW, mx = t => MX0 + t / END * (MX1 - MX0);
+  const MY = 656, MH = 36, RB = 29, RH = 22;                       // a row, its drawing's baseline and height within it
+  const rows = [["Sonorities", "the chords heard so far; a red tick where a new one arrives"], ["Surprise", "how much of the last three bars no earlier stretch predicts"],
+                ["Weaving", "voices carrying pieces; a bar where a line passes between voices"], ["Momentum", "notes a beat, filled; the top voice as a line"]];
+  const rowY = rows.map((_, i) => MY + i * MH);
+  rows.forEach(([name, gloss], i) => { const n = text(dash, 0, rowY[i] + 21, name, { class: "lbl ink" }); el("title", {}, n).textContent = gloss; });
+  const clip = el("clipPath", { id: "played" }, el("defs", {}, dash));
+  const clipRect = el("rect", { x: 0, y: 0, width: 0, height: 820 }, clip);
+  const stepPath = (y) => { let d = ""; BEATS.forEach((b, i) => { const yy = y(b); d += (i ? "L" : "M") + mx(b.q).toFixed(1) + "," + yy.toFixed(1) + " L" + mx(b.q + 1).toFixed(1) + "," + yy.toFixed(1) + " "; }); return d; };
+  function curves(g, colour, reds) {
+    // sonorities heard so far, red ticks where new ones arrive
+    el("path", { d: BEATS.map((b, i) => (i ? "L" : "M") + mx(b.q + .5).toFixed(1) + "," + (rowY[0] + RB - b.son / HM.sonorities * RH).toFixed(1)).join(" "), fill: "none", stroke: colour, "stroke-width": 1.3 }, g);
+    for (const b of BEATS) if (b.new) el("line", { x1: mx(b.q + .5), y1: rowY[0] + RB, x2: mx(b.q + .5), y2: rowY[0] + RB - 4 - 3 * Math.min(b.new, 3), stroke: reds ? RED : colour, "stroke-width": .9 }, g);
+    // surprise
+    el("path", { d: stepPath(b => rowY[1] + RB - b.surprise * RH), fill: "none", stroke: colour, "stroke-width": 1 }, g);
+    // the weave: voices carrying material, and the composite lines
+    el("path", { d: stepPath(b => rowY[2] + RB - b.carry / 4 * RH), fill: "none", stroke: colour, "stroke-width": 1 }, g);
+    for (const th of TH) el("rect", { x: mx(th.t), y: rowY[2] + RB - 5, width: mx(th.end) - mx(th.t), height: 5, class: "thread", fill: reds ? WARM : colour }, g);
+    // momentum: notes a beat as a filled step, the top voice as a line
+    let dm = `M${mx(0)},${rowY[3] + RB} `;
+    MOM.forEach(m => { const yy = rowY[3] + RB - m.notes / MOM_MAX * RH; dm += `L${mx(m.q).toFixed(1)},${yy.toFixed(1)} L${mx(m.q + 1).toFixed(1)},${yy.toFixed(1)} `; });
+    el("path", { d: dm + `L${mx(MOM.length)},${rowY[3] + RB} Z`, fill: colour, opacity: .35, stroke: "none" }, g);
+    el("path", { d: MOM.filter(m => m.top !== null).map((m, i) => (i ? "L" : "M") + mx(m.q + .5).toFixed(1) + "," + (rowY[3] + RB - Math.min(1, Math.max(0, (m.top - TOP_LO) / (TOP_HI - TOP_LO))) * RH).toFixed(1)).join(" "), fill: "none", stroke: reds ? WARM : colour, "stroke-width": 1 }, g);
+    for (const r of rowY) el("line", { x1: MX0, y1: r + MH, x2: MX1, y2: r + MH, stroke: LINE, "stroke-width": .5 }, g);
+  }
+  curves(el("g", { opacity: .3 }, dash), GREY, false);
+  curves(el("g", { "clip-path": "url(#played)" }, dash), INK, true);
+  // the far chord: a red tick on the sonorities row at the Neapolitan, named above it, or
+  // unnamed at the chord farthest from home where a fugue has no Neapolitan
+  { const nb = BEATS[HM.neapolitan]; if (nb) { el("line", { x1: mx(nb.q + .5), y1: rowY[0] + 4, x2: mx(nb.q + .5), y2: rowY[0] + 12, stroke: RED, "stroke-width": 1.2 }, dash);
+    if (/Neapolitan/.test(nb.chord)) { const left = mx(nb.q + .5) < 300; text(dash, mx(nb.q + .5) + (left ? 4 : -4), 646, "the Neapolitan sixth", { class: "farlab", "text-anchor": left ? "start" : "end" }); } } }
+  const mhead = el("line", { x1: 0, y1: MY + 2, x2: 0, y2: rowY[3] + MH - 2, stroke: RED, "stroke-width": 1.2 }, dash);
+
+  // ---------------------------------------------------------------- where we are
+  let q = 0, onNow = [];
+  const where = s => NAMES[s.v] === "pedal" ? "in the pedal" : "in the " + NAMES[s.v] + " voice";
+  function paint() {
+    const turn = q / END * 360;
+    disc.setAttribute("transform", `rotate(${(-turn).toFixed(3)} ${C} ${C})`);
+    played.setAttribute("d", sector(0, Math.min(q, END - 1e-3), 124, 320));
+    for (const { e, tx, ty } of barLabels) e.setAttribute("transform", `rotate(${turn.toFixed(3)} ${tx.toFixed(1)} ${ty.toFixed(1)})`);   // the numbers stay upright
+    roll.setAttribute("transform", `translate(${(PX - q * SX).toFixed(1)},0)`);
+    // a label whose start has scrolled off the left keeps to the edge while its span is in
+    // view; one at the right edge waits until it fits whole
+    const left = q * SX - PX + RX0, right = left + (RX1 - RX0);
+    for (const L of edgeLabels) {
+      if (Math.max(L.end * SX, L.t * SX + L.w) < left || L.t * SX > right) continue;   // by the label's own extent
+      const x = Math.max(L.t * SX + 3, left + 4);
+      L.e.setAttribute("x", x.toFixed(1));
+      L.e.setAttribute("visibility", x + L.w > right - 4 || x + L.w > L.next * SX - 4 ? "hidden" : "visible");
+    }
+    clipRect.setAttribute("width", mx(q));
+    mhead.setAttribute("x1", mx(q)); mhead.setAttribute("x2", mx(q));
+    paintWeb();
+    for (const i of onNow) { rollNotes[i].classList.remove("on"); wheelNotes[i].classList.remove("on"); }
+    onNow = [];
+    NOTES.forEach(([t, d], i) => { if (t <= q && q < t + d) { rollNotes[i].classList.add("on"); wheelNotes[i].classList.add("on"); onNow.push(i); } });
+    ST.forEach((s, i) => stArcs[i].classList.toggle("heard", s.t <= q));
+    CH.forEach((c, i) => chArcs[i].classList.toggle("heard", c.t <= q));
+    // the head: the statements sounding, each in its colour
+    const sounding = ST.filter(s => s.t <= q && q < s.end);
+    headLine.innerHTML = "";
+    if (sounding.length) sounding.slice(0, 3).forEach((s, i) => { el("tspan", { class: "now " + s.kind }, headLine).textContent = (i ? "; " : "") + (i ? THEME[s.kind] : cap(THEME[s.kind])) + ", " + voiceWords(s.v) + (s.form && s.form !== "as written" ? ", " + s.form : "") + (s.variant ? ", " + s.variant : ""); });
+    else el("tspan", {}, headLine).textContent = q < END ? "Between the entries" : "The end";
+    // the counters
+    barNum.textContent = q < F.upbeat ? "0" : String(barOf(q));
+    const wholeSoFar = Object.fromEntries(THEMES.map(th => [th.key, ST.filter(s => s.kind === th.key)]));
+    for (const r of themeRows) {
+      r.num.textContent = String(wholeSoFar[r.k].filter(s => s.t <= q).length);
+      if (r.tier) r.tier.textContent = String(FR.filter(f => f.of === r.k && f.t <= q).length);
+      // which of the theme's notes are in play: from a whole statement, the note at this
+      // point of it; from a piece, the cell of the theme the piece comes from
+      const lit = new Set();
+      for (const s of ST) {
+        if (s.kind !== r.k || s.t > q || q >= s.end) continue;
+        for (const [nt] of s.notes) {
+          let best = 0, bd = Infinity;
+          const sc = (FORM[s.form] || FORM["as written"])[1];
+          r.offs.forEach((o, i) => { const d = Math.abs((nt - s.t) / sc - o); if (d < bd) { bd = d; best = i; } });
+          if (nt <= q && q < nt + r.tpl[best].d + .05) lit.add(best);
+        }
+      }
+      for (const f of FR) {
+        if (f.of !== r.k || f.t > q || q >= f.end) continue;
+        const cellIdx = f.cell ? Array.from({ length: f.cell[1] - f.cell[0] }, (_, j) => f.cell[0] + j) : [];
+        // each note of the piece lights the cell's note in its place, as it is pressed; a
+        // note lasts until the piece's next note, the last until the piece ends
+        const fn = f.notes, nf = fn.length, nc = cellIdx.length;
+        fn.forEach(([nt], i) => {
+          const until = i + 1 < nf ? fn[i + 1][0] : f.end;
+          if (nt <= q && q < until) lit.add(cellIdx[nf > 1 && nc > 1 ? Math.round(i / (nf - 1) * (nc - 1)) : 0]);
+        });
+      }
+      r.notes.forEach((e, i) => e.classList.toggle("on", lit.has(i)));
+      // the strip takes the form of the statement sounding, the latest to begin
+      const live = ST.filter(s => s.kind === r.k && s.t <= q && q < s.end).sort((a, b) => b.t - a.t)[0];
+      const form = live && live.form ? live.form : "as written";
+      if (form !== r.form) { r.form = form; r.lay(form); }
+    }
+    [SEQ.filter(c => c.t <= q).length, HAND.filter(c => c.t <= q).length, IM.filter(im => im.t <= q).length, TH.filter(x => x.t <= q).length]
+      .forEach((v, i) => structCells[i].n.textContent = String(v));
+    if (playing) {
+      const key = "bar:" + barOf(q);
+      if (key !== hubLitFor) { hubLitFor = key; paintHub(); }
+    }
+  }
+
+  // ---------------------------------------------------------------- the sound, as on the Passacaglia page
+  let ctx = null, buses = [], knock = null, playing = false;
+  // the tempo the build set for this fugue, if any, in quarter beats a minute
+  $("tempo").value = String(F.tempo || 80); $("tempo-out").textContent = "♩ = " + $("tempo").value;
+  let startAt = 0, spq = 60 / Number($("tempo").value), next = 0, timer = null, raf = null;
+  const HORIZON = 1.2;                                          // seconds scheduled ahead; a background tab's timer runs once a second
+  // each note's loudness from what the page knows of it: its role (the subject full, the
+  // countersubjects a little under, a fragment less, free counterpoint least) and its
+  // place in the bar (the downbeat lifted, the off-semiquavers eased)
+  const ROLE = k => k === "s" ? 1 : k === "c1" || k === "c2" ? .85 : k ? .7 : .6;
+  const METRE = t => { const inBar = ((t - F.upbeat) % F.bar + F.bar) % F.bar, inBeat = t % 1; return inBar < 1e-6 ? 1.1 : inBeat < 1e-6 ? 1 : Math.abs(inBeat - .5) < 1e-6 ? .95 : .88; };
+  // and a hairpin inside each statement: a rise to just past its middle, a settle at its end
+  const posIn = new Map();
+  for (const s of ST) for (const [nt, nm] of s.notes) posIn.set(nt + "|" + nm, (nt - s.t) / Math.max(1e-6, s.end - s.t));
+  const HAIRPIN = p => p === undefined ? 1 : .93 + .13 * Math.sin(Math.PI * Math.pow(p, .75));
+  const EVENTS = NOTES.map(([t, d, m, v], i) => ({ t, d, m, v, vel: ROLE(kindOf[i]) * METRE(t) * HAIRPIN(posIn.get(t + "|" + m)) }));
+  // the tempo bends: a breath before each entry of the subject, a broadening into the
+  // Neapolitan and a ritardando over the last two bars. W maps a time in quarters to a
+  // warped time in quarters; the clock runs on the warped time
+  const W = (() => {
+    const qN = HM.neapolitan, n = Math.ceil(END), f = k => k >= n - 6 ? 1 + .25 * (k - (n - 6)) / 6 : k >= qN - 6 && k < qN ? 1 + .08 * (k - (qN - 6)) / 6 : k >= qN && k < qN + 3 ? 1.08 - .08 * (k - qN) / 3 : 1;
+    const entries = SUBJ.map(s => s.t), pts = [[0, 0]];
+    let w = 0;
+    for (let k = 0; k < n; k++) {
+      for (const e of entries) if (e > k && e <= k + 1) { const part = (e - k) * f(k); pts.push([e, w + part]); pts.push([e, w + part + .05]); w += .05; }
+      w += f(k); pts.push([k + 1, w]);
+    }
+    const qs = pts.map(p => p[0]), ws = pts.map(p => p[1]);
+    const seek = (arr, x) => { let lo = 0, hi = arr.length - 1; while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (arr[mid] <= x) lo = mid; else hi = mid - 1; } return lo; };
+    const map = (from, to, x) => { const i = Math.min(seek(from, x), from.length - 2); const a = from[i], b = from[i + 1]; return b > a ? to[i] + (x - a) / (b - a) * (to[i + 1] - to[i]) : to[i + 1]; };
+    return { of: q => map(qs, ws, q), inv: x => map(ws, qs, x) };
+  })();
+  function setup() {
+    if (ctx) return;
+    // a larger buffer, so a dense passage does not break up
+    ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: "playback" });
+    // if the browser suspends the context while playing (another tab's sound, a call), stop
+    // cleanly so the button reads Play again
+    ctx.addEventListener("statechange", () => { if (playing && ctx.state !== "running") stop(); });
+    const master = ctx.createGain(); master.gain.value = .2;
+    // the compressor eased so the dynamics survive it; the room fed through a high-pass, so
+    // the bass does not pool in the reverb
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -10; comp.ratio.value = 2.5; comp.knee.value = 12; comp.attack.value = .003; comp.release.value = .25;
+    master.connect(comp).connect(ctx.destination);
+    const wet = ctx.createGain(); wet.gain.value = S.ROOM_WET;
+    const hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 220; hp.Q.value = .7;
+    const conv = ctx.createConvolver();
+    const n = Math.floor(S.ROOM * 1.2 * ctx.sampleRate), pre = Math.floor(.018 * ctx.sampleRate), buf = ctx.createBuffer(2, n + pre, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) { const dd = buf.getChannelData(ch); let lp = 0; for (let i = 0; i < n; i++) { const r = (Math.random() * 2 - 1) * Math.exp(-6.91 * (i / ctx.sampleRate) / S.ROOM); lp += .35 * (r - lp); dd[pre + i] = lp; } }
+    conv.buffer = buf; wet.connect(hp).connect(conv).connect(comp);
+    const nv = Math.max(...NOTES.map(n => n[3])) + 1;
+    buses = Array.from({ length: nv }, (_, v) => { const p = S.PANS[v % S.PANS.length]; const g = ctx.createGain(); g.gain.value = S.LEVELS[v % S.LEVELS.length]; const pan = ctx.createStereoPanner(); pan.pan.value = p; g.connect(pan).connect(master); pan.connect(wet); return g; });
+    const kn = Math.floor(.03 * ctx.sampleRate); knock = ctx.createBuffer(1, kn, ctx.sampleRate); const kd = knock.getChannelData(0); let lp = 0;
+    for (let i = 0; i < kn; i++) { lp += .08 * ((Math.random() * 2 - 1) - lp); kd[i] = lp * 6; }
+  }
+  // a note is struck, then held at its ring level until its written end, and released over
+  // a tenth of a second; so a long note sings for its length and a short one stops before
+  // the next, and the pedal's ring is cut by a third
+  function strike(v, midi, t, dur, vel, table, ringBase, detune) {
+    const f = 440 * Math.pow(2, (midi - 69) / 12) * (detune ? Math.pow(2, ((Math.random() * 2 - 1) * S.GLASS_DETUNE) / 1200) : 1);
+    const ring = Math.min(S.RING_MAX, ringBase * Math.pow(2, (60 - midi) / 20)) * (v === 4 ? .67 : 1);
+    const out = ctx.createGain(); out.gain.value = vel; out.connect(buses[v]);
+    // the oscillators stop a quarter second after the release begins, when the note is
+    // under a twentieth of its level; a short note keeps only its lower partials
+    const held = Math.max(.12, dur), end = t + held + .25, glow = Math.min(1.35, Math.max(.55, Math.pow(vel / .85, 1.3)));
+    for (const [ratio, amp, share] of table[v % table.length]) {
+      const fr = f * ratio; if (fr > 18000 || (dur < .3 && ratio > 3.5)) continue;
+      const osc = ctx.createOscillator(); osc.frequency.value = fr;
+      const gs = ctx.createGain(); gs.gain.setValueAtTime(0, t); gs.gain.linearRampToValueAtTime(amp * (ratio < 1.5 ? 1 : glow), t + .001); gs.gain.setTargetAtTime(0, t + .001, S.ATTACK * (detune ? .6 : 1) * Math.sqrt(share));
+      // a louder note is brighter as well: its upper partials scale with the velocity
+      const bright = (ratio < 1.5 ? 1 : (detune ? S.GLASS_BRIGHT : S.RING_BRIGHT)) * (ratio < 1.5 ? 1 : glow), hold = ratio < 1.5 ? share : Math.max(share, detune ? S.GLASS_HOLD : S.RING_HOLD);
+      const gr = ctx.createGain(); gr.gain.setValueAtTime(0, t); gr.gain.linearRampToValueAtTime(S.RING_LEVEL * amp * bright, t + .001);
+      gr.gain.setTargetAtTime(S.RING_LEVEL * amp * bright * .45, t + .001, ring * hold * 2);      // a slow settle while held
+      gr.gain.setTargetAtTime(0, t + held, .09);                                                // the release at the note's end
+      osc.connect(gs).connect(out); osc.connect(gr).connect(out); osc.start(t); osc.stop(end);
+    }
+    const src = ctx.createBufferSource(); src.buffer = knock;
+    const gk = ctx.createGain(); gk.gain.setValueAtTime(detune ? S.GLASS_THUMP : .6, t); gk.gain.setTargetAtTime(0, t, .008);
+    src.connect(gk).connect(out); src.start(t); src.stop(t + .05);
+    notesOut.push({ out, end });     // so a stop or a jump can silence it
+  }
+  let notesOut = [];
+  function silence() {
+    const now = ctx.currentTime;
+    for (const { out } of notesOut) { try { out.gain.setTargetAtTime(0, now, .015); } catch (e) {} }
+    notesOut = [];
+  }
+  function schedule() {
+    if (!playing) return;
+    const horizon = ctx.currentTime + HORIZON;
+    while (next < EVENTS.length && startAt + W.of(EVENTS[next].t) * spq < horizon) {
+      const ev = EVENTS[next++], at = startAt + W.of(ev.t) * spq;
+      if (at < ctx.currentTime - .02) continue;
+      strike(ev.v, ev.m, at, (W.of(ev.t + ev.d) - W.of(ev.t)) * spq, ev.vel, S.MALLETS, S.RING, false);
+    }
+    notesOut = notesOut.filter(n => n.end > ctx.currentTime);
+  }
+  function tick() {
+    if (!playing) return;
+    q = W.inv((ctx.currentTime - startAt) / spq);
+    if (q >= END) { stop(); q = END; paint(); return; }
+    paint();
+    raf = requestAnimationFrame(tick);
+  }
+  // the context is resumed and awaited before the start time is read from it, since a
+  // suspended context's clock stands still; a stop or a new play meanwhile wins
+  let playToken = 0;
+  async function play() {
+    setup();
+    const token = ++playToken;
+    if (ctx.state !== "running") { try { await ctx.resume(); } catch (e) {} }
+    if (token !== playToken || playing) return;
+    if (q >= END - .01) q = 0;
+    spq = 60 / Number($("tempo").value);
+    startAt = ctx.currentTime + .08 - W.of(q) * spq;
+    next = EVENTS.findIndex(e => e.t >= q - 1e-6); if (next < 0) next = EVENTS.length;
+    playing = true; $("play").classList.add("on"); $("play").setAttribute("aria-label", "pause"); hubLitFor = null; paintHub();
+    schedule();
+    timer = setInterval(schedule, 100);
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() {
+    playToken++;
+    playing = false; $("play").classList.remove("on"); $("play").setAttribute("aria-label", "play"); paintHub();
+    if (timer) clearInterval(timer); if (raf) cancelAnimationFrame(raf); timer = raf = null;
+    if (ctx) silence();
+  }
+  function seek(nq) {
+    const was = playing;
+    if (was) stop();
+    q = Math.max(0, Math.min(END, nq));
+    paint();
+    if (was) play();
+  }
+
+  // ---------------------------------------------------------------- controls
+  $("play").addEventListener("click", () => playing ? stop() : play());
+  $("tempo").addEventListener("input", () => { $("tempo-out").textContent = "♩ = " + $("tempo").value; if (playing) { stop(); play(); } });
+  const local = (svg, e) => { const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); };
+  // the hub plays and pauses. The wheel turns under the hand: drag it and the fugue winds
+  // forward or back; a tap turns it to the point tapped. The window of notes drags along
+  // its bars, and the measures scrub: press and move along the whole fugue.
+  const angleAt = e => { const p = local(wheel, e); return Math.atan2(p.y - C, p.x - C); };
+  let drag = null;
+  function dragStart(e, kind, extra) {
+    e.preventDefault();                                     // no text selection while dragging
+    drag = { kind, x: e.clientX, y: e.clientY, q0: q, was: playing, moved: false, ...extra };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+  function dragMove(e) {
+    if (!drag) return;
+    if (!drag.moved) {
+      if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 4) return;
+      drag.moved = true;
+      if (playing) stop();
+    }
+    if (drag.kind === "wheel") {
+      const a = angleAt(e);
+      let da = a - drag.a; da = Math.atan2(Math.sin(da), Math.cos(da));       // the turn since the last move
+      drag.a = a;
+      q = Math.max(0, Math.min(END, q - da / (2 * Math.PI) * END));
+    } else if (drag.kind === "roll") {
+      q = Math.max(0, Math.min(END, drag.q0 - (local(dash, e).x - drag.px) / SX));
+    } else {
+      q = Math.max(0, Math.min(END, local(dash, e).x / DW * END));
+    }
+    paint();
+  }
+  function dragEnd(e) {
+    if (!drag) return;
+    const d = drag; drag = null;
+    if (d.moved) { if (d.was) play(); return; }
+    // a tap
+    if (d.kind === "wheel") {
+      const a = angleAt(e) + Math.PI / 2, turned = ((a / (2 * Math.PI)) % 1 + 1) % 1;      // from the red line, clockwise
+      seek(((q / END + turned) % 1) * END);
+    } else if (d.kind === "roll") seek(q + (local(dash, e).x - PX) / SX);
+    else seek(local(dash, e).x / DW * END);
+  }
+  wheel.addEventListener("pointerdown", e => { if (e.target.closest("#hub")) return; dragStart(e, "wheel", { a: angleAt(e) }); });
+  wheel.addEventListener("pointermove", dragMove);
+  wheel.addEventListener("pointerup", dragEnd);
+  wheel.addEventListener("pointercancel", () => { drag = null; });
+  dash.addEventListener("pointerdown", e => {
+    const p = local(dash, e);
+    if (p.y >= 270 && p.y <= 626) dragStart(e, "roll", { px: p.x });
+    else if (p.y >= 626) dragStart(e, "scrub", {});
+  });
+  dash.addEventListener("pointermove", dragMove);
+  dash.addEventListener("pointerup", dragEnd);
+  dash.addEventListener("pointercancel", () => { drag = null; });
+  document.addEventListener("keydown", e => {
+    if (e.target.tagName === "INPUT" || e.target.tagName === "BUTTON") return;    // a focused button takes its own key
+    if (e.key === " ") { e.preventDefault(); playing ? stop() : play(); }
+    if (e.key === "ArrowRight") seek(q + 3 * F.bar);
+    if (e.key === "ArrowLeft") seek(q - 3 * F.bar);
+  });
+
+  // a place in the hash, as #q=120 (quarters from the start), for links from the talk
+  const hq = Number(new URLSearchParams(location.hash.slice(1)).get("q"));
+  if (hq > 0) q = Math.min(END, hq);
+  paint();
+  paintHub();
+
+  // ---------------------------------------------------------------- the scrolled page: each passage sets the stage, and the whole page follows
+  const stageEl = $("stage"), barEl = document.querySelector("#explore > .bar"), boardEl = $("board"), exploreEl = $("explore");
+  const PASSAGES = {
+    fugue:    { panel: "wheel", at: () => 0 },
+    themes:   { panel: "wheel", at: () => SUBJ[1] ? SUBJ[1].t : 0 },
+    episodes: { panel: "wheel", at: () => SEQ[0] ? SEQ[0].t : 0 },
+    reading:  { panel: "dash",  at: () => SUBJ[3] ? SUBJ[3].t : 0 },
+  };
+  let passage = null, whole = true, panel = "wheel";
+  function toWhole(yes) {
+    if (yes === whole) return;
+    whole = yes;
+    if (yes) exploreEl.insertBefore(stageEl, barEl); else boardEl.appendChild(stageEl);
+    stageEl.dataset.panel = yes ? "both" : panel;
+  }
+  function enter(name) {
+    const P = PASSAGES[name];
+    if (!P) return;
+    toWhole(false);
+    if (name === passage) return;
+    passage = name;
+    for (const sec of document.querySelectorAll(".story section")) sec.classList.toggle("on", sec.dataset.scene === name);
+    panel = P.panel; stageEl.dataset.panel = panel;
+    if (!playing) seek(P.at());            // a passage turns the wheel, but never interrupts the music
+  }
+  const io = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting) enter(e.target.dataset.scene); }, { rootMargin: "-45% 0px -45% 0px" });
+  for (const sec of document.querySelectorAll(".story section")) io.observe(sec);
+  const wholeIo = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting) toWhole(true); }, { threshold: .5 });
+  wholeIo.observe($("full"));
+  // another fugue, or a place in the hash from the talk, opens on the whole page
+  if (!IS582 || hq > 0) { if (!IS582) document.querySelector(".scrolly").hidden = true; $("full").scrollIntoView({ behavior: "instant" }); }
+  else enter("fugue");
+  // the sources this fugue's reading rests on, across the foot of the page, links live
+  if (F.sources && F.sources.length) {
+    const cr = document.createElement("p"); cr.className = "credit";
+    cr.innerHTML = F.sources.map(s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/(https?:\/\/[^\s,]+?)(\.?)(?=\s|$)/g, '<a href="$1">$1</a>$2')).join("<br>");                                          // one source a line, centred
+    document.querySelector(".bar").after(cr);
+  }
+}
+(function backToTalk() { const f = new URLSearchParams(location.hash.slice(1)).get("from"), a = document.getElementById("to-talk"); if (f && a) a.href = "talk.html#" + f; })();
+</script>
+<script src="scroll.js?v=a047a0cb"></script>
+<script src="noselect.js?v=e60814a2"></script>
+</body>
+</html>

@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Automata</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="top.css?v=f32dc556">
+<link rel="stylesheet" href="scroll.css?v=da4efe7e">
+<style>
+  /* the diagram: square cells, as large as the board allows */
+  .board canvas { display: block; image-rendering: pixelated; cursor: crosshair; }
+  .board.super { justify-content: flex-start; }
+  /* what the example is doing, said above the board while it does it */
+  .reading { position: absolute; top: 56px; left: 40px; right: 340px; margin: 0; font-size: 18px; line-height: 1.35; color: var(--ink); font-variant-numeric: tabular-nums; }
+  /* a supervised example prints each row's meaning beside the row, the latest marked */
+  .steps { position: absolute; inset: 0; pointer-events: none; }
+  .steps p { position: absolute; right: 0; margin: 0; font-size: 15px; line-height: 18px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .steps p b { font-family: var(--caps); font-weight: 500; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-right: 8px; }
+  .steps p.now b { color: var(--warm); }
+  .tools input { font-family: var(--sans); font-size: 12px; letter-spacing: 0; width: 3.2em; border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--ink); text-align: center; padding: 0; }
+  .tools input:focus { outline: none; border-bottom-color: var(--ink); }
+  /* the rule as eight cases in the story: the three cells, an arrow down from the middle one, the cell it becomes */
+  .cases { display: grid; grid-template-columns: repeat(4, 1fr); margin: 6px 0 16px; max-width: 26em; }
+  .case { position: relative; padding: 12px 8px 10px; cursor: pointer; border-bottom: 1px solid rgba(207, 199, 173, .55); border-right: 1px solid rgba(207, 199, 173, .55); }
+  .case:nth-child(4n) { border-right: 0; }
+  .case:nth-last-child(-n+4) { border-bottom: 0; }
+  .case svg { display: block; width: 48px; height: 50px; margin: 0 auto; overflow: visible; }
+  .case .k { position: absolute; top: 6px; left: 4px; font-family: var(--caps); font-size: 9px; letter-spacing: .1em; color: var(--grey); }
+  .case rect { stroke: var(--ink); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .case path { stroke: var(--grey); fill: none; stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+  @media (hover: hover) {
+    .case:hover rect.out { stroke: var(--warm); stroke-width: 1.2; stroke-dasharray: 2 1.5; }
+    .case:hover rect.out.on { fill: var(--plate) !important; }
+    .case:hover rect.out.off { fill: var(--warm) !important; fill-opacity: .35; }
+  }
+  @media (max-width: 900px) { .reading { top: 50px; left: 12px; right: 12px; font-size: 15px; } .readout { display: none; } }
+</style>
+</head>
+<body class="grain">
+<header class="top">
+  <a class="mark" href="#top">Automata</a>
+  <nav class="nav"><a class="home" href="overview.html#scene=automata">Overview</a><a href="truchet.html">Truchet</a><a href="girih.html">Girih</a><a href="penrose.html">Penrose</a><a href="automata.html" class="here">Automata</a><a href="solari.html">Solari</a><a href="jacquard.html">Jacquard</a><a href="index.html">Passacaglia</a><a href="fugue.html">Fugue</a></nav>
+</header>
+
+<main class="scrolly">
+  <div class="story">
+    <section data-scene="row" id="top">
+      <h1>Automata</h1>
+      <p class="lead">A rule on three cells, run on a row of two hundred and forty.</p>
+      <p>An elementary cellular automaton is a row of cells, each on or off. Time runs downward, and each row is the row above, rewritten by one rule.</p>
+      <p class="cue">Scroll to read. The board runs as you read.</p>
+    </section>
+    <section data-scene="three">
+      <h2>Three make one</h2>
+      <p>A cell's next state depends on three cells: itself and its two neighbours. Three cells, each on or off, give eight possible cases. All the cells are updated together.</p>
+    </section>
+    <section data-scene="cases">
+      <h2>Eight cases, one answer each</h2>
+      <p>Each case can have one of two answers, so there are 256 possible rules. A rule is numbered by its answers read as binary. This is rule 110.</p>
+      <div class="cases" id="cases"></div>
+      <p>Click an answer to change it, and the board runs the new rule. Stephen Wolfram explored all 256 in A New Kind of Science (2002).</p>
+      <p class="small">The rule's number can also be typed beneath the board.</p>
+    </section>
+    <section data-scene="local">
+      <h2>Local rules, and what they make</h2>
+      <p>Each rule here is local and deterministic. A cell's next state follows from three cells by a table of eight entries, so one cell's next step is easy to predict.</p>
+      <p>Across a whole row, some rules produce structures at a larger scale. These move along the row, meet, and carry information, and they are found by running the rule.</p>
+    </section>
+    <section data-scene="kinds">
+      <h2>Which rules matter</h2>
+      <p>Most of the 256 give uniformity or a repeat. Rule 250 fills the row. Rule 184 is traffic: each black cell is a car that moves on when the cell ahead is empty, and above half density jams form that move backwards while the cars move forwards. In 2008 Yuki Sugiyama and colleagues put twenty-two cars on a circular track and the same jam formed, with no bottleneck and no accident, from small differences in how each driver followed the car ahead. Some give chaos. Rule 30 makes an apparently random pattern from one cell, and Mathematica drew its random numbers from its centre column for years. Others give structures that move, meet, and pass information. Rule 110 is one, and its collisions can run any program (Cook, 2004).</p>
+      <div class="picks" id="kinds"><button data-rule="250">Rule 250</button><button data-rule="184">Rule 184</button><button data-rule="30">Rule 30</button><button data-rule="110">Rule 110</button></div>
+    </section>
+    <section data-scene="signals">
+      <h2>Signals</h2>
+      <p>Rule 110 on its own background, dimmed here so the gliders show. Some stand still, and some run right or left. The outcome depends on which gliders meet and how. Two gliders vanish, two leave a standing one, and a standing one that is struck becomes a walker or bursts in two. Matthew Cook's proof, published in 2004, shows that arrangements of these collisions can run any program.</p>
+      <p class="small">Clear deals a fresh hand.</p>
+    </section>
+    <section data-scene="adder">
+      <h2>The supervisor</h2>
+      <p>The supervisor is an algorithm that leaves the rules as they are. It chooses which rule fires when, seeds the row, and reads the result.</p>
+      <p>Here it adds two numbers. They sit in binary on one row, A in the grey cells and B in the ink cells to their right, least significant at the right. Rule 60 makes every cell the XOR of itself and its left neighbour, so one row of it writes the sum bits into B's cells. Rule 192 makes every cell the AND of the two, so one row of it writes the carries. The supervisor fires 60, fires 192, moves the carries one place left, seeds the row again, and repeats until no carry is left.</p>
+      <p class="small">Change the numbers beneath the board, up to 99 each.</p>
+    </section>
+    <section data-scene="vote">
+      <h2>A vote</h2>
+      <p>A ring of 240 cells, black or white at random. No rule of this kind finds the majority colour correctly for every starting row (Land and Belew, 1995). Two rules in turn can. Rule 184 runs for half the ring, and spreads the minority out until no two of its cells touch. Then rule 232, the majority of three, fills what is left (Fukś, 1997). The supervisor makes one decision, when to switch, and the row settles to the majority colour.</p>
+      <p class="small">Clear deals a fresh ring.</p>
+    </section>
+    <section data-scene="measure">
+      <h2>Measures</h2>
+      <p>Measure counts three things over the rows on the board. The first is how many of the 256 patterns of eight cells appear. The second is how many bits a row takes to describe. The third is the share of rows that are new.</p>
+      <p>For comparison, rule 184 gives 225 patterns, 36 bits, and 6% new. Rule 110 gives 233, 145, and 42%. Rule 30 gives 256, 260, and 73%.</p>
+    </section>
+    <section data-scene="free">
+      <h2>Sources</h2>
+      <ol class="refs">
+        <li>Stephen Wolfram, <a href="https://www.wolframscience.com/nks/">A New Kind of Science</a>, 2002.<span>All 256 rules on three cells, run and classified.</span></li>
+        <li>Matthew Cook, Universality in elementary cellular automata, Complex Systems 15, 1–40, 2004.<span>Rule 110 can run any program.</span></li>
+        <li>Henryk Fukś, Solution of the density classification problem with two cellular automata rules, Physical Review E 55, R2081, 1997.<span>Rule 184, then rule 232.</span></li>
+        <li>Mark Land and Richard K. Belew, No perfect two-state cellular automata for density classification exists, Physical Review Letters 74, 5148, 1995.</li>
+        <li><a href="https://en.wikipedia.org/wiki/Elementary_cellular_automaton">Elementary cellular automaton</a>, Wikipedia.</li>
+      </ol>
+      <p class="back"><a href="overview.html#scene=automata">Back to the overview</a></p>
+    </section>
+  </div>
+
+  <div class="hold">
+    <p class="reading" id="read"></p>
+    <div class="board" id="board"><canvas id="cv" width="240" height="240" aria-label="the space-time diagram, time downward"></canvas><div class="steps" id="steps" aria-hidden="true"></div></div>
+    <div class="readout" id="readout"></div>
+    <div class="tools" id="tools">
+      <div class="grp" id="g-run"><button id="run">Run</button><button id="step">Step</button><button id="reset">Clear</button></div>
+      <div class="grp" id="g-start"><span class="lbl">Start</span><button class="ring" data-start="random">Random</button><button class="ring" data-start="one">One cell</button></div>
+      <div class="grp" id="g-rule"><span class="lbl">Rule</span><input type="text" id="rule" value="110" inputmode="numeric" aria-label="rule number"></div>
+      <div class="grp" id="g-sum"><input type="text" id="a" value="7" inputmode="numeric" aria-label="first number"><span class="lbl">+</span><input type="text" id="b" value="5" inputmode="numeric" aria-label="second number"><button id="add">Add</button></div>
+      <div class="grp" id="g-measure"><button id="measure">Measure</button></div>
+    </div>
+  </div>
+</main>
+<script src="scroll.js?v=a047a0cb"></script>
+<script>
+const $ = id => document.getElementById(id);
+let measured = null, plain = { W: 240, H: 240, pace: 1 };   // the measures once taken; the size and pace of a passage that is not an example
+let W = 240, H = 240;
+const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+let rule = 110, start = "random", running = false, timer = null;
+let rows = [], seed = null, history = [], total = 0;   // total: the index of the last row computed
+let masks = [];                                         // for each row on show, which cells are rule 110's background (Signals only)
+let edges = null;                                       // null: a ring; [left, right]: fixed cells beyond the ends
+let scene = null, state = {}, deals = 0;                // the example in play, what it remembers about this run, and how many hands of gliders
+
+function setSize(w, h = 240) { W = w; H = h; cv.width = W; cv.height = H; fitCanvas(); }
+function firstRow() {
+  if (scene) return scene.start();
+  const r = new Uint8Array(W);
+  if (start === "random") { for (let i = 0; i < W; i++) r[i] = Math.random() < .5 ? 1 : 0; }
+  else r[W >> 1] = 1;
+  return r;
+}
+function nextRow(r) {
+  const out = new Uint8Array(W);
+  for (let i = 0; i < W; i++) {
+    const l = i > 0 ? r[i - 1] : (edges ? edges[0] : r[W - 1]);
+    const rr = i < W - 1 ? r[i + 1] : (edges ? edges[1] : r[0]);
+    out[i] = (rule >> ((l << 2) | (r[i] << 1) | rr)) & 1;
+  }
+  return out;
+}
+function reset() {
+  stop();
+  state = {};
+  if (!scene) setSize(plain.W, plain.H);
+  seed = firstRow();
+  rows = [seed]; history = [seed]; total = 0;
+  masks = scene && scene.dim ? [scene.mask ? scene.mask(seed, "seed") : etherMask(seed)] : [];
+  clearMeasures(); draw();
+  updateRead(); drawSteps();
+  if (scene && scene.auto) run();                     // a supervised scene runs on its own
+}
+function step() {
+  const r = nextRow(rows[rows.length - 1]);
+  rows.push(r); history.push(r); total++;
+  if (scene && scene.dim) masks.push(etherMask(r));
+  if (rows.length > H) { rows.shift(); if (masks.length) masks.shift(); }
+  if (history.length > 2000) history.shift();
+  if (scene && scene.watch) scene.watch(r);
+}
+function advance() { if (scene && scene.tick) scene.tick(); else step(); }   // a supervised scene orders its own rules
+function show() { draw(); counts(); updateRead(); drawSteps(); }
+// a supervised scene's lines, one beside the row it explains, the latest marked
+function drawSteps() {
+  const box = document.getElementById("steps");
+  if (!scene || !scene.lines) { box.innerHTML = ""; return; }
+  const lines = scene.lines(), rect = cv.getBoundingClientRect(), brect = document.getElementById("board").getBoundingClientRect();
+  const rowH = rect.height / H, left = rect.right - brect.left + 24, top = rect.top - brect.top, first = total - (rows.length - 1);
+  box.innerHTML = "";
+  lines.forEach((l, i) => {
+    const y = l.row - first; if (y < 0 || y >= H) return;
+    const p = document.createElement("p");
+    p.innerHTML = (l.label ? `<b>${l.label}</b>` : "") + l.text;
+    if (i === lines.length - 1) p.className = "now";
+    p.style.left = `${left}px`; p.style.top = `${top + y * rowH + (rowH - 18) / 2}px`;
+    box.appendChild(p);
+  });
+}
+function draw() {
+  const img = ctx.createImageData(W, H), d = img.data;
+  for (let y = 0; y < H; y++) {
+    const r = rows[y], m = masks[y];
+    for (let x = 0; x < W; x++) {
+      const on = r ? r[x] : 0, k = (y * W + x) * 4;
+      if (m && m[x]) { if (on) { d[k] = 0xcd; d[k + 1] = 0xc8; d[k + 2] = 0xbb; } else { d[k] = 0xf9; d[k + 1] = 0xf4; d[k + 2] = 0xe5; } }   // the background, dimmed
+      else if (m && !on) { d[k] = 0xef; d[k + 1] = 0xd5; d[k + 2] = 0xb2; }                                                              // inside a glider, its white cells warmed
+      else if (on) { d[k] = 0x1c; d[k + 1] = 0x1a; d[k + 2] = 0x17; }
+      else if (scene && scene.markRow !== undefined && total - (rows.length - 1) + y === scene.markRow) { d[k] = 0xef; d[k + 1] = 0xd5; d[k + 2] = 0xb2; }   // the row where the supervisor switched
+      else { d[k] = 0xf9; d[k + 1] = 0xf4; d[k + 2] = 0xe5; }
+      d[k + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+}
+function run() {
+  if (running) return stop();
+  running = true; $("run").textContent = "Pause";
+  let frame = 0;
+  const tick = () => {                                                              // one row a frame, so the rows can be watched arriving; a supervised scene sets its own pace
+    if (++frame % ((scene && scene.pace) || plain.pace || 1) === 0) { advance(); show(); }
+    if (scene && scene.finished && scene.finished()) return stop();
+    timer = requestAnimationFrame(tick);
+  };
+  timer = requestAnimationFrame(tick);
+}
+function stop() {
+  running = false; $("run").textContent = "Run";
+  if (timer) cancelAnimationFrame(timer); timer = null;
+}
+
+// the examples: each sets a rule, the edges and the first row, and reads the diagram back in words
+const count = r => { let n = 0; for (let i = 0; i < r.length; i++) n += r[i]; return n; };
+const last = () => rows[rows.length - 1];
+const plural = (n, one, many) => n === 1 ? one : many;
+// rule 110's background, and its gliders cut from it: each string starts where the background does and ends where it starts again
+const ETHER = "00010011011111".split("").map(Number);
+const GLIDERS = {
+  A:  "000100110111110001001101001101111100010011011111",   // runs right, two cells every three rows
+  D:  "00010011011111000111111001101111100010011011111",    // walks right, two cells every ten rows
+  C:  "000100110111110001110110101111100010011011111",      // stands still
+  C2: "0001001101111100000010011011111",                    // stands still
+  C3: "000100110111110100111001101111100010011011111",      // stands still
+  B:  "000100110111110001111100010011011111",               // runs left, two cells every four rows
+  E:  "000100110111110000000010011011111",                  // runs left, four cells every fifteen rows
+};
+const FIRST_DEAL = [2, "C", 1, "E", 1, "D", 1, "C"];        // numbers are stretches of background, fourteen cells each
+function dealGliders() {
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const names = [pick(["A", "A", "D"]), pick(["C", "C2", "C3"]), pick(["B", "E", "E"])];
+  for (let i = Math.random() < .5 ? 1 : 2; i > 0; i--) names.push(pick(Object.keys(GLIDERS)));
+  for (let i = names.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [names[i], names[j]] = [names[j], names[i]]; }
+  const parts = [];
+  for (const n of names) parts.push(pick([1, 1, 2]), n);
+  const width = p => p.reduce((s, x) => s + (typeof x === "number" ? 14 * x : GLIDERS[x].length), 0);
+  while (width(parts) > 300 && parts.length > 6) parts.splice(parts.length - 2, 2);
+  return parts;
+}
+function etherRow(parts) {
+  let s = "";
+  for (const p of parts) s += typeof p === "number" ? ETHER.join("").repeat(p) : GLIDERS[p];
+  setSize(s.length);
+  return Uint8Array.from(s, Number);
+}
+function isEther(r, i) {            // the 28 cells around i match the background in some phase
+  for (let d = 0; d < 14; d++) {
+    let ok = true;
+    for (let j = -14; j < 14 && ok; j++) if (r[(i + j + W) % W] !== ETHER[(((j + d) % 14) + 14) % 14]) ok = false;
+    if (ok) return true;
+  }
+  return false;
+}
+function etherMask(r) {             // 1 where the row is background
+  const e = new Uint8Array(W);
+  for (let i = 0; i < W; i++) e[i] = isEther(r, i) ? 1 : 0;
+  return e;
+}
+function gliders(e) {               // how many separate disturbances of the background the row holds
+  let any = 0, n = 0;
+  for (let i = 0; i < W; i++) { any += e[i]; if (!e[i] && e[(i - 1 + W) % W]) n++; }
+  return any ? n : 1;
+}
+const SCENES = {
+  signals: {
+    rule: 110, edges: null,
+    dim: true,
+    start() { return etherRow(deals++ ? dealGliders() : FIRST_DEAL); },
+    read() {
+      const n = gliders(masks[masks.length - 1]);
+      return n ? `${n} ${plural(n, "glider", "gliders")} on the background` : "no gliders left: Clear deals a fresh hand";
+    },
+  },
+};
+// the supervisor: an algorithm over the rules that never touches one. It chooses which rule
+// fires when, seeds the row, and reads it. showRule changes the rule on show without leaving
+// the scene, as setRule would
+function showRule(n) { rule = n; document.getElementById("rule").value = n; drawCases(); }
+const NB = 8;                                    // bits a number may have on the adder's row: two numbers up to 99, a sum under 256
+const bits = (n, w = NB) => n.toString(2).padStart(w, "0");
+const trim = s => s.replace(/^0+(?=\d)/, "");
+SCENES.adder = {
+  rule: 60, edges: [0, 0], W: 2 * NB + 2, H: 26, dim: true, pace: 66, auto: true,
+  input() {
+    const a = Math.max(0, Math.min(99, +document.getElementById("a").value | 0)), b = Math.max(0, Math.min(99, +document.getElementById("b").value | 0));
+    document.getElementById("a").value = a; document.getElementById("b").value = b; return [a, b];
+  },
+  seedRow(a, b) {
+    const r = new Uint8Array(W);
+    for (let i = 0; i < NB; i++) { const x = W - 2 - 2 * i; r[x] = (a >> i) & 1; r[x + 1] = (b >> i) & 1; }
+    return r;
+  },
+  odd(r) { let n = 0; for (let i = 0; i < NB; i++) n |= r[W - 1 - 2 * i] << i; return n; },   // the number written in B's cells
+  mask() { const m = new Uint8Array(W); for (let x = 0; x < W; x += 2) m[x] = 1; return m; },   // A's cells grey, B's cells ink and warm, on every row; the results land in B's cells
+  width() { return Math.max(1, (state.a + state.b).toString(2).length); },   // digits enough for the sum
+  bin(n) { return bits(n, this.width()); },
+  start() {
+    const [a, b] = this.input();
+    Object.assign(state, { a, b, sum: a, carry: b, round: 0, phase: 0, done: false, log: [], lines: [] });
+    setSize(2 * this.width() + 2, this.H);             // only the columns the sum needs, so the cells are large
+    showRule(60);
+    state.lines.push({ row: 0, label: "seed", text: `A is ${a}, ${this.bin(a)}, in the grey cells; B is ${b}, ${this.bin(b)}, in the ink cells` });
+    return this.seedRow(a, b);
+  },
+  lines() { return state.lines; },
+  push(r) { rows.push(r); history.push(r); total++; masks.push(this.mask()); },
+  tick() {
+    if (state.done) return;
+    const seedRow = this.seedRow(state.sum, state.carry);
+    if (state.phase === 0) {
+      showRule(60); const r = nextRow(seedRow); this.push(r); state.next = this.odd(r); state.phase = 1;
+      state.lines.push({ row: total, label: "rule 60", text: `each B cell becomes A xor B: the sum bits, ${this.bin(state.next)}` });
+    } else if (state.phase === 1) {
+      showRule(192); const r = nextRow(seedRow); this.push(r); const c = this.odd(r);
+      state.round++; state.log.push([state.next, c]); state.sum = state.next; state.carry = c << 1; state.phase = 2;
+      state.lines.push({ row: total, label: "rule 192", text: c ? `each B cell becomes A and B: the carries, ${this.bin(c)}` : `each B cell becomes A and B: no carry, so ${this.bin(state.sum)} is the sum, ${state.sum}` });
+    } else {
+      if (state.carry === 0) { state.done = true; return; }
+      this.push(this.seedRow(state.sum, state.carry)); state.phase = 0;
+      state.lines.push({ row: total, label: "seed", text: `A takes the sum bits, ${this.bin(state.sum)}; B the carries moved one place left, ${this.bin(state.carry)}` });
+    }
+  },
+  finished() { return state.done; },
+  read() {
+    const { a, b, round, phase, done, sum, carry, log, next } = state;
+    if (done) return `${a} + ${b} = ${sum}, in ${round} ${plural(round, "round", "rounds")}. The cells did every XOR and AND. The supervisor only chose which rule fired when.`;
+    if (round === 0 && phase === 0) return `Adding ${a} and ${b}. Two numbers in binary on one row, A in grey, B in ink. The supervisor fires rule 60 first.`;
+    if (phase === 1) return `Round ${round + 1}. Rule 60 has fired: each B cell is now A xor B, the sum bits ${this.bin(next)}. Next the supervisor fires rule 192 on the same seed, for the carries.`;
+    if (phase === 2) {
+      const [s, c] = log[log.length - 1];
+      return c ? `Round ${round}. Rule 192 has fired: each B cell is now A and B, the carries ${this.bin(c)}. The supervisor moves them one place left and seeds the row again.`
+               : `Round ${round}. Rule 192 has fired and found no carry, so the sum stands: ${this.bin(s)}, which is ${s}.`;
+    }
+    return `Round ${round + 1}. Seeded again: A holds the sum so far, ${this.bin(sum)}, and B the carries, ${this.bin(carry)}. Rule 60 next.`;
+  },
+};
+SCENES.vote = {
+  rule: 184, edges: null, W: 240, H: 240, pace: 1, auto: true,
+  markRow: 120,
+  start() {
+    const r = new Uint8Array(W); do { for (let i = 0; i < W; i++) r[i] = Math.random() < .5 ? 1 : 0; } while (count(r) * 2 === W);
+    showRule(184); state.done = false;
+    state.lines = [{ row: 0, label: "rule 184", text: `${count(r)} black, ${W - count(r)} white. Black moves right, white left; pairs that meet annihilate` }];
+    return r;
+  },
+  lines() { return state.lines; },
+  tick() {
+    if (state.done) return;
+    if (total < this.markRow) { if (rule !== 184) showRule(184); step(); }
+    else {
+      if (rule !== 232) { showRule(232); state.lines.push({ row: total, label: "rule 232", text: "the supervisor switches: each cell now takes the majority of its three" }); }
+      step(); const r = last(), q = rows[rows.length - 2];
+      if (r.every((v, i) => v === q[i])) { state.done = true; const b = count(seed), now = count(r); state.lines.push({ row: total, label: "settled", text: now === W ? `all black: black had the majority, ${b} to ${W - b}` : now === 0 ? `all white: white had the majority, ${W - b} to ${b}` : "mixed" }); }
+    }
+  },
+  finished() { return state.done; },
+  read() {
+    const b = count(seed), w = W - b, now = count(last()), head = `${b} black and ${w} white at the start.`;
+    if (total < this.markRow) return `Which colour has the majority? ${head} Rule 184 running, row ${total} of ${this.markRow}. ${now} black now.`;
+    if (!state.done) return `${head} The supervisor switched to rule 232 at row ${this.markRow}. ${now} black now.`;
+    const colour = now === W ? "all black" : now === 0 ? "all white" : "mixed";
+    return `${head} Settled ${colour} at row ${total}: ${(now === W) === (b > w) && colour !== "mixed" ? "the majority, decided exactly by two rules and one switch" : "not the majority this time"}.`;
+  },
+};
+function setScene(key) {
+  if (SCENES[key] !== scene) deals = 0;                 // a fresh visit starts with the first deal
+  scene = SCENES[key] || null;
+  if (scene) { rule = scene.rule; edges = scene.edges; start = "scene"; $("board").classList.toggle("super", !!scene.lines); setSize(scene.W || 240, scene.H || 240); }
+  else { edges = null; if (start === "scene") start = "random"; setSize(plain.W, plain.H); }
+  $("board").classList.toggle("super", !!(scene && scene.lines)); fitCanvas();
+  $("rule").value = rule; drawCases(); syncButtons();
+  reset();
+}
+// what the example is doing, said above the board while it does it
+function updateRead() { $("read").textContent = scene ? scene.read() : ""; }
+function syncButtons() {
+  document.querySelectorAll("#g-start button").forEach(b => b.classList.toggle("on", !scene && b.dataset.start === start));
+  document.querySelectorAll("#kinds button").forEach(b => b.classList.toggle("on", !scene && +b.dataset.rule === rule));
+}
+
+// the rule as eight cases, the answer under each
+function drawCases() {
+  const box = document.getElementById("cases");
+  box.innerHTML = "";
+  for (let k = 7; k >= 0; k--) {
+    const bit = (rule >> k) & 1;
+    const div = document.createElement("div");
+    div.className = "case"; div.title = "click to change the answer";
+    // the three cells in a row; from the middle one a single arrow down to the cell it becomes; the case number at the corner
+    const c = (x, y, on, cls) => `<rect class="${cls || ""}" x="${x}" y="${y}" width="6" height="6" fill="${on ? "#1c1a17" : "#f9f4e5"}"/>`;
+    div.innerHTML = `<span class="k">${k}</span><svg viewBox="-.5 -.5 21 22">${c(0, 0, k & 4)}${c(7, 0, k & 2)}${c(14, 0, k & 1)}` +
+      `<path d="M10 7v5.5M8.6 11l1.4 1.6 1.4-1.6"/>${c(7, 15, bit, "out " + (bit ? "on" : "off"))}</svg>`;
+    div.addEventListener("click", () => setRule(rule ^ (1 << k)));
+    box.appendChild(div);
+  }
+}
+
+// the measures, on demand
+function lz76(s) {
+  const n = s.length; if (n < 2) return n;
+  let i = 0, k = 1, l = 1, c = 1, kmax = 1;
+  for (;;) {
+    if (s[i + k - 1] === s[l + k - 1]) { k++; if (l + k > n) { c++; break; } }
+    else { if (k > kmax) kmax = k; i++; if (i === l) { c++; l += kmax; if (l + 1 > n) break; i = 0; k = 1; kmax = 1; } else k = 1; }
+  }
+  return c;
+}
+function measure() {
+  const grid = history.slice(-H), T = grid.length; if (T < 2) return;
+  const seen = new Set();
+  for (const r of grid) for (let i = 0; i + 8 <= W; i++) { let v = 0; for (let j = 0; j < 8; j++) v = (v << 1) | r[i + j]; seen.add(v); }
+  const flat = new Uint8Array(T * W); for (let t = 0; t < T; t++) flat.set(grid[t], t * W);
+  const bits = lz76(flat) * (Math.log2(flat.length) + 1) / T;
+  const vals = [];
+  for (let t = 8; t < T; t += Math.max(1, Math.floor(T / 30))) {
+    let best = 0;
+    for (let u = 0; u < t; u++) { const a = grid[u]; for (let sh = 0; sh < W; sh += 3) { let m = 0; const b = grid[t]; for (let x = 0; x < W; x++) if (a[(x + sh) % W] === b[x]) m++; if (m > best) best = m; } }
+    vals.push(1 - Math.max(0, (best / W - .5) / .5));
+  }
+  const nov = vals.reduce((a, b) => a + b, 0) / vals.length;
+  measured = { vocab: seen.size, bits: bits.toFixed(0), nov: Math.round(nov * 100) };
+  counts();
+}
+function clearMeasures() { measured = null; counts(); }
+
+// ---------------------------------------------------------------- the scrolled page: each passage sets the board, and the board runs
+// the counts at the top right: the rule, the rows, and the measures once taken
+function counts() {
+  const m = measured;
+  $("readout").innerHTML = `rule <b>${rule}</b> · <b>${(total + 1).toLocaleString("en-GB")}</b> ${total ? "rows" : "row"}` +
+    (m ? `<br><b>${m.vocab}</b> local patterns of 256 · <b>${m.bits}</b> bits per row · <b>${m.nov}%</b> rows new` : "");
+}
+// the diagram as large as the board allows, square cells; a supervised scene leaves room at its right for the lines
+function fitCanvas() {
+  const box = $("board"), bw0 = box.clientWidth || 700, bh = box.clientHeight || 600;
+  const bw = scene && scene.lines ? bw0 * .45 : bw0, s = Math.min(bw / W, bh / H);
+  cv.style.width = Math.max(1, Math.floor(W * s)) + "px"; cv.style.height = Math.max(1, Math.floor(H * s)) + "px";
+}
+function setRule(n) {
+  rule = Math.max(0, Math.min(255, n | 0)); $("rule").value = rule;
+  if (scene && rule !== scene.rule) {   // the example is left behind; the diagram runs on under the new rule
+    scene = null; masks = []; if (start === "scene") start = "random";
+    $("board").classList.remove("super"); fitCanvas(); drawSteps(); updateRead();
+  }
+  dirty = true; syncButtons(); drawCases(); counts();
+}
+
+let current = null, dirty = false;
+const saved = {};               // a passage the reader has changed keeps its board
+const PASSAGES = {
+  row:      { rule: 110, start: "random", tools: [] },
+  three:    { rule: 110, start: "random", W: 48, H: 48, pace: 6, tools: [] },
+  cases:    { rule: 110, start: "one", tools: ["g-rule", "g-start", "g-run"] },
+  local:    { rule: 110, start: "random", tools: ["g-run"] },
+  kinds:    { rule: 184, start: "random", tools: ["g-start", "g-run"] },
+  signals:  { example: "signals", tools: ["g-run"] },
+  adder:    { example: "adder", tools: ["g-sum"] },
+  vote:     { example: "vote", tools: ["g-run"] },
+  measure:  { rule: 110, start: "random", tools: ["g-run", "g-start", "g-rule", "g-measure"] },
+  free:     { tools: [] },
+};
+// the controls each passage needs, and no others
+const GROUPS = ["g-run", "g-start", "g-rule", "g-sum", "g-measure"];
+function applyTools(list) { const want = new Set(list || []); for (const id of GROUPS) $(id).hidden = !want.has(id); $("tools").hidden = want.size === 0; }
+const sceneKey = () => Object.keys(SCENES).find(k => SCENES[k] === scene) || null;
+function snapshot() {
+  return { scene: sceneKey(), rule, edges, start, W, H, plain: { ...plain }, rows: rows.slice(), history: history.slice(), total, masks: masks.slice(),
+           seed, state: structuredClone(state), measured, running, deals };
+}
+function restore(s) {
+  stop();
+  scene = s.scene ? SCENES[s.scene] : null; rule = s.rule; edges = s.edges; start = s.start; plain = { ...s.plain }; deals = s.deals;
+  $("board").classList.toggle("super", !!(scene && scene.lines));
+  setSize(s.W, s.H);
+  rows = s.rows.slice(); history = s.history.slice(); total = s.total; masks = s.masks.slice(); seed = s.seed; state = s.state; measured = s.measured;
+  $("rule").value = rule; drawCases(); syncButtons(); show(); dirty = true;
+  if (s.running) run();
+}
+function enter(name) {
+  if (name === current || !PASSAGES[name]) return;
+  if (current && dirty) saved[current] = snapshot();
+  current = name;
+  const P = PASSAGES[name];
+  applyTools(P.tools);
+  for (const sec of document.querySelectorAll(".story section")) sec.classList.toggle("on", sec.dataset.scene === name);
+  if (saved[name]) { restore(saved[name]); return; }
+  if (!P.example && P.rule === undefined) return;       // a passage that keeps the board as it is
+  stop(); dirty = false; measured = null;
+  plain = { W: P.W || 240, H: P.H || 240, pace: P.pace || 1 };
+  if (P.example) setScene(P.example);
+  else { rule = P.rule; start = P.start; masks = []; setScene(null); }
+  if (!(scene && scene.auto)) run();
+}
+
+// -- the controls ------------------------------------------------------------------------------------
+$("run").addEventListener("click", () => { dirty = true; run(); });
+$("step").addEventListener("click", () => { dirty = true; stop(); advance(); show(); });
+$("reset").addEventListener("click", () => { dirty = true; measured = null; reset(); });
+$("measure").addEventListener("click", () => { dirty = true; stop(); measure(); });
+$("rule").addEventListener("change", e => setRule(+e.target.value));
+function plainStart(s) { stop(); scene = null; edges = null; masks = []; start = s; measured = null; $("board").classList.remove("super"); fitCanvas(); drawSteps(); updateRead(); syncButtons(); reset(); run(); }
+document.querySelectorAll("#g-start button").forEach(b => b.addEventListener("click", () => { dirty = true; plainStart(b.dataset.start); }));
+document.querySelectorAll("#kinds button").forEach(b => b.addEventListener("click", () => { setRule(+b.dataset.rule); plainStart("random"); }));
+const toAdder = () => { dirty = true; if (scene === SCENES.adder) reset(); else setScene("adder"); };
+for (const id of ["a", "b"]) $(id).addEventListener("change", toAdder);
+$("add").addEventListener("click", toAdder);
+const cellAt = e => { const rect = cv.getBoundingClientRect(); return [Math.floor((e.clientX - rect.left) / rect.width * W), Math.floor((e.clientY - rect.top) / rect.height * H)]; };
+cv.addEventListener("click", e => {
+  if (rows.length !== 1 || (scene && scene.tick)) return;   // only the start row is drawn by hand, and a supervised row is seeded from its numbers
+  const [x, y] = cellAt(e);
+  if (y > 2) return;
+  dirty = true;
+  rows[0][x] ^= 1; history[0] = rows[0]; if (masks.length) masks[0] = etherMask(rows[0]); draw(); updateRead();
+});
+// hovering reads a cell where the example can say what it is; on a touch screen a tap reads it, until the next tap
+function readCell(e) {
+  if (!scene || !scene.hover) return;
+  const [x, y] = cellAt(e), s = scene.hover(x, y);
+  $("read").textContent = s === null ? scene.read() : s;
+}
+cv.addEventListener("pointermove", readCell);
+cv.addEventListener("pointerdown", e => { if (e.pointerType !== "mouse") readCell(e); });
+cv.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") updateRead(); });
+// the keys: space runs, S steps, M measures, C clears, R a random row; A and V go to the supervisor's examples
+const go = name => { const sec = document.querySelector(`.story section[data-scene="${name}"]`); if (sec) sec.scrollIntoView({ behavior: "smooth", block: "center" }); };
+document.addEventListener("keydown", ev => {
+  if (ev.target.tagName === "INPUT") return;
+  const k = ev.key;
+  if (k === " ") { ev.preventDefault(); $("run").click(); }
+  else if (k === "s" || k === "S") $("step").click();
+  else if (k === "m" || k === "M") $("measure").click();
+  else if (k === "c" || k === "C") $("reset").click();
+  else if (k === "r" || k === "R") { dirty = true; plainStart("random"); }
+  else if (k === "a" || k === "A") go("adder");
+  else if (k === "v" || k === "V") go("vote");
+});
+
+// -- the story drives the board ------------------------------------------------------------------------
+drawCases();
+const io = new IntersectionObserver(entries => { for (const e of entries) if (e.isIntersecting) enter(e.target.dataset.scene); }, { rootMargin: "-45% 0px -45% 0px" });
+for (const sec of document.querySelectorAll(".story section")) io.observe(sec);
+window.addEventListener("resize", () => { fitCanvas(); drawSteps(); });
+// a hash may open the page at a passage, #scene=signals, with &still to hold it there; the older states still work:
+// #scene=adder&a=7&b=5&steps=9, #rule=110&start=one&steps=240&measure&pause&grain=0
+(function fromHash() {
+  const q = new URLSearchParams(location.hash.slice(1));
+  if (q.has("a")) $("a").value = q.get("a");
+  if (q.has("b")) $("b").value = q.get("b");
+  const first = document.querySelector(".story section").dataset.scene;
+  let name = q.get("scene");
+  if (!PASSAGES[name]) name = q.has("rule") || q.has("start") ? (q.get("start") === "one" ? "cases" : "kinds") : first;
+  if (q.has("still")) io.disconnect();
+  else if (name !== first) { const sec = document.querySelector(`.story section[data-scene="${name}"]`); if (sec) sec.scrollIntoView({ behavior: "instant", block: "center" }); }
+  enter(name);
+  if (q.has("rule")) setRule(+q.get("rule"));
+  if (q.has("start")) { stop(); start = q.get("start") === "one" ? "one" : "random"; syncButtons(); reset(); run(); }
+  else if (q.has("rule")) { stop(); reset(); run(); }
+  if (q.has("steps")) { stop(); for (let i = 0; i < Math.min(2000, +q.get("steps") | 0); i++) advance(); show(); if (!q.has("pause")) run(); }
+  if (q.has("pause")) stop();
+  if (q.has("measure")) { stop(); measure(); }
+  if (q.get("grain") === "0") document.body.classList.remove("grain");
+})();
+// the page links back to the deck, and to the slide it was opened from when the hash says
+(function backToTalk() { const f = new URLSearchParams(location.hash.slice(1)).get("from"), a = document.getElementById("to-talk"); if (f && a) a.href = "talk.html#" + f; })();
+</script>
+<script src="noselect.js?v=e60814a2"></script>
+</body>
+</html>

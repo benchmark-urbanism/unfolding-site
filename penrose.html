@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Penrose</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="top.css?v=f32dc556">
+<link rel="stylesheet" href="scroll.css?v=da4efe7e">
+<link rel="stylesheet" href="tiles-plate.css?v=a720b670">
+</head>
+<body class="grain" data-system="penrose">
+<header class="top">
+  <a class="mark" href="#top">Penrose</a>
+  <nav class="nav"><a class="home" href="overview.html#scene=penrose">Overview</a><a href="truchet.html">Truchet</a><a href="girih.html">Girih</a><a href="penrose.html" class="here">Penrose</a><a href="automata.html">Automata</a><a href="solari.html">Solari</a><a href="jacquard.html">Jacquard</a><a href="index.html">Passacaglia</a><a href="fugue.html">Fugue</a></nav>
+</header>
+
+<main class="scrolly">
+  <div class="story">
+    <section data-scene="rhombs" id="top">
+      <h1>Penrose</h1>
+      <p class="lead">Two rhombs, and a rule for how they meet, tile the plane without repeating.</p>
+      <p>A thick rhomb with corners of 72° and 108°, and a thin one with 36° and 144°. Their edges are of equal length. Each edge carries a mark, one arrow or two, with a direction. Roger Penrose found them in 1974.</p>
+      <p class="cue">Scroll to read. Click the board at any point.</p>
+    </section>
+    <section data-scene="rule">
+      <h2>The rule</h2>
+      <p>Two tiles may share an edge only if the marks on it agree, with the same number of arrows pointing the same way.</p>
+      <p class="small">Pick a rhomb beneath the board. Its ghost follows the pointer, snaps to the nearest open edge, and turns or flips so that its marks agree. Click to place it. If the rhomb does not fit, a grey ghost offers the other. A placement that breaks the rule, or strands an edge no tile can then meet, shows red and is refused.</p>
+      <p class="small">Grow lays tiles by the marks, and it can reach a dead end. Symmetry turns about a fivefold corner and repeats each placement five times.</p>
+      <p class="small">On a touch screen, tap once to see the ghost, and tap the ghost to place it. Remove works the same way.</p>
+    </section>
+    <section data-scene="plane">
+      <h2>Over a larger space</h2>
+      <p>Thirteen hundred tiles from the two rhombs, laid by the one rule. The tiling is not periodic. No piece of it, however large, can be shifted to make the rest, as one cell of a grid can. Each edge obeys the rule, and each finite patch occurs again elsewhere in the full tiling. There are infinitely many such tilings from the same two tiles, and no finite window can tell one from another.</p>
+    </section>
+    <section data-scene="deflate">
+      <h2>The same at every scale</h2>
+      <p>Each tile divides into smaller tiles by one fixed rule, so the pattern looks alike at each scale. The Topkapi scroll draws girih tiles divided in a similar way. A large floor can be laid this way, with the large tiles first and then divided.</p>
+      <p class="small">Deflate divides each tile by the rule, and it cannot reach a dead end. Inflate brings the larger tiles back. Hover over either, or press and hold it, to see what it will do.</p>
+    </section>
+    <section data-scene="metal">
+      <h2>In metal and in building</h2>
+      <p>In 1982 Dan Shechtman found an alloy whose diffraction pattern had tenfold symmetry, which the textbooks held impossible for a crystal. The Penrose tiling, extended to three dimensions, helped explain it, and he won the Nobel Prize in Chemistry in 2011. The tiling has been built as well. Storey Hall at RMIT in Melbourne, by ARM in 1995, carries it inside and on its bronze facade, and it paves Keskuskatu in Helsinki, the entrance to the Mathematical Institute in Oxford, and a courtyard at Miami University.</p>
+    </section>
+    <section data-scene="free">
+      <h2>Sources</h2>
+      <ol class="refs">
+        <li>Roger Penrose, The role of aesthetics in pure and applied mathematical research, 1974.</li>
+        <li>Martin Gardner, Mathematical Games, Scientific American, January 1977.</li>
+        <li>Branko Grünbaum and G. C. Shephard, Tilings and Patterns, 1987.</li>
+        <li><a href="https://physicsworld.com/a/quasicrystal-discovery-bags-2011-chemistry-nobel/">Physics World</a> · <a href="https://www.iucr.org/news/newsletter/volume-28/number-4/penrosemackayshechtman-and-bringing-down-the-dogma-about-fivefold-symmetry">IUCr</a><span>Shechtman's quasicrystal and the Nobel prize.</span></li>
+        <li><a href="https://armarchitecture.com.au/projects/rmit-storey-hall-and-green-brain/">Storey Hall</a> · <a href="https://www.atlasobscura.com/places/penrose-paving-at-the-mathematical-institute">Oxford</a> · <a href="https://en.wikipedia.org/wiki/Penrose_tiling#Art_and_architecture">more, on Wikipedia</a><span>Penrose tilings built.</span></li>
+        <li>Wikipedia: <a href="https://en.wikipedia.org/wiki/Penrose_tiling">Penrose tiling</a>, <a href="https://en.wikipedia.org/wiki/Aperiodic_tiling">Aperiodic tiling</a>.</li>
+      </ol>
+      <p class="back"><a href="overview.html#scene=penrose">Back to the overview</a></p>
+    </section>
+  </div>
+
+  <div class="hold">
+    <div class="board"><svg id="sv" xmlns="http://www.w3.org/2000/svg" viewBox="-400 -300 800 600" aria-label="the assembly of tiles and their lines"></svg></div>
+    <div class="readout" id="readout"></div>
+    <div class="tools" id="tools">
+      <div class="grp" id="kit"></div>
+      <div class="grp" id="g-grow"><button id="grow" title="lays twelve tiles by the rule">Grow 12</button><button class="ring" id="sym" title="repeats each move about the centre">Symmetry</button></div>
+      <div class="grp" id="g-defl"><button id="deflate">Deflate</button><button id="inflate">Inflate</button></div>
+      <div class="grp" id="g-view"><button class="ring on" id="b-outlines" title="show or hide the tiles">Tiles</button><button class="ring on" id="b-straps" title="show or hide the marks">Marks</button></div>
+      <div class="grp" id="g-acts"><button id="z-fit" title="show the whole assembly">Fit</button><button id="clear" title="takes every tile off the board">Clear</button></div>
+    </div>
+  </div>
+</main>
+<script src="scroll.js?v=a047a0cb"></script>
+<script src="tiles.js?v=6f975947"></script>
+<script src="noselect.js?v=e60814a2"></script>
+</body>
+</html>

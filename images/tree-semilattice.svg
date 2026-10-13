@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" font-family="'Cormorant Garamond', Garamond, 'Times New Roman', serif">
+  <!-- The tree and the semilattice, redrawn after Christopher Alexander, A City Is Not a Tree, 1965 (his diagrams D and B).
+       Six elements along the foot. Each set is a dot, placed higher the larger it is, with a line to each set just inside it.
+       The tree: 12, 345, 3456, and the whole, none overlapping. The semilattice: 123, 34, 45, 234, 345, 12345, 3456, and the
+       whole, which overlap, so that 34 belongs to both 234 and 345. -->
+  <rect width="1200" height="600" fill="#f9f4e5"/>
+  <g fill="none" stroke="#6f6a60" stroke-width="2" stroke-linecap="round">
+    <path d="M300 110L140 330"/>
+    <path d="M300 110L420 200"/>
+    <path d="M420 200L340 300"/>
+    <path d="M420 200L500 470"/>
+    <path d="M340 300L260 470"/>
+    <path d="M340 300L340 470"/>
+    <path d="M340 300L420 470"/>
+    <path d="M140 330L100 470"/>
+    <path d="M140 330L180 470"/>
+    <path d="M900 90L830 165"/>
+    <path d="M900 90L1030 200"/>
+    <path d="M830 165L750 285"/>
+    <path d="M830 165L850 275"/>
+    <path d="M830 165L960 285"/>
+    <path d="M1030 200L960 285"/>
+    <path d="M1030 200L1100 470"/>
+    <path d="M750 285L700 470"/>
+    <path d="M750 285L780 470"/>
+    <path d="M750 285L860 470"/>
+    <path d="M850 275L780 470"/>
+    <path d="M850 275L900 375"/>
+    <path d="M960 285L900 375"/>
+    <path d="M960 285L990 375"/>
+    <path d="M900 375L860 470"/>
+    <path d="M900 375L940 470"/>
+    <path d="M990 375L940 470"/>
+    <path d="M990 375L1020 470"/>
+  </g>
+  <g fill="#1c1a17">
+    <circle cx="300" cy="110" r="8"/>
+    <circle cx="420" cy="200" r="8"/>
+    <circle cx="340" cy="300" r="8"/>
+    <circle cx="140" cy="330" r="8"/>
+    <circle cx="100" cy="470" r="8"/>
+    <circle cx="180" cy="470" r="8"/>
+    <circle cx="260" cy="470" r="8"/>
+    <circle cx="340" cy="470" r="8"/>
+    <circle cx="420" cy="470" r="8"/>
+    <circle cx="500" cy="470" r="8"/>
+    <circle cx="900" cy="90" r="8"/>
+    <circle cx="830" cy="165" r="8"/>
+    <circle cx="1030" cy="200" r="8"/>
+    <circle cx="750" cy="285" r="8"/>
+    <circle cx="850" cy="275" r="8"/>
+    <circle cx="960" cy="285" r="8"/>
+    <circle cx="900" cy="375" r="8"/>
+    <circle cx="990" cy="375" r="8"/>
+    <circle cx="700" cy="470" r="8"/>
+    <circle cx="780" cy="470" r="8"/>
+    <circle cx="860" cy="470" r="8"/>
+    <circle cx="940" cy="470" r="8"/>
+    <circle cx="1020" cy="470" r="8"/>
+    <circle cx="1100" cy="470" r="8"/>
+  </g>
+  <g font-size="22" fill="#1c1a17" text-anchor="middle">
+    <text x="284" y="117" text-anchor="end">123456</text>
+    <text x="436" y="207" text-anchor="start">3456</text>
+    <text x="356" y="307" text-anchor="start">345</text>
+    <text x="124" y="337" text-anchor="end">12</text>
+    <text x="100" y="506">1</text>
+    <text x="180" y="506">2</text>
+    <text x="260" y="506">3</text>
+    <text x="340" y="506">4</text>
+    <text x="420" y="506">5</text>
+    <text x="500" y="506">6</text>
+    <text x="884" y="97" text-anchor="end">123456</text>
+    <text x="814" y="172" text-anchor="end">12345</text>
+    <text x="1046" y="207" text-anchor="start">3456</text>
+    <text x="734" y="292" text-anchor="end">123</text>
+    <text x="834" y="282" text-anchor="end">234</text>
+    <text x="976" y="292" text-anchor="start">345</text>
+    <text x="884" y="382" text-anchor="end">34</text>
+    <text x="1006" y="382" text-anchor="start">45</text>
+    <text x="700" y="506">1</text>
+    <text x="780" y="506">2</text>
+    <text x="860" y="506">3</text>
+    <text x="940" y="506">4</text>
+    <text x="1020" y="506">5</text>
+    <text x="1100" y="506">6</text>
+  </g>
+  <g font-family="Cinzel, 'Trajan Pro', serif" font-size="20" letter-spacing="4" fill="#1c1a17" text-anchor="middle">
+    <text x="300" y="565">TREE</text>
+    <text x="900" y="565">SEMILATTICE</text>
+  </g>
+  <path d="M600 70V520" stroke="#cfc7ad" stroke-width="1"/>
+</svg>

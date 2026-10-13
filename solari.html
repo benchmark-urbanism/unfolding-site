@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solari</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap">
+<link rel="stylesheet" href="top.css?v=f32dc556">
+<link rel="stylesheet" href="scroll.css?v=da4efe7e">
+<style>
+  /* a drum of flaps: two static halves and two leaves that fold, as on a split-flap board */
+  .boardbox { display: flex; flex-direction: column; align-items: center; gap: var(--gap-y, 6px); padding: 22px 26px; border-radius: 10px; background: #0d0c0b; box-shadow: 0 10px 40px rgba(28, 26, 23, .22); }
+  .boardbox.bare { background: none; box-shadow: none; padding: 0; }
+  .brow { display: flex; gap: var(--gap-x, 3px); }
+  .flap { position: relative; width: var(--w); height: var(--h); perspective: calc(var(--h) * 4); cursor: default; font-family: "IBM Plex Sans Condensed", "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif; font-weight: 600; }
+  .flap.tap { cursor: pointer; }
+  .flap .half, .flap .leaf { position: absolute; left: 0; right: 0; height: 50%; overflow: hidden; background: #2b2825; color: #f1e8d0; }
+  /* the halves are ft and fb: "top" is the page header's class in scroll.css */
+  .flap .ft { top: 0; transform-origin: 50% 100%; border-radius: var(--r) var(--r) 0 0; background: linear-gradient(#3b3631, #302c28); }
+  .flap .fb { bottom: 0; transform-origin: 50% 0; border-radius: 0 0 var(--r) var(--r); background: linear-gradient(#2a2622, #34302b); }
+  .flap span { position: absolute; left: 0; right: 0; height: 200%; display: flex; align-items: center; justify-content: center; font-size: var(--fs); line-height: 1; }
+  .flap .ft span { top: 0; }
+  .flap .fb span { bottom: 0; }
+  .flap .leaf { visibility: hidden; backface-visibility: hidden; }
+  .flap::after { content: ""; position: absolute; left: 0; right: 0; top: calc(50% - .5px); height: 1px; background: rgba(0, 0, 0, .55); z-index: 3; }
+  .story .word { display: flex; gap: 10px; align-items: baseline; margin: 6px 0 12px; }
+  .story .word input { font: inherit; font-size: 20px; letter-spacing: .08em; text-transform: uppercase; width: 12ch; border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--ink); padding: 0 0 2px; }
+  .story .word input:focus { outline: none; border-bottom-color: var(--ink); }
+</style>
+</head>
+<body class="grain">
+<header class="top">
+  <a class="mark" href="#top">Solari</a>
+  <nav class="nav"><a class="home" href="overview.html#scene=solari">Overview</a><a href="truchet.html">Truchet</a><a href="girih.html">Girih</a><a href="penrose.html">Penrose</a><a href="automata.html">Automata</a><a href="solari.html" class="here">Solari</a><a href="jacquard.html">Jacquard</a><a href="index.html">Passacaglia</a><a href="fugue.html">Fugue</a></nav>
+</header>
+
+<main class="scrolly">
+  <div class="story">
+    <section data-scene="one" id="top">
+      <h1>Solari</h1>
+      <p class="lead">One drum of flaps, printed with the alphabet and the digits. It can only turn forward. Tap it.</p>
+      <p class="cue">Scroll to read. Tap the board at any point.</p>
+    </section>
+    <section data-scene="word">
+      <h2>A word</h2>
+      <p>A row of drums spells a word. Each drum turns forward until it reaches its letter. A letter far round the drum takes longer, so the drums settle at different times.</p>
+      <div class="word"><input id="wordin" maxlength="10" value="UDINE" aria-label="a word of up to ten letters"></div>
+      <div class="picks" id="words"><button>Udine</button><button>Arrivals</button><button>Delayed</button><button>Zurich</button></div>
+      <p class="small">The count at the top right is the number of flaps that have fallen.</p>
+    </section>
+    <section data-scene="board">
+      <h2>The board</h2>
+      <p>A departures board is rows of these drums, one for each character. When the departures change, the drums turn together. The noise makes people in the waiting room look up.</p>
+      <div class="picks"><button id="nextdep">Next departures</button></div>
+    </section>
+    <section data-scene="valle">
+      <h2>Designed by an architect</h2>
+      <p>Solari di Udine made flip clocks and boards in the north-east of Italy. The architect Gino Valle designed its Cifra 5 clock (Compasso d'Oro, 1956) and its boards for stations and airports (Compasso d'Oro, 1962).</p>
+      <p>His Cifra 3 clock of 1966, with lettering by Massimo Vignelli, is in the collection of the Museum of Modern Art.</p>
+    </section>
+    <section data-scene="told">
+      <h2>Told</h2>
+      <p>Each drum shows the character the board's controller sends it. A drum is as simple as Truchet's tile, and the controller decides what the board displays.</p>
+    </section>
+    <section data-scene="free">
+      <h2>Sources</h2>
+      <ol class="refs">
+        <li>Fondazione Pirelli, <a href="https://www.fondazionepirelli.org/en/activities/exhibitions/gino-valle-clocks-and-the-fusion-of-technology-and-design/">Gino Valle, clocks and the fusion of technology and design</a>.<span>The Cifra 5 (Compasso d'Oro, 1956), the boards for stations and airports (Compasso d'Oro, 1962), the Cifra 3 (1966).</span></li>
+        <li><a href="https://en.wikipedia.org/wiki/Solari_di_Udine">Solari di Udine</a>, <a href="https://en.wikipedia.org/wiki/Cifra_3">Cifra 3</a>, and <a href="https://en.wikipedia.org/wiki/Split-flap_display">Split-flap display</a>, Wikipedia.</li>
+      </ol>
+      <p class="back"><a href="overview.html#scene=solari">Back to the overview</a></p>
+    </section>
+  </div>
+
+  <div class="hold">
+    <div class="board" id="board"></div>
+    <div class="readout" id="readout"></div>
+    <div class="tools" id="tools">
+      <div class="grp" id="g-sound"><button class="ring on" id="sound" aria-pressed="true">Sound</button></div>
+    </div>
+  </div>
+</main>
+<script src="scroll.js?v=a047a0cb"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const FACES = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:.-";      // forty flaps, in the order they fall
+let flipsFallen = 0, needRead = false;
+
+// -- sound: a short burst of filtered noise for each flap that falls, many falls in one frame as one louder click --------
+let actx = null, noise = null, soundOn = true, pending = 0;
+function ensureAudio() {
+  if (!actx) {
+    try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; return; }
+    const n = Math.floor(actx.sampleRate * .03); noise = actx.createBuffer(1, n, actx.sampleRate);
+    const d = noise.getChannelData(0); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3);
+  }
+  if (actx.state === "suspended") actx.resume();
+}
+function clickSound() { pending++; }
+(function tick() {
+  if (pending && soundOn && actx && actx.state === "running") {
+    const src = actx.createBufferSource(), hp = actx.createBiquadFilter(), g = actx.createGain();
+    src.buffer = noise; src.playbackRate.value = .8 + Math.random() * .5;
+    hp.type = "highpass"; hp.frequency.value = 1400 + Math.random() * 900;
+    g.gain.value = Math.min(.9, .16 * Math.sqrt(pending));
+    src.connect(hp); hp.connect(g); g.connect(actx.destination); src.start();
+  }
+  pending = 0;
+  if (needRead) { needRead = false; readout(); }
+  requestAnimationFrame(tick);
+})();
+$("sound").addEventListener("click", () => { soundOn = !soundOn; $("sound").classList.toggle("on", soundOn); $("sound").setAttribute("aria-pressed", soundOn); ensureAudio(); });
+document.addEventListener("pointerdown", ensureAudio, { once: false });
+document.addEventListener("pointerup", ensureAudio);          // a touch screen lets sound start when the finger lifts, not when it lands
+
+// -- a drum: turns forward one flap at a time until it shows its target ----------------------------------------------
+class Drum {
+  constructor(parent, faces) {
+    this.faces = faces; this.i = 0; this.target = 0; this.busy = false;
+    const f = this.el = document.createElement("div"); f.className = "flap";
+    const part = cls => { const d = document.createElement("div"); d.className = cls; const s = document.createElement("span"); d.appendChild(s); f.appendChild(d); return d; };
+    this.sTop = part("half ft"); this.sBot = part("half fb"); this.lTop = part("leaf ft"); this.lBot = part("leaf fb");
+    parent.appendChild(f); this.paint(this.sTop, 0); this.paint(this.sBot, 0);
+  }
+  paint(half, k) { half.firstChild.textContent = this.faces[k]; }
+  to(k) { this.target = ((k % this.faces.length) + this.faces.length) % this.faces.length; if (!this.busy) this.step(); }
+  // one flap falls: the top leaf folds down over the next face, then the next face's lower leaf unfolds. The two halves are
+  // timed by the clock, so the drum keeps going wherever the animation is slowed or skipped
+  step() {
+    if (this.i === this.target) { this.busy = false; return; }
+    this.busy = true;
+    const cur = this.i, nxt = (this.i + 1) % this.faces.length, D = 42;
+    this.paint(this.sTop, nxt); this.paint(this.lTop, cur); this.paint(this.lBot, nxt); this.paint(this.sBot, cur);
+    this.lTop.style.visibility = "visible";
+    this.lTop.animate([{ transform: "rotateX(0deg)" }, { transform: "rotateX(-90deg)" }], { duration: D, easing: "ease-in" });
+    setTimeout(() => {
+      this.lTop.style.visibility = "hidden"; this.lBot.style.visibility = "visible";
+      this.lBot.animate([{ transform: "rotateX(90deg)" }, { transform: "rotateX(0deg)" }], { duration: D, easing: "ease-out" });
+      setTimeout(() => {
+        this.paint(this.sBot, nxt); this.lBot.style.visibility = "hidden";
+        this.i = nxt; flipsFallen++; clickSound(); needRead = true;
+        this.step();
+      }, D);
+    }, D);
+  }
+  set(ch) { this.to(Math.max(0, this.faces.indexOf(ch))); }
+}
+
+// -- the boards: one drum, a word, and a departures board ---------------------------------------------------------------
+const LAYOUTS = {
+  one:   { rows: 1, cols: 1,  w: 150, h: 210, fs: 150, r: 10, gx: 0, gy: 0, bare: true },
+  word:  { rows: 1, cols: 10, w: 52,  h: 76,  fs: 50,  r: 5,  gx: 5, gy: 0 },
+  board: { rows: 5, cols: 18, w: 32,  h: 46,  fs: 30,  r: 3,  gx: 4, gy: 9 },
+};
+let layout = null, drums = [];
+function build(name) {
+  const L = LAYOUTS[name], box = $("board");
+  layout = name; box.innerHTML = ""; drums = [];
+  const wrap = document.createElement("div"); wrap.className = "boardbox" + (L.bare ? " bare" : "");
+  wrap.style.setProperty("--w", L.w + "px"); wrap.style.setProperty("--h", L.h + "px"); wrap.style.setProperty("--fs", L.fs + "px");
+  wrap.style.setProperty("--r", L.r + "px"); wrap.style.setProperty("--gap-x", L.gx + "px"); wrap.style.setProperty("--gap-y", L.gy + "px");
+  for (let r = 0; r < L.rows; r++) {
+    const row = document.createElement("div"); row.className = "brow"; wrap.appendChild(row);
+    for (let c = 0; c < L.cols; c++) drums.push(new Drum(row, FACES));
+  }
+  box.appendChild(wrap);
+  if (name === "one") { const d = drums[0]; d.el.classList.add("tap"); d.el.addEventListener("click", () => { ensureAudio(); d.to(d.target + 1); }); }
+}
+function show(lines) {
+  const L = LAYOUTS[layout];
+  for (let r = 0; r < L.rows; r++) {
+    const text = (lines[r] || "").toUpperCase().padEnd(L.cols).slice(0, L.cols);
+    for (let c = 0; c < L.cols; c++) drums[r * L.cols + c].set(FACES.includes(text[c]) ? text[c] : " ");
+  }
+}
+function centre(word, n) { const w = word.toUpperCase().slice(0, n), pad = Math.floor((n - w.length) / 2); return " ".repeat(pad) + w; }
+
+// the departures: invented, a few sets to turn between
+const DEPARTURES = [
+  ["08:05 LISBON    12", "08:20 TRIESTE   04", "08:35 VENEZIA   07", "08:50 MILANO    02", "09:05 VIENNA    11"],
+  ["09:15 LJUBLJANA 03", "09:30 ROMA      09", "09:45 BOLOGNA   06", "10:00 PARIS     14", "10:15 MUNICH    01"],
+  ["10:30 ZURICH    05", "10:45 GRAZ      08", "11:00 FIRENZE   10", "11:15 NAPOLI    13", "11:30 UDINE     02"],
+];
+let dep = 0;
+const VALLE = ["SOLARI DI UDINE", "GINO VALLE", "CIFRA 5     1956", "BOARDS      1962", "CIFRA 3     1966"];
+
+// -- scenes ---------------------------------------------------------------------------------------------------
+const SCENES = {
+  one:   () => { if (layout !== "one") build("one"); drums[0].to(1); },
+  word:  () => { if (layout !== "word") build("word"); show([centre($("wordin").value || "UDINE", 10)]); },
+  board: () => { if (layout !== "board") build("board"); show(DEPARTURES[dep]); },
+  valle: () => { if (layout !== "board") build("board"); show(VALLE); },
+  told:  () => { if (layout !== "board") build("board"); dep = (dep + 1) % DEPARTURES.length; show(DEPARTURES[dep]); },
+  free:  () => {},
+};
+// the controls each passage needs; the sound goes with every passage where the flaps turn
+const TOOLS = { one: ["g-sound"], word: ["g-sound"], board: ["g-sound"], valle: ["g-sound"], told: ["g-sound"], free: [] };
+let scene = null;
+function enter(name) {
+  if (name === scene) return;
+  scene = name;
+  SCENES[name]();
+  const want = new Set(TOOLS[name] || []);
+  $("g-sound").hidden = !want.has("g-sound");
+  $("tools").hidden = want.size === 0;
+  readout();
+  for (const sec of document.querySelectorAll(".story section")) sec.classList.toggle("on", sec.dataset.scene === name);
+}
+function readout() {
+  const L = layout ? LAYOUTS[layout] : null; if (!L) return;
+  const n = L.rows * L.cols;
+  const fallen = `<b>${flipsFallen}</b> flap${flipsFallen === 1 ? "" : "s"} fallen`;
+  $("readout").innerHTML = `<b>${n}</b> drum${n === 1 ? "" : "s"} · <b>${FACES.length}</b> flaps each<br>${fallen}`;
+}
+
+// the controls in the story and under the board
+$("wordin").addEventListener("input", () => { ensureAudio(); if (layout === "word") show([centre($("wordin").value, 10)]); });
+for (const b of $("words").children) b.addEventListener("click", () => { ensureAudio(); $("wordin").value = b.textContent.toUpperCase(); if (layout === "word") show([centre(b.textContent, 10)]); });
+$("nextdep").addEventListener("click", () => { ensureAudio(); dep = (dep + 1) % DEPARTURES.length; if (layout === "board") show(DEPARTURES[dep]); });
+
+const io = new IntersectionObserver(entries => { for (const e of entries) if (e.isIntersecting) enter(e.target.dataset.scene); }, { rootMargin: "-45% 0px -45% 0px" });
+for (const sec of document.querySelectorAll(".story section")) io.observe(sec);
+
+// a hash may open the page at a passage, #scene=board; with still, without scrolling to it (for checking the board)
+const want = (location.hash.match(/scene=(\w+)/) || [])[1];
+const start = SCENES[want] ? want : "one";
+if (/still/.test(location.hash)) io.disconnect();
+else if (start !== "one") { const sec = document.querySelector(`.story section[data-scene="${start}"]`); if (sec) sec.scrollIntoView({ behavior: "instant", block: "center" }); }
+enter(start);
+</script>
+<script src="noselect.js?v=e60814a2"></script>
+</body>
+</html>

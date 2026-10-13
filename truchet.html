@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Truchet</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="top.css?v=f32dc556">
+<link rel="stylesheet" href="scroll.css?v=da4efe7e">
+<style>
+  /* the tile turns about its own middle, and its colours ease */
+  .t { transform-box: fill-box; transform-origin: center; transition: transform .38s cubic-bezier(.3, .7, .3, 1); }
+  .t *, .bg { transition: fill .38s ease, stroke .38s ease, opacity .38s ease; }
+  .tile { cursor: pointer; }
+  @media (hover: hover) { .tile:hover .hit { stroke: var(--warm); stroke-width: 2px; vector-effect: non-scaling-stroke; } }
+  .edges line { stroke: #cfc7ad; stroke-width: 1px; vector-effect: non-scaling-stroke; opacity: .9; }
+  .blocks rect { fill: none; stroke: var(--warm); stroke-width: .035; }
+  .picks button.motif { border: 0; padding: 0; line-height: 0; }
+  .picks button.motif svg { width: 44px; height: 44px; display: block; outline: 1px solid var(--line); outline-offset: 3px; }
+  .picks button.motif.on svg { outline-color: var(--ink); }
+  @media (hover: hover) { .picks button.motif:hover svg { outline-color: var(--ink); } }
+  @media (prefers-reduced-motion: reduce) { .t, .t *, .bg { transition: none; } }
+</style>
+</head>
+<body class="grain">
+<header class="top">
+  <a class="mark" href="#top">Truchet</a>
+  <nav class="nav"><a class="home" href="overview.html#scene=truchet">Overview</a><a href="truchet.html" class="here">Truchet</a><a href="girih.html">Girih</a><a href="penrose.html">Penrose</a><a href="automata.html">Automata</a><a href="solari.html">Solari</a><a href="jacquard.html">Jacquard</a><a href="index.html">Passacaglia</a><a href="fugue.html">Fugue</a></nav>
+</header>
+
+<main class="scrolly">
+  <div class="story">
+    <section data-scene="one" id="top">
+      <h1>Truchet</h1>
+      <p class="lead">One tile: a square cut on its diagonal, one half dark. Tap it, and it turns.</p>
+      <p class="cue">Scroll to read. Tap the board at any point.</p>
+    </section>
+    <section data-scene="four">
+      <h2>Four turns</h2>
+      <p>The tile has four orientations, one for each corner the dark half can hold.</p>
+      <p>In 1704 Sébastien Truchet, a priest and engineer, laid them side by side and asked how many patterns they make.</p>
+    </section>
+    <section data-scene="field">
+      <h2>Any arrangement</h2>
+      <p>A board of 144 tiles, each in one of four orientations, has about 5 × 10<sup>86</sup> arrangements, more than there are atoms in the observable universe.</p>
+      <p>Tap a tile to turn it. Hold it, or tap with shift, to swap its colours.</p>
+    </section>
+    <section data-scene="motifs">
+      <h2>Blocks of four</h2>
+      <p>Truchet catalogued his patterns by the small block that repeats: four tiles, each turned, and the four repeated across the board.</p>
+      <div class="picks" id="motifs"></div>
+      <p>Choose a block. Then turn one tile, and each copy of it turns with it, so four choices set the board.</p>
+    </section>
+    <section data-scene="arcs">
+      <h2>Smith's arcs</h2>
+      <p>In 1987 Cyril Stanley Smith published Truchet's memoir in Pauline Boucher's translation, with an essay of his own. Smith was a metallurgist who spent his working life on the structure of metals. Much of a metal's behaviour depends on how neighbouring crystals meet at their boundaries. He read the memoir as an early study of the same question, how a tile that meets its neighbours by a simple rule gives rise to a larger design.</p>
+      <p>He also drew a second tile: two quarter-circles, each joining the middles of two neighbouring edges. It has two orientations, and each arc meets an arc on the next tile.</p>
+    </section>
+    <section data-scene="curves">
+      <h2>Curves across the board</h2>
+      <p>The arcs join into curves that run across the board. Some close into loops, some run to the edge. Each curve is coloured here by its length, and the loops are warm.</p>
+      <p>Each curve is made by the choices of many tiles together. Turn one tile, and a curve splits or two join.</p>
+    </section>
+    <section data-scene="scale">
+      <h2>The next scale</h2>
+      <p>Take the tiles four at a time. A block of four can be filled in 256 ways. Outlined, the blocks are the pieces of the next scale up.</p>
+      <div class="picks" id="scales"><button data-fill="random">A random board</button><button data-fill="motif">One block repeated</button></div>
+      <p>The count at the top right says how many of the 256 the board uses. A block of four can sit in 121 places on this board, and a random board uses a different block in most of them. One block repeated uses four.</p>
+    </section>
+    <section data-scene="albers" id="albers">
+      <h2>Anni Albers</h2>
+      <p>Anni Albers drew triangles on graph paper from 1959, hundreds of sheets of them, and made prints from them: the Triangulated Intaglios of 1976 and the portfolio Connections of 1983.</p>
+      <p>A grid square cut on its diagonal into a dark and a light triangle is Truchet's tile. Two side by side make a pyramid, the form she returned to.</p>
+      <p>Start from one of these arrangements, of the kinds she drew, and change it.</p>
+      <div class="picks" id="albersPicks"></div>
+      <p>The board takes a palette after her prints: black, a red, and a grey on paper. Tap a tile to turn it, and hold it to change its colour or leave it empty. Make a variant of your own.</p>
+    </section>
+    <section data-scene="free">
+      <h2>Sources</h2>
+      <ol class="refs">
+        <li>Sébastien Truchet, Mémoire sur les combinaisons, Mémoires de l'Académie Royale des Sciences, 1704.<span>The tile, its four orientations, and patterns drawn by the block that repeats.</span></li>
+        <li>Cyril Stanley Smith and Pauline Boucher, The tiling patterns of Sebastien Truchet and the topology of structural hierarchy, Leonardo 20(4), 373–385, 1987. <a href="https://doi.org/10.2307/1578535">doi:10.2307/1578535</a><span>Boucher translates the memoir. Smith reads it as early work on combinations, on symmetry including colour symmetry, and on how structure is built in hierarchies. The quarter-circle tile is his.</span></li>
+        <li>Anni Albers, On Weaving, 1965; <a href="https://www.moma.org/collection/works/139803">Triangulated Intaglio, from Connections, 1983</a>, the Museum of Modern Art.<span>The triangle drawings began in 1959. The intaglios were made at Tyler Graphics in 1976.</span></li>
+        <li><a href="https://en.wikipedia.org/wiki/Truchet_tiles">Truchet tiles</a>, Wikipedia.</li>
+      </ol>
+      <p class="back"><a href="overview.html#scene=truchet">Back to the overview</a></p>
+    </section>
+  </div>
+
+  <div class="hold">
+    <div class="board"><svg id="sv" xmlns="http://www.w3.org/2000/svg" aria-label="the board of tiles"></svg></div>
+    <div class="readout" id="readout"></div>
+    <div class="tools" id="tools">
+      <div class="grp" id="kinds"><button class="ring" data-kind="tri">Triangle</button><button class="ring" data-kind="arc">Arcs</button><button class="ring" data-kind="line">Line</button></div>
+      <div class="grp" id="acts"><button id="shuffle">Shuffle</button><button id="clear">Clear</button></div>
+    </div>
+  </div>
+</main>
+<script src="scroll.js?v=a047a0cb"></script>
+
+<script>
+"use strict";
+const NS = "http://www.w3.org/2000/svg";
+const $ = id => document.getElementById(id);
+const sv = $("sv");
+const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const mod = (a, n) => ((a % n) + n) % n;
+
+// the palettes: the pages' ink on paper, and one after Albers's prints
+const INK = { dark: "#1c1a17", light: "#f9f4e5" };
+const ALBERS = ["#1c1a17", "#b23a26", "#8f8a80", "#f9f4e5"];   // black, a red, a grey, and empty
+
+// the state of the board
+let N = 1, kind = "tri", palette = "ink", curves = false, blocks = false, repeat = 0, scene = "one";
+let userKind = "tri";           // the tile the reader chose; every passage not about a particular tile keeps it
+let T = [];                     // per tile: a, quarter turns so far; p, colours swapped; c, colour in Albers's palette
+let els = [];                   // per tile: its group, its turning group and the shapes to colour
+let gCurves = null, gBlocks = null;
+const saved = {};               // a scene the reader has played with keeps its board
+
+// -- drawing -----------------------------------------------------------------------------
+function build() {
+  while (sv.firstChild) sv.removeChild(sv.firstChild);
+  const pad = N > 2 ? .04 : .02;
+  sv.setAttribute("viewBox", `${-pad * N} ${-pad * N} ${N * (1 + 2 * pad)} ${N * (1 + 2 * pad)}`);
+  const side = Math.min(window.innerHeight - 170, (sv.parentNode.clientWidth || 700));
+  sv.setAttribute("width", side); sv.setAttribute("height", side);
+  // two layers: every tile's ground first, then every tile's shapes, each overlapping its neighbours by a hair so no seam
+  // shows; both clipped to the board, so the overlap never shows at its edge
+  const defs = el("defs", {}, sv), clip = el("clipPath", { id: "board" }, defs);
+  el("rect", { x: 0, y: 0, width: N, height: N }, clip);
+  const gBg = el("g", { "clip-path": "url(#board)" }, sv), gT = el("g", { "clip-path": "url(#board)" }, sv);
+  els = [];
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const i = y * N + x;
+    const bg = el("rect", { class: "bg", x: x - .006, y: y - .006, width: 1.012, height: 1.012, fill: INK.light, stroke: "none" }, gBg);
+    const g = el("g", { class: "tile", transform: `translate(${x} ${y})`, "data-i": i }, gT);
+    el("rect", { class: "hit", width: 1, height: 1, fill: "transparent" }, g);
+    const t = el("g", { class: "t" }, g);
+    el("rect", { x: -.006, y: -.006, width: 1.012, height: 1.012, fill: "none" }, t);   // so the turning group is the whole tile
+    const shapes = [];
+    if (kind === "tri") shapes.push(el("polygon", { points: "-.006,-.006 1.006,-.006 -.006,1.006", fill: INK.dark }, t));
+    else if (kind === "line") shapes.push(el("line", { x1: .06, y1: .06, x2: .94, y2: .94, stroke: INK.dark, "stroke-width": .1, "stroke-linecap": "round" }, t));
+    else {
+      shapes.push(el("path", { d: "M0,0 L.5,0 A.5,.5 0 0,1 0,.5 Z", fill: INK.dark }, t));
+      shapes.push(el("path", { d: "M1,1 L.5,1 A.5,.5 0 0,1 1,.5 Z", fill: INK.dark }, t));
+      shapes.push(el("path", { d: "M.5,0 A.5,.5 0 0,1 0,.5", fill: "none", stroke: INK.dark, "stroke-width": .13, "stroke-linecap": "butt", opacity: 0 }, t));
+      shapes.push(el("path", { d: "M.5,1 A.5,.5 0 0,1 1,.5", fill: "none", stroke: INK.dark, "stroke-width": .13, "stroke-linecap": "butt", opacity: 0 }, t));
+    }
+    els.push({ g, bg, t, shapes });
+  }
+  // a hairline along every tile edge, so the tiles read as tiles
+  const gE = el("g", { class: "edges", "pointer-events": "none" }, sv);
+  for (let i = 0; i <= N; i++) { el("line", { x1: i, y1: 0, x2: i, y2: N }, gE); el("line", { x1: 0, y1: i, x2: N, y2: i }, gE); }
+  gCurves = el("g", {}, sv);
+  gBlocks = el("g", { class: "blocks" }, sv);
+}
+
+function paint() {
+  const loops = kind === "arc" && curves ? components() : null;
+  for (let i = 0; i < T.length; i++) {
+    const s = T[i], e = els[i], x = i % N, y = Math.floor(i / N), r = mod(s.a, 4);
+    e.t.style.transform = `rotate(${s.a * 90}deg)`;
+    if (kind === "tri" || kind === "line") {
+      let dark = INK.dark, light = INK.light;
+      if (palette === "albers") dark = ALBERS[s.c % ALBERS.length];
+      if (s.p) [dark, light] = [light, dark];
+      e.bg.setAttribute("fill", light);
+      if (kind === "tri") e.shapes[0].setAttribute("fill", dark); else e.shapes[0].setAttribute("stroke", dark);
+    } else if (!curves) {
+      // Smith's colouring: the quarter discs dark where x + y + the tile's turn is odd, so colours meet across every edge
+      const d = (x + y + (r % 2) + s.p) % 2 === 1;
+      const disc = d ? INK.dark : INK.light, band = d ? INK.light : INK.dark;
+      e.bg.setAttribute("fill", band);
+      e.shapes[0].setAttribute("fill", disc); e.shapes[1].setAttribute("fill", disc);
+      e.shapes[2].setAttribute("opacity", 0); e.shapes[3].setAttribute("opacity", 0);
+    } else {
+      e.bg.setAttribute("fill", INK.light);
+      e.shapes[0].setAttribute("fill", INK.light); e.shapes[1].setAttribute("fill", INK.light);
+      const [c0, c1] = loops.colours[i];
+      e.shapes[2].setAttribute("stroke", c0); e.shapes[3].setAttribute("stroke", c1);
+      e.shapes[2].setAttribute("opacity", 1); e.shapes[3].setAttribute("opacity", 1);
+    }
+  }
+  while (gBlocks.firstChild) gBlocks.removeChild(gBlocks.firstChild);
+  if (blocks) for (let y = 0; y + 1 < N; y += 2) for (let x = 0; x + 1 < N; x += 2) el("rect", { x: x + .02, y: y + .02, width: 1.96, height: 1.96 }, gBlocks);
+  readout(loops);
+}
+
+// the curves Smith's arcs make: each arc joins two edge middles; join them all and measure
+function components() {
+  const H = (x, y) => y * N + x, V = (x, y) => (N + 1) * N + y * (N + 1) + x;   // edge middles, top and side
+  const parent = new Int32Array((N + 1) * N * 2).map((_, i) => i), size = new Int32Array(parent.length);
+  const find = a => { while (parent[a] !== a) { parent[a] = parent[parent[a]]; a = parent[a]; } return a; };
+  const arcs = [];
+  for (let i = 0; i < T.length; i++) {
+    const x = i % N, y = Math.floor(i / N), even = mod(T[i].a, 2) === 0;
+    // turned an even number of times: arcs round the top left and bottom right corners
+    const first = even ? [H(x, y), V(x, y)] : [H(x, y), V(x + 1, y)];
+    const second = even ? [H(x, y + 1), V(x + 1, y)] : [H(x, y + 1), V(x, y)];
+    arcs.push(first, second);
+  }
+  const deg = new Int32Array(parent.length);
+  for (const [a, b] of arcs) { deg[a]++; deg[b]++; const ra = find(a), rb = find(b); if (ra !== rb) parent[ra] = rb; }
+  for (const [a] of arcs) size[find(a)]++;
+  const open = new Set();
+  for (let n = 0; n < deg.length; n++) if (deg[n] === 1) open.add(find(n));
+  let longest = 1, nLoops = 0, nCurves = 0; const seen = new Set();
+  for (const [a] of arcs) { const r = find(a); longest = Math.max(longest, size[r]); if (!seen.has(r)) { seen.add(r); if (open.has(r)) nCurves++; else nLoops++; } }
+  const colour = r => {
+    const k = Math.sqrt(size[r] / longest);
+    if (!open.has(r)) return `hsl(30, ${55 + 20 * k}%, ${70 - 30 * k}%)`;       // a loop: warm, deeper when longer
+    return `rgba(28, 26, 23, ${(.18 + .82 * k).toFixed(3)})`;                  // a curve to the edge: ink, darker when longer
+  };
+  const colours = [];
+  for (let i = 0; i < T.length; i++) {
+    // the stroke paths are drawn unturned (round the top left and bottom right), so map them through the turn
+    const [f, s] = [arcs[2 * i], arcs[2 * i + 1]], r = mod(T[i].a, 4);
+    // after a turn of 1 or 3 the first path sits round the top right or bottom left corner
+    const a = r === 0 || r === 1 ? f : s, b = r === 0 || r === 1 ? s : f;
+    colours.push([colour(find(a[0])), colour(find(b[0]))]);
+  }
+  return { colours, nLoops, nCurves, longest };
+}
+
+function readout(loops) {
+  const box = $("readout");
+  const lines = [];
+  if (N === 1) lines.push(`<b>1</b> tile · <b>4</b> orientations`);
+  else if (N === 2) lines.push(`<b>4</b> tiles · <b>256</b> arrangements`);
+  else {
+    const per = kind === "tri" ? 4 : 2, exp = N * N * Math.log10(per), m = Math.pow(10, exp - Math.floor(exp));
+    lines.push(`<b>${N * N}</b> tiles · about <b>${m.toFixed(1)} × 10<sup>${Math.floor(exp)}</sup></b> arrangements`);
+  }
+  if (loops) lines.push(`<b>${loops.nLoops}</b> loops · <b>${loops.nCurves}</b> curves to the edge · the longest <b>${loops.longest}</b> arcs`);
+  if (blocks) { const u = new Set(); for (let y = 0; y + 1 < N; y++) for (let x = 0; x + 1 < N; x++) u.add([T[y * N + x], T[y * N + x + 1], T[(y + 1) * N + x], T[(y + 1) * N + x + 1]].map(s => mod(s.a, kind === "tri" ? 4 : 2) + 4 * s.p).join(",")); lines.push(`uses <b>${u.size}</b> of the <b>${kind === "tri" ? 256 : 16}</b> blocks of four`); }
+  box.innerHTML = lines.join("<br>");
+}
+
+// -- moves -----------------------------------------------------------------------------------
+function partners(i) {
+  // the tiles a move on tile i also moves: every copy of its block
+  const x = i % N, y = Math.floor(i / N), out = [];
+  if (repeat) for (let yy = y % repeat; yy < N; yy += repeat) for (let xx = x % repeat; xx < N; xx += repeat) if (yy * N + xx !== i) out.push(yy * N + xx);
+  return out;
+}
+function turn(i) {
+  const s = T[i]; s.a += 1; const r = mod(s.a, 4);
+  for (const j of partners(i)) {
+    const u = T[j];
+    u.a += mod(r - mod(u.a, 4), 4);
+    u.p = s.p; u.c = s.c;
+  }
+  touched(); paint();
+}
+function flip(i) {
+  const s = T[i];
+  if (palette === "albers") s.c = (s.c + 1) % ALBERS.length; else s.p ^= 1;
+  for (const j of partners(i)) { T[j].p = s.p; T[j].c = s.c; }
+  touched(); paint();
+}
+function touched() { saved[scene] = { N, kind, palette, curves, blocks, repeat, T: T.map(s => ({ ...s })) }; }
+
+// the pointer: a tap turns, a hold or a shift-tap swaps the colours
+let press = null;
+sv.addEventListener("pointerdown", ev => {
+  const g = ev.target.closest && ev.target.closest("[data-i]"); if (!g) return;
+  const i = +g.dataset.i;
+  if (ev.button === 2) return;
+  press = { i, done: false, timer: setTimeout(() => { press.done = true; flip(i); }, 420) };
+});
+sv.addEventListener("pointerup", ev => {
+  if (!press) return; clearTimeout(press.timer);
+  if (!press.done) { if (ev.shiftKey) flip(press.i); else turn(press.i); }
+  press = null;
+});
+const cancelPress = () => { if (press) { clearTimeout(press.timer); press = null; } };
+sv.addEventListener("pointerleave", cancelPress);
+sv.addEventListener("pointercancel", cancelPress);
+// a right click swaps the colours; a long press on a touch screen also raises this event, and the hold has done the swap
+sv.addEventListener("contextmenu", ev => {
+  ev.preventDefault();
+  if (press) { clearTimeout(press.timer); if (!press.done) { press.done = true; flip(press.i); } return; }
+  const g = ev.target.closest && ev.target.closest("[data-i]"); if (g) flip(+g.dataset.i);
+});
+
+// -- scenes: each passage of the story sets the board ----------------------------------------------
+const rand = n => () => ({ a: Math.floor(Math.random() * n), p: 0, c: 0 });
+const MOTIFS = [[[0, 1], [3, 2]], [[2, 3], [1, 0]], [[0, 0], [2, 2]], [[1, 0], [0, 1]], [[0, 3], [1, 2]], [[3, 0], [0, 3]]];
+let motif = 0;
+function fromMotif(m) { return (x, y) => ({ a: m[y % 2][x % 2], p: 0, c: 0 }); }
+function albersFill(x, y) {
+  // rows of pyramids, pointing up and then down, the colours in bands of two rows
+  const band = Math.floor(y / 2) % 3, up = y % 2 === 0, shift = Math.floor(y / 2) % 2;
+  const left = (x + shift) % 2 === 0;
+  const a = up ? (left ? 2 : 3) : (left ? 1 : 0);
+  return { a, p: 0, c: band };
+}
+// arrangements of the kinds Albers drew on graph paper, as starting points; the colours are 0 black, 1 red, 2 grey, 3 empty
+const rnd = () => Math.random();
+const ALB = [
+  { name: "rows of pyramids, in bands", fill: albersFill },
+  { name: "rows of pyramids pointing up", fill: (x, y) => ({ a: x % 2 === 0 ? 2 : 3, p: 0, c: y % 2 === 0 ? 0 : 3 }) },
+  { name: "diagonal bands", fill: (x, y) => ({ a: 0, p: 0, c: (x + y) % 6 < 3 ? 0 : 1 }) },
+  { name: "hourglasses", fill: (x, y) => ({ a: [[2, 3], [1, 0]][y % 2][x % 2], p: 0, c: (Math.floor(x / 2) + Math.floor(y / 2)) % 2 === 0 ? 0 : 2 }) },
+  { name: "scattered", fill: () => ({ a: Math.floor(rnd() * 4), p: 0, c: [0, 0, 1, 3, 3, 3][Math.floor(rnd() * 6)] }) },
+];
+let albersPick = 0;
+function drawAlbersPicks() {
+  const box = $("albersPicks"); box.innerHTML = "";
+  ALB.forEach((pk, k) => {
+    const b = document.createElement("button"); b.className = "motif"; b.title = pk.name;
+    const s = document.createElementNS(NS, "svg"); s.setAttribute("viewBox", "0 0 6 6"); b.appendChild(s);
+    for (let y = 0; y < 6; y++) for (let x = 0; x < 6; x++) {
+      const t = pk.fill(x, y), g = el("g", { transform: `translate(${x} ${y}) rotate(${t.a * 90} .5 .5)` }, s);
+      el("rect", { x: -.01, y: -.01, width: 1.02, height: 1.02, fill: INK.light }, g);
+      el("polygon", { points: "-.01,-.01 1.01,-.01 -.01,1.01", fill: ALBERS[t.c % ALBERS.length] }, g);
+    }
+    b.classList.toggle("on", k === albersPick && scene === "albers");
+    b.addEventListener("click", () => { albersPick = k; delete saved.albers; scene = null; enter("albers"); drawAlbersPicks(); });
+    box.appendChild(b);
+  });
+}
+function set(o) {
+  const n = o.N || 12, newKind = o.kind || userKind;
+  const rebuild = n !== N || newKind !== kind;
+  N = n; kind = newKind; palette = o.palette || "ink"; curves = !!o.curves; blocks = !!o.blocks; repeat = o.repeat || 0;
+  const fill = o.fill || rand(4);
+  T = []; for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) T.push(Object.assign({ a: 0, p: 0, c: 0 }, fill(x, y)));
+  if (rebuild || !els.length) build();
+  paint(); marks();
+}
+const SCENES = {
+  one:      () => set({ N: 1, kind: "tri", fill: () => ({ a: 0 }) }),
+  four:     () => set({ N: 2, kind: "tri", fill: (x, y) => ({ a: [[0, 1], [3, 2]][y][x] }) }),
+  field:    () => set({ N: 12, fill: rand(4) }),
+  motifs:   () => set({ N: 12, repeat: 2, fill: fromMotif(MOTIFS[motif]) }),
+  arcs:     () => set({ N: 12, kind: "arc", fill: rand(2) }),
+  curves:   () => set({ N: 16, kind: "arc", curves: true, fill: rand(2) }),
+  scale:    () => set({ N: 12, blocks: true, fill: rand(4) }),
+  albers:   () => set({ N: 12, kind: "tri", palette: "albers", fill: ALB[albersPick].fill }),
+  free:     () => {},
+};
+// the controls each passage needs, and no others
+const TOOLS = {
+  one: [], four: [], field: ["kinds", "shuffle"], motifs: [],
+  arcs: ["shuffle"], curves: ["shuffle"], scale: [], albers: ["clear"], free: [],
+};
+function applyTools(name) {
+  const want = new Set(TOOLS[name] || []);
+  $("kinds").hidden = !want.has("kinds");
+  $("shuffle").hidden = !want.has("shuffle");
+  $("clear").hidden = !want.has("clear");
+  $("acts").hidden = $("shuffle").hidden && $("clear").hidden;
+  $("tools").hidden = want.size === 0;
+}
+// the passages built around one tile; scrolling into them resets the board to it
+const PREP = { one: "tri", four: "tri", arcs: "arc", curves: "arc", albers: "tri" };
+function enter(name) {
+  if (name === scene) return;
+  scene = name;
+  let s = saved[name];
+  if (s && PREP[name] && s.kind !== PREP[name]) { delete saved[name]; s = null; }
+  if (s) { const rebuild = s.N !== N || s.kind !== kind; N = s.N; kind = s.kind; palette = s.palette; curves = s.curves; blocks = s.blocks; repeat = s.repeat; T = s.T.map(t => ({ ...t })); if (rebuild) build(); paint(); marks(); }
+  else SCENES[name]();
+  applyTools(name);
+  for (const sec of document.querySelectorAll(".story section")) sec.classList.toggle("on", sec.dataset.scene === name);
+}
+
+// -- the controls ------------------------------------------------------------------------------------
+function marks() {
+  for (const b of $("kinds").children) b.classList.toggle("on", b.dataset.kind === kind);
+  for (const b of $("motifs").children) b.classList.toggle("on", +b.dataset.m === motif && scene === "motifs");
+}
+for (const b of $("kinds").children) b.addEventListener("click", () => {
+  const k = b.dataset.kind; userKind = k; drawMotifs();
+  if (k === kind) return;
+  kind = k; curves = k === "arc" && scene === "curves"; T = T.map(s => ({ ...s, a: k === "tri" ? s.a : mod(s.a, 2) })); build(); paint(); marks(); touched();
+});
+$("shuffle").addEventListener("click", () => { const per = kind === "tri" ? 4 : 2; for (const s of T) s.a += Math.floor(Math.random() * per); touched(); paint(); });
+$("clear").addEventListener("click", () => { for (const s of T) { s.a += mod(-s.a, 4); s.p = 0; } touched(); paint(); });
+// the blocks to choose, each drawn as itself in the tile the reader has chosen
+function drawMotifs() {
+  const box = $("motifs"); box.innerHTML = "";
+  MOTIFS.forEach((m, k) => {
+    const b = document.createElement("button"); b.className = "motif"; b.dataset.m = k; b.title = "repeat this block";
+    const s = document.createElementNS(NS, "svg"); s.setAttribute("viewBox", "0 0 4 4"); b.appendChild(s);
+    for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+      const g = el("g", { transform: `translate(${x} ${y}) rotate(${m[y % 2][x % 2] * 90} .5 .5)` }, s);
+      el("rect", { width: 1, height: 1, fill: INK.light }, g);
+      if (userKind === "tri") el("polygon", { points: "0,0 1,0 0,1", fill: INK.dark }, g);
+      else if (userKind === "line") el("line", { x1: .08, y1: .08, x2: .92, y2: .92, stroke: INK.dark, "stroke-width": .14, "stroke-linecap": "round" }, g);
+      else { el("path", { d: "M.5,0 A.5,.5 0 0,1 0,.5 M.5,1 A.5,.5 0 0,1 1,.5", fill: "none", stroke: INK.dark, "stroke-width": .16 }, g); }
+    }
+    b.classList.toggle("on", k === motif && scene === "motifs");
+    b.addEventListener("click", () => { motif = k; delete saved.motifs; scene = null; enter("motifs"); });
+    box.appendChild(b);
+  });
+}
+drawMotifs();
+drawAlbersPicks();
+for (const b of $("scales").children) b.addEventListener("click", () => { delete saved.scale; set({ N: 12, blocks: true, fill: b.dataset.fill === "random" ? rand(4) : fromMotif(MOTIFS[0]) }); scene = "scale"; });
+
+// -- the story drives the board ------------------------------------------------------------------------
+const io = new IntersectionObserver(entries => {
+  for (const e of entries) if (e.isIntersecting) enter(e.target.dataset.scene);
+}, { rootMargin: "-45% 0px -45% 0px" });
+for (const sec of document.querySelectorAll(".story section")) io.observe(sec);
+window.addEventListener("resize", () => { build(); paint(); });
+
+document.addEventListener("keydown", ev => {
+  if (ev.key === "1") $("kinds").children[0].click();
+  else if (ev.key === "2") $("kinds").children[1].click();
+  else if (ev.key === "3") $("kinds").children[2].click();
+  else if (ev.key === "r" || ev.key === "R") $("shuffle").click();
+  else if (ev.key === "c" || ev.key === "C") $("clear").click();
+});
+
+// a hash may open the page at a passage: #albers, or #scene=curves
+scene = null;
+const want = (location.hash.match(/scene=(\w+)/) || [])[1] || (location.hash === "#albers" ? "albers" : "one");
+const start = SCENES[want] ? want : "one";
+const still = /still/.test(location.hash);           // for checking a scene's board without scrolling to it
+if (still) io.disconnect();
+else if (start !== "one") { const sec = document.querySelector(`.story section[data-scene="${start}"]`); if (sec) sec.scrollIntoView({ behavior: "instant", block: "center" }); }
+enter(start);
+</script>
+<script src="noselect.js?v=e60814a2"></script>
+</body>
+</html>

@@ -1,0 +1,1011 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Passacaglia</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="scroll.css?v=da4efe7e">
+<link rel="stylesheet" href="top.css?v=f32dc556">
+<style>
+  :root { --paper: #f6f0dc; --ink: #1c1a17; --muted: #6f6a60; --line: #cfc7ad; --emerge: #e01b24; --warm: #d98c3a;
+          --v0: #2b6f9e; --v1: #3f7d4e; --v2: #7b4a1e; --v3: #c2185b; --v4: #1c1a17; --grey: #9b968e; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+         font-family: "Cormorant Garamond", Garamond, "Times New Roman", serif; font-size: 15px; font-weight: 500; line-height: 1.4; }
+  h1, .controls, .tab, button, .tempo output, #wheel text, .engraved { font-family: Cinzel, "Trajan Pro", "Times New Roman", serif; }
+  /* the sheet: one unit, 8px; the header's ink rule; small capitals for every control */
+  body.grain::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9; opacity: .035; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  .page { height: 100vh; display: flex; flex-direction: column; padding: 16px 24px 16px; }
+  .sc { font-family: Cinzel, "Trajan Pro", serif; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; line-height: 16px; }
+  .controls { display: flex; gap: 24px; align-items: baseline; white-space: nowrap; }
+  button { font: inherit; font-family: Cinzel, "Trajan Pro", serif; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink);
+           background: none; border: 0; border-radius: 0; padding: 0; margin: 0; cursor: pointer; line-height: 16px; }
+  .dot { color: var(--muted); white-space: nowrap; }
+  .dot::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; border: 1px solid currentColor; margin-right: 8px; vertical-align: 0; }
+  @media (hover: hover) { .dot:hover { color: var(--ink); } }
+  .dot.on { color: var(--ink); }
+  .dot.on::before { background: currentColor; }
+  .tempo { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .tempo output { font-family: Cinzel, serif; font-size: 11px; letter-spacing: .06em; font-variant-numeric: tabular-nums; min-width: 6ch; color: var(--ink); }
+  input[type="range"] { -webkit-appearance: none; appearance: none; width: 96px; height: 1px; background: var(--line); outline: none; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); border: 0; }
+  input[type="range"]::-moz-range-thumb { width: 9px; height: 9px; border-radius: 50%; background: var(--ink); border: 0; }
+  .pair { display: inline-flex; gap: 24px; }
+  /* the page's own controls, in one quiet row at its foot, as on the scrolled pages */
+  .bar { flex: 0 0 auto; align-self: center; display: flex; align-items: center; gap: 22px; margin-top: 10px; padding: 9px 20px; border-radius: 22px; white-space: nowrap;
+         background: rgba(249, 244, 229, .92); box-shadow: 0 1px 0 var(--line), 0 6px 24px rgba(28, 26, 23, .06); }
+  .bar .controls { gap: 22px; align-items: center; }
+  .tools .controls { display: flex; gap: 22px; align-items: center; }
+  .tools #controls button, .tools .tempo output, .bar button, .bar .tempo output { font-family: Cinzel, "Trajan Pro", serif; font-size: 10px; font-weight: 500; letter-spacing: .16em; }
+  #explore { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-top: 10px; }
+  .stage { flex: 1; min-height: 0; display: flex; justify-content: center; align-items: center; }
+  .main { height: 100%; max-width: 100%; aspect-ratio: 1526 / 700; display: grid; grid-template-columns: 700fr 800fr; gap: 26px; }
+  #band, #disc { transform-box: view-box; transform-origin: 350px 350px; }
+  #band.turning, #disc.turning { transition: transform .75s cubic-bezier(.3, .7, .2, 1); }
+  .layer { transform-box: view-box; transform-origin: 350px 350px; transition: transform .75s cubic-bezier(.2, .7, .2, 1), opacity .6s; }
+  .layer.folded { transform: scale(.22); opacity: 0; }
+  #bands { transition: opacity .45s; }
+  #bands.fresh { opacity: .1; }
+  @media (prefers-reduced-motion: reduce) { .layer, #bands { transition: none; } }
+  .slot { cursor: pointer; }
+  .slot .hit { fill: transparent; }
+  /* the wheel as an etched plate: everything in ink, the cell's statements solid and the
+     rest hollow or fine, the sounding note warm, the north line red. The emergent is drawn
+     on the block only */
+  #wheel .n { --c: var(--ink) !important; }
+  #wheel .n.em-t, #wheel .n.em-w { --c: var(--emerge) !important; opacity: 1; }   /* the emergent, bold and red, on the wheel too */
+  #wheel .n.struck:not(.cell) { fill: var(--paper); stroke: var(--c); stroke-width: 1.1; opacity: .7; }
+  #wheel .n.held:not(.cell) { opacity: .5; }
+  #wheel .n.on { --c: var(--warm) !important; opacity: 1; }
+  #wheel .n.on.struck:not(.cell) { fill: var(--warm); }
+  #wheel .gl { stroke: var(--ink); }
+  #wheel circle.gl { fill: var(--ink); stroke: none; }
+  #wheel .slot.cur line.gl { stroke: var(--paper); }      /* on the dark wedge of the lap in play, the cell shows in paper */
+  #wheel .slot.cur circle.gl { fill: var(--paper); }
+  .slot:focus { outline: none; }
+  .slot:focus .glyphbox { stroke: var(--ink); }
+  #hub { cursor: pointer; }
+  #hub:focus { outline: none; }
+  .hint { font-size: 8px; fill: var(--muted); letter-spacing: .06em; }
+  .heading { font-size: 8px; fill: var(--muted); letter-spacing: .16em; text-transform: uppercase; }
+  .main svg { display: block; width: 100%; height: 100%; font-family: inherit; }
+  svg text { fill: var(--ink); }
+  .hid { display: none !important; }
+  [hidden] { display: none !important; }
+  /* the scrolled page: beside the story the stage shows the wheel or the block, one at a time, as large as the board
+     allows; after the story the whole page holds both, as it always has */
+  .board > .stage { width: 100%; height: 100%; }
+  .board .main { width: 100%; height: 100%; aspect-ratio: auto; grid-template-columns: 1fr; grid-template-rows: 100%; gap: 0; }
+  .board .main > div { min-height: 0; height: 100%; }
+  .stage[data-panel="wheel"] .main > div:nth-child(2), .stage[data-panel="bands"] .main > div:first-child { display: none; }
+  #full { padding-top: 64px; }
+  #full-main { flex: 1; min-height: 0; display: flex; }
+  #full-bar:empty { visibility: hidden; }
+  #full-main > .stage { flex: 1; min-width: 0; min-height: 0; }
+  /* the example performances, last on the page, under the whole page */
+  #renditions { padding: 64px 56px 96px; }
+  #renditions h2 { font-family: Cinzel, "Trajan Pro", serif; font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin: 0 0 16px; }
+  #renditions > p { font-size: 20px; line-height: 1.5; margin: 0 0 24px; }
+  #renditions .cards { gap: 24px; }
+  #renditions .card .title { font-size: 15px; }
+  /* the landing: a sheet over the explorer, laid out as spreads, a figure above each caption */
+  #explore { position: relative; }
+  .landing { position: absolute; left: 0; right: 0; top: 10px; bottom: 0; background: var(--paper); z-index: 3; overflow: auto; padding: 8px 0 8px; display: flex; flex-direction: column; cursor: pointer; }
+  .landing .lead { margin: 0 0 12px; font-size: 15px; line-height: 20px; color: var(--ink); }
+  .landing .figs { display: grid; grid-template-columns: 1fr; gap: 12px; align-content: start; max-width: 1100px; counter-reset: step; }
+  .landing .fig { border-top: 1px solid var(--line); padding-top: 12px; display: grid; grid-template-columns: 24px 320px 1fr; column-gap: 24px; align-items: start; }
+  .landing .fig::before { counter-increment: step; content: counter(step); grid-column: 1; grid-row: 1; font-family: Cinzel, serif; font-size: 11px; letter-spacing: .1em; line-height: 18px; color: var(--muted); }
+  .landing .fig > svg, .landing .fig > .four { grid-column: 2; grid-row: 1 / span 8; }
+  .landing .fig > p { grid-column: 3; max-width: 66ch; }
+  .landing .fig svg { display: block; width: 100%; height: 132px; overflow: visible; }
+  .landing .fig p { margin: 0; font-size: 14px; line-height: 1.4; color: var(--ink); }
+  .landing .fig b { font-family: Cinzel, serif; font-weight: 500; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; margin-right: 6px; }
+  .landing .fig text { font-family: Cinzel, serif; font-size: 7.5px; letter-spacing: .1em; text-transform: uppercase; fill: var(--muted); }
+  .landing .begin { margin-top: auto; padding-top: 12px; font-family: Cinzel, serif; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+
+  /* the notes: every mark carries its voice's colour in --c; the state of the switches
+     is a set of classes on the stage, and these rules do the rest */
+  .n { opacity: .35; }
+  .n.cell, .n.v4 { opacity: 1; }
+  .n.held { stroke: var(--c); fill: none; }
+  .n.struck { fill: var(--c); }
+  .n.blk { fill: var(--c); }
+  .n.cell.blk, .n.cell.struck { stroke: var(--ink); stroke-width: 1.4; paint-order: stroke; }
+  .n.under { stroke: var(--ink); fill: none; }
+  .n.lead { stroke-dasharray: 3 2; }
+  .n.lead.struck { stroke-dasharray: none; }
+  .lead-own, .lead-next { transition: opacity .3s; }
+  /* the note sounding now: a glow in its own colour; the ground's lights warm */
+  .n.on { opacity: 1; filter: drop-shadow(0 0 2.5px var(--c)) drop-shadow(0 0 1px var(--c)); }
+  .n.on.v4 { --c: var(--warm) !important; }
+  .stage.iso-0 .n:not(.v0), .stage.iso-1 .n:not(.v1), .stage.iso-2 .n:not(.v2),
+  .stage.iso-3 .n:not(.v3), .stage.iso-4 .n:not(.v4) { opacity: .12; }
+  /* the emergent patterns in their own colours, on the block only: a line passed from
+     voice to voice in red; two voices twined (alto and tenor in I, II and XVIII) as one
+     grey line, which takes the place of their own notes while emergent is on */
+  .stage.em-on .n.em-t, .stage.iso-5 .n.em-t { --c: var(--emerge) !important; opacity: 1; }
+  .stage.em-on .n.em-w, .stage.iso-5 .n.em-w { --c: var(--emerge) !important; opacity: 1; }
+  .stage.iso-5 .n:not(.em) { opacity: .12; }
+  /* in a lap whose cell is carried by two voices at once (alto and tenor in I, II and XVIII), their notes are drawn
+     solid in their own colours, as the cell is, whether or not emergent is on */
+  .stage.twined-lap .n.twined-lane { opacity: 1; stroke: var(--ink); stroke-width: 1.4; paint-order: stroke; }
+  .stage.twined-lap .twine { display: inline; }
+  .stage.twined-lap .n.twined { display: none; }
+  .stage.twined-lap .twine .n.em-w { --c: var(--emerge) !important; opacity: 1; stroke: var(--ink); stroke-width: 1.4; paint-order: stroke; }
+  .twine { display: none; }
+  .stage.em-on .twine, .stage.iso-5 .twine { display: inline; }
+  .stage.em-on .n.twined, .stage.iso-5 .n.twined { display: none; }
+  .tap { fill: transparent; cursor: pointer; }
+  .stage.off-0 .n.v0, .stage.off-1 .n.v1, .stage.off-2 .n.v2, .stage.off-3 .n.v3, .stage.off-4 .n.v4 { display: none; }
+  .sw { cursor: pointer; }
+  @media (hover: hover) { .sw:hover .ring { stroke: var(--ink); stroke-width: 1.6; } .sw:hover .rowname { fill: var(--ink); } .sw:hover .name-cue { stroke: var(--ink); stroke-dasharray: none; } }
+  .legend text { font-size: 12.5px; }
+  .hint { font-size: 9.5px; }
+
+  /* example performances */
+  .watch { width: 100%; align-self: start; overflow: auto; max-height: 100%; padding-top: 16px; }
+  .watch .lead { margin: 0 0 16px; font-style: italic; color: var(--muted); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 22px; }
+  .card { display: block; color: inherit; text-decoration: none; border: 1px solid var(--line); background: #f9f4e5; }
+  .card img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+  .card .body { padding: 10px 12px 12px; }
+  .card p { margin: 0; }
+  .card .title { font-size: 14px; line-height: 1.3; }
+  .card .chan { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 4px 0 8px; }
+  .card .desc { font-size: 12px; line-height: 1.4; }
+  .card .chap { font-size: 11px; color: var(--muted); margin-top: 8px; font-variant-numeric: tabular-nums; }
+  @media (max-width: 900px) {
+    body { overflow: auto; }
+    .page { height: auto; }
+    .stage { display: block; }
+    .main { height: auto; aspect-ratio: auto; grid-template-columns: 1fr; }
+    .main svg { height: auto; }
+  }
+</style>
+</head>
+<body class="grain">
+<header class="top">
+    <a class="mark" href="index.html">Passacaglia</a>
+    <nav class="nav"><a class="home" href="overview.html#scene=passacaglia">Overview</a><a href="truchet.html">Truchet</a><a href="girih.html">Girih</a><a href="penrose.html">Penrose</a><a href="automata.html">Automata</a><a href="solari.html">Solari</a><a href="jacquard.html">Jacquard</a><a href="index.html" class="here">Passacaglia</a><a href="fugue.html">Fugue</a></nav>
+</header>
+
+<main class="scrolly">
+  <div class="story">
+    <section data-scene="ground" id="top">
+      <h1>Passacaglia</h1>
+      <p class="lead">One ground, twenty variations, four voices, and what passes between them.</p>
+      <p>The ground is eight bars and fifteen notes in the bass, stated twenty-one times, and the rest of the piece is written over it. On the wheel the ground and the twenty variations run round the face in the order they play, with the one in play at the top. Inside, the ground is the black ring, and the voices of the variation in play turn round it, the cell in bold and the rest light. In XI to XV, hollow on the wheel, the pedal falls silent and the ground moves up into the voices.</p>
+      <p class="cue">Scroll to read. Tap the middle of the wheel to play, or a variation to go there.</p>
+    </section>
+    <section data-scene="cell">
+      <h2>The cells</h2>
+      <p>Each variation is built on one cell, a figure of four or five notes with a fixed rhythm and shape. The view shows one variation at a time, with its cell at the left and the voices across its eight bars in the block, each voice on its own lane and the readings beneath. The solid notes are the cell. Where a cell is handed from voice to voice, each statement that another voice takes up is drawn in red, and where two voices carry it together, as alto and tenor do in I, II, and XVIII, both are drawn solid.</p>
+      <p class="small">Tap a voice to hear it alone, or the block for all of them. The page follows the playing, with the wheel and the block together.</p>
+    </section>
+  </div>
+
+  <div class="hold">
+    <div class="board" id="board">
+    <div class="stage" id="stage" data-panel="wheel"><div class="main">
+      <div><svg id="wheel" viewBox="0 0 700 700" role="img" aria-label="The wheel: the ground and the twenty variations round the face in the order they play, the current one at the top; inside, the ground ring and this lap's voices turning under the marker"></svg></div>
+      <div><svg id="bands" viewBox="0 -76 800 700" role="img" aria-label="The block, the measures and the individual voices"></svg></div>
+    </div></div>
+    </div>
+    <div class="tools" id="tools" hidden><div class="grp" id="g-play"><div class="controls" id="controls"><label class="tempo"><input type="range" id="tempo" min="60" max="108" value="84" aria-label="tempo"><output id="tempo-out">♩ = 84</output></label><span class="pair"><button id="chime" class="sc dot on">Chime</button><button id="glass" class="sc dot">Glass</button></span></div></div></div>
+  </div>
+</main>
+<div class="page scroll-end" id="full">
+  <p class="back corner"><a href="overview.html#scene=passacaglia">Back to the overview</a></p>
+  <div id="full-main"></div>
+  <div class="bar" id="full-bar"></div>
+</div>
+<section class="scroll-end" id="renditions" data-scene="renditions">
+  <h2>Performances</h2>
+  <p>Example performances of the Passacaglia.</p>
+  <div class="cards" id="cards"></div>
+</section>
+<script src="scroll.js?v=a047a0cb"></script>
+<script>
+// the data files are fetched fresh each time the page opens, so a rebuilt file is never
+// shadowed by a cached one
+(() => {
+  const stamp = Date.now();
+  const load = src => new Promise((ok, fail) => { const s = document.createElement("script"); s.src = src + "?v=" + stamp; s.onload = ok; s.onerror = fail; document.head.appendChild(s); });
+  window.ready = load("data.js").then(() => load("clips.js"));
+})();
+</script>
+<script>
+window.ready.then(() => {
+  const D = window.PASSACAGLIA, LAPS = D.laps, CYCLE = D.cycle, LEAD = D.lead, S = D.synth;
+  const HUE = ["#2b6f9e", "#3f7d4e", "#7b4a1e", "#8a5a6e", "#1c1a17", "#e01b24"];   // baritone is muted, so that the emergent red is the one bold colour
+  const NAMES = ["soprano", "alto", "tenor", "baritone", "ground", "emergent"];
+  const INK = "#1c1a17", RELAY = "#e01b24", WARM = "#d98c3a", PAPER = "#f6f0dc", LINE = "#cfc7ad", MUTED = "#6f6a60", GREY = "#9b968e", MIRROR = GREY;
+  const LO = 34, HI = 94, BAR = 3, HOLD = 1.0, EPS = 1e-6;
+  const SVG = "http://www.w3.org/2000/svg";
+  const $ = id => document.getElementById(id);
+
+  // ---------------------------------------------------------------- state
+  const order = Array.from({ length: 20 }, (_, i) => i + 1);   // the variations, in the score's order
+  const plan = () => [0, ...order];                              // the ground first, always
+  let pos = { i: 0, t: 0 };            // where we are: index into the plan, quarters into the lap
+  let playing = false, sound = "chime";  // chime or glass; the horn stays in the code, off the page
+  const loop = false;                    // as does the loop
+  const on = [true, true, true, true, true, true];    // the five voices, and emergent, shown from the start
+  let iso = null;                                    // the one row isolated, if any; 5 is emergent
+  let once = null;                                   // a single lap being played from a tap: { j, filter }
+  let shown = -1;                      // the plan index the views are built for
+
+  // ---------------------------------------------------------------- drawing helpers
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(SVG, tag);
+    for (const k in attrs) if (attrs[k] !== undefined && attrs[k] !== null) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function text(parent, x, y, s, attrs = {}) {
+    const t = el("text", { x, y, ...attrs }, parent);
+    t.textContent = s;
+    return t;
+  }
+  // the emergent classes go on the block's notes only; the wheel and the lanes draw every
+  // note as its voice's own
+  function noteClass(n, extra = "", em = false) {
+    return `n v${n.v} ${n.cell ? "cell" : ""} ${em && n.em ? "em em-" + n.em : ""} ${n.lead ? "lead" : ""} ${extra}`.replace(/\s+/g, " ").trim();
+  }
+  // a cell drawn small in a box: level lines held, dots struck, in one colour
+  function glyph(parent, cell, x, y, w, h, color, lw, r, outline, risers = true) {
+    if (!cell.length) return;
+    const span = Math.max(...cell.map(n => n.t + n.d)) - cell[0].t;
+    const lo = Math.min(...cell.map(n => n.m)), hi = Math.max(...cell.map(n => n.m));
+    const sx = w / Math.max(span, 1), sy = Math.min(h / Math.max(hi - lo, 1), h / 6);
+    const gy = y + h / 2 + (hi - lo) * sy / 2;
+    let prev = null;
+    for (const n of cell) {
+      const x0 = x + (n.t - cell[0].t) * sx, x1 = x + (n.t + n.d - cell[0].t) * sx, yy = gy - (n.m - lo) * sy;
+      if (prev && risers) el("line", { x1: x0, y1: gy - (prev.m - lo) * sy, x2: x0, y2: yy, stroke: outline || color, "stroke-width": .8, opacity: .7 }, parent);
+      if (n.d >= HOLD - EPS) {
+        if (outline) el("line", { x1: x0, y1: yy, x2: x1 - 2, y2: yy, stroke: outline, "stroke-width": lw + 2.6 }, parent);
+        el("line", { x1: x0, y1: yy, x2: x1 - 2, y2: yy, stroke: color, "stroke-width": lw, class: "gl" }, parent);
+      } else {
+        if (outline) el("circle", { cx: x0 + r, cy: yy, r: r + 1.3, fill: outline }, parent);
+        el("circle", { cx: x0 + r, cy: yy, r, fill: color, class: "gl" }, parent);
+      }
+      prev = n;
+    }
+  }
+
+  // ---------------------------------------------------------------- the wheel
+  const R = 300, C = 350;             // the disc's radius, and the centre of the face
+  const ang = t => 2 * Math.PI * t / CYCLE - Math.PI / 2;
+  const pol = (t, r) => [C + r * Math.cos(ang(t)), C + r * Math.sin(ang(t))];
+  const rad = m => 128 + (m - LO) / (HI - LO) * 150;
+  function arcPath(t0, t1, r) {
+    const [x0, y0] = pol(t0, r), [x1, y1] = pol(t1, r);
+    return `M${x0.toFixed(1)},${y0.toFixed(1)} A${r},${r} 0 ${(t1 - t0) > CYCLE / 2 ? 1 : 0} 1 ${x1.toFixed(1)},${y1.toFixed(1)}`;
+  }
+  let disc = null, wheelNotes = [], face = null, band = null, hub = null;
+
+  // ---------------------------------------------------------------- the face: the laps round the rim
+  const SLOT = CYCLE / 21;             // one slot of the face, in the disc's own units of angle
+  function buildBand() {
+    // the band is built once per order and kept, so that it can tick from lap to lap
+    const svg = $("wheel");
+    if (band) band.remove();
+    band = el("g", { id: "band" }, svg);
+    svg.insertBefore(band, svg.firstChild);
+    const p = plan();
+    p.forEach((k, i) => {
+      const lap = LAPS[k];
+      const slot = el("g", { class: "slot", "data-i": i, "data-k": k, tabindex: 0, role: "button",
+                             "aria-label": (k ? "variation " + lap.roman : "the ground") + ", position " + (i + 1),
+                             transform: `rotate(${(i * 360 / 21).toFixed(3)} ${C} ${C})` }, band);
+      // the bar, centred on the slot, and the red arc that grows across it while the lap plays
+      // the bar, centred on the slot
+      el("path", { d: arcPath(-SLOT / 2 + .08, SLOT / 2 - .08, 294), fill: "none", stroke: LINE, "stroke-width": 2, class: "bar" }, slot);
+      // the cell, upright at the top of the face and turned with its slot, on a capsule that
+      // is dark while it plays and grey once it has
+      const gw = 62, gh = 22, gx = C - gw / 2, gy = C - 341;
+      // a wedge behind the cell: an arc at the bar, two radial sides, an arc at the rim
+      const wa0 = -SLOT / 2 + .05, wa1 = SLOT / 2 - .05, wro = 348, wri = 299;
+      const [wxa, wya] = pol(wa0, wro), [wxb, wyb] = pol(wa1, wro), [wxc, wyc] = pol(wa1, wri), [wxd, wyd] = pol(wa0, wri);
+      el("path", { d: `M${wxa},${wya} A${wro},${wro} 0 0 1 ${wxb},${wyb} L${wxc},${wyc} A${wri},${wri} 0 0 0 ${wxd},${wyd} Z`, fill: "none", class: "glyphbox" }, slot);
+      if (k === 0) {
+        const glo = Math.min(...D.theme.map(n => n.m)), ghi = Math.max(...D.theme.map(n => n.m));
+        const gsx = gw / CYCLE, gsy = (gh - 4) / (ghi - glo);
+        for (const n of D.theme) el("line", { x1: gx + n.t * gsx, y1: gy + gh - 2 - (n.m - glo) * gsy, x2: gx + (n.t + n.d) * gsx - .6, y2: gy + gh - 2 - (n.m - glo) * gsy, stroke: INK, "stroke-width": 1.6, class: "gl" }, slot);
+      } else {
+        glyph(slot, lap.cell, gx, gy, gw, gh, lap.cellVoice < 0 ? INK : HUE[lap.cellVoice], 1.8, 1.5, null, false);
+      }
+      // the numeral at the base of the wedge, just above the bar
+      text(slot, C, C - 306, k ? lap.roman : "ground", { "font-size": 9, "text-anchor": "middle", "dominant-baseline": "central", fill: MUTED, "letter-spacing": .5, class: "num" });
+      // the hit area: a wedge of the face, centred on the slot
+      const a0 = -SLOT / 2, a1 = SLOT / 2, ro = 348, ri = 298;
+      const [xa, ya] = pol(a0, ro), [xb, yb] = pol(a1, ro), [xc, yc] = pol(a1, ri), [xd, yd] = pol(a0, ri);
+      el("path", { d: `M${xa},${ya} A${ro},${ro} 0 0 1 ${xb},${yb} L${xc},${yc} A${ri},${ri} 0 0 0 ${xd},${yd} Z`, class: "hit" }, slot);
+    });
+    paintBand(true);
+  }
+  function paintBand(turned) {
+    if (!band) return;
+    if (turned) band.querySelectorAll(".slot").forEach((slot, i) => {
+      const bar = slot.querySelector(".bar"), box = slot.querySelector(".glyphbox"), num = slot.querySelector(".num");
+      const cur = i === pos.i, done = i < pos.i;
+      bar.setAttribute("stroke", cur ? INK : done ? INK : LINE);      // the current bar merges into its wedge
+      bar.setAttribute("stroke-width", cur ? 3 : done ? 2.4 : 2);
+      box.setAttribute("fill", cur ? INK : done ? "url(#hatch)" : "none");
+      num.setAttribute("fill", cur ? PAPER : done ? INK : MUTED);
+      slot.classList.toggle("cur", cur);
+    });
+    // the band turns one slot a lap: the current wedge's leading edge meets the north line
+    // as the lap begins and its trailing edge as the lap ends. The angle follows the
+    // position directly, so a jump forward turns forward by the whole distance and a jump
+    // back turns back, whichever way is shorter
+    const f = Math.max(-LEAD / CYCLE, Math.min(1, pos.t / CYCLE));
+    bandAngle = -(pos.i + f) * 360 / 21 + 360 / 42;
+    band.style.transform = `rotate(${bandAngle.toFixed(3)}deg)`;
+  }
+  let bandAngle = 0, discAngle = 0, jumpDir = 0;
+  function nearest(from, to) {
+    // the angle equivalent to `to` that lies closest to `from`
+    let d = ((to - from) % 360 + 540) % 360 - 180;
+    return from + d;
+  }
+  function onward(from, to, dir) {
+    // the angle equivalent to `to` reached from `from` by turning in direction dir, within
+    // one revolution: forward is the way the disc turns in play, which is negative here
+    let d = ((to - from) % 360 + 360) % 360;          // 0 to 360, turning positive
+    if (dir < 0) d -= 360;
+    return from + d;
+  }
+  // tap a slot of the face to jump there; the hub plays and pauses
+  $("wheel").addEventListener("click", e => {
+    const slot = e.target.closest(".slot");
+    if (slot) { const j = Number(slot.dataset.i); if (playing) jumpTo(j); else playLap(j, j === 0 ? null : ev => ev.cell); return; }
+    if (e.target.closest("#hub")) playing ? stop() : play();
+  });
+  $("wheel").addEventListener("keydown", e => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const slot = e.target.closest(".slot");
+    if (slot) { e.preventDefault(); jumpTo(Number(slot.dataset.i)); return; }
+    if (e.target.closest("#hub")) { e.preventDefault(); playing ? stop() : play(); }
+  });
+
+  // the wheel is built once: the disc that turns, with its spokes, its bar numbers and the
+  // ground ring; the hub; the north line. Each lap's voices are a layer inside the disc,
+  // and a new lap fans open from the hub as the old one folds back into it
+  let layers = null, groundNotes = [];
+  function buildWheelOnce() {
+    const svg = $("wheel");
+    // the plate: cross-hatching for the wedges that have played, and faint concentric
+    // rings over the disc, as on brushed metal
+    const defs = el("defs", {}, svg);
+    const pat = el("pattern", { id: "hatch", width: 5, height: 5, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, defs);
+    el("line", { x1: 0, y1: 0, x2: 0, y2: 5, stroke: INK, "stroke-width": .7, opacity: .3 }, pat);
+    for (let r = 132; r <= 288; r += 4) el("circle", { cx: C, cy: C, r, fill: "none", stroke: INK, "stroke-width": .4, opacity: .045 }, svg);
+    face = el("g", { id: "face" }, svg);
+    disc = el("g", { id: "disc" }, face);
+    for (let b = 0; b < 8; b++) {
+      const t = 1 + b * BAR, [x, y] = pol(t, 284), [x2, y2] = pol(t, 112);
+      el("line", { x1: x2, y1: y2, x2: x, y2: y, stroke: LINE, "stroke-width": .7 }, disc);
+      // the bar's number at the base of the bar, just outside the ground ring, centred in
+      // the bar and turned with the disc as the numerals on the face are turned with the band
+      const tm = t + BAR / 2, [xn, yn] = pol(tm, 134);
+      text(disc, xn, yn, String(b + 1), { "font-size": 9, fill: MUTED, "text-anchor": "middle", "dominant-baseline": "central",
+                                          transform: `rotate(${(tm / CYCLE * 360).toFixed(2)} ${xn.toFixed(1)} ${yn.toFixed(1)})` });
+    }
+    layers = el("g", { id: "layers" }, disc);
+    const glo = Math.min(...D.theme.map(n => n.m)), ghi = Math.max(...D.theme.map(n => n.m));
+    groundNotes = [];
+    for (const n of D.theme) {
+      const r = 98 + (n.m - glo) / (ghi - glo) * 22;
+      const e = el("path", { d: arcPath(n.t, n.t + n.d - .12, r), class: "n v4 held cell", style: "--c:" + INK, "stroke-width": 6 }, disc);
+      groundNotes.push({ e, t: n.t, end: n.t + n.d });
+    }
+    hub = el("g", { id: "hub", role: "button", tabindex: 0, "aria-label": "play or pause" }, face);
+    paintHub();
+    el("line", { x1: C, y1: C - 78, x2: C, y2: C - 350, stroke: RELAY, "stroke-width": 2 }, face);
+    el("circle", { cx: C, cy: C - 78, r: 4, fill: RELAY }, face);
+  }
+  function buildWheel(j) {
+    if (!face) buildWheelOnce();
+    const p = plan(), k = p[j], lap = LAPS[k];
+    // the old layer folds into the hub and goes; the new one opens out of it
+    for (const old of layers.querySelectorAll(".layer")) {
+      old.classList.add("folded");
+      setTimeout(() => old.remove(), 800);
+    }
+    const layer = el("g", { class: "layer folded" }, layers);
+    for (const [t, lo, hi, u] of lap.field) {
+      if (u < .15) continue;    // the field of discord, in ink on the plate
+      el("path", { d: arcPath(t, t + .25, (rad(lo) + rad(hi)) / 2), fill: "none", stroke: INK, "stroke-width": Math.max(2, rad(hi) - rad(lo)), opacity: .03 + .1 * u }, layer);
+    }
+    wheelNotes = groundNotes.slice();
+    const draw = (n, tt, extra) => {
+      // two weights only: the cell bold on an ink outline, the other voices light. Every note is an arc, a short one
+      // for a struck note, and the lead-in notes of the next lap are left to the block
+      // the emergent statements, a cell passed from voice to voice or two voices twined, are bold and red here as on the block
+      const r = rad(n.m), cls = noteClass(n, extra, true), style = "--c:" + HUE[n.v], bold = n.cell || n.em;
+      if (n.v === 4 || n.lead) return;
+      const d = Math.max(n.d, .4);
+      if (n.cell && !n.em) el("path", { d: arcPath(tt, tt + d - .1, r), class: cls.replace("held", "") + " under", "stroke-width": 7.2, opacity: .9 }, layer);
+      const e = el("path", { d: arcPath(tt, tt + d - .1, r), class: cls + " held", style, "stroke-width": bold ? 4.8 : 3 }, layer);
+      wheelNotes.push({ e, t: tt, end: tt + n.d });
+    };
+    for (const n of lap.notes) draw(n, n.lead ? n.t + CYCLE : n.t, n.lead ? "lead-own" : "");
+    if (j + 1 < p.length) for (const n of LAPS[p[j + 1]].notes) if (n.lead) draw(n, n.t + CYCLE, "lead-next");
+    requestAnimationFrame(() => requestAnimationFrame(() => layer.classList.remove("folded")));
+    paintHub();
+  }
+  // the block's own play button, under the cell: the same mark as the hub, small, for the passages that show the block alone
+  function paintBandsGo() {
+    const g = $("bands-go");
+    if (!g) return;
+    g.innerHTML = "";
+    const cx = MX1 / 2, cy = B_TOP + 196;
+    el("circle", { cx, cy, r: 17, fill: INK }, g);
+    if (!playing) el("path", { d: `M${cx - 4},${cy - 6} L${cx + 7},${cy} L${cx - 4},${cy + 6} Z`, fill: PAPER }, g);
+    else { el("rect", { x: cx - 5.5, y: cy - 6, width: 4, height: 12, fill: PAPER }, g); el("rect", { x: cx + 1.5, y: cy - 6, width: 4, height: 12, fill: PAPER }, g); }
+    g.setAttribute("aria-label", playing ? "pause" : "play");
+  }
+  function paintHub() {
+    paintBandsGo();
+    if (!hub) return;
+    hub.innerHTML = "";
+    const k = plan()[pos.i], lap = LAPS[k];
+    el("circle", { cx: C, cy: C, r: 76, fill: INK }, hub);
+    if (!playing) {
+      el("path", { d: `M${C - 16},${C - 24} L${C + 26},${C} L${C - 16},${C + 24} Z`, fill: PAPER }, hub);
+    } else {   // playing: a pause mark, two bars
+      el("rect", { x: C - 20, y: C - 24, width: 14, height: 48, rx: 2, fill: PAPER }, hub);
+      el("rect", { x: C + 6, y: C - 24, width: 14, height: 48, rx: 2, fill: PAPER }, hub);
+    }
+    hub.setAttribute("aria-label", playing ? "pause" : "play");
+  }
+
+  // ---------------------------------------------------------------- the bands
+  const RW = 800, MX1 = 178, TX0 = 206, TSX = (RW - TX0 - 8) / (CYCLE + LEAD);
+  // top to bottom: the block, then the measures, then the individual voices; the first
+  // dividing line sits on the wheel's centre (the bands' viewBox is offset to put it there)
+  const B_TOP = 22, B_BOT = 260, DIV1 = 274, F_TOP = 282, F_H = 28, DIV2 = 372, L_TOP = 398, L_H = 33;
+  const tx = t => TX0 + (t + LEAD) * TSX;
+  const by = m => B_BOT - (m - LO) * (B_BOT - B_TOP) / (HI - LO);
+  let bandNotes = [], playheads = [], figNodes = {}, lapStrikes = [], emHue = RELAY;
+  function mark(parent, n, x0, x1, y, h, r, extra, em = false) {
+    const cls = noteClass(n, extra, em), style = "--c:" + HUE[n.v] + ";--own:" + HUE[n.v];
+    let e;
+    if (n.d >= HOLD - EPS) e = el("rect", { x: x0, y: y - h / 2, width: Math.max(1, x1 - x0), height: h, rx: h / 2, class: cls + " blk", style }, parent);
+    else e = el("circle", { cx: x0 + 2.2, cy: y, r, class: cls + " struck", style }, parent);
+    bandNotes.push({ e, t: n.t, end: n.t + n.d });
+    return e;
+  }
+  function twine(lap) {
+    // two voices twined (alto and tenor in I, II and XVIII), read as one line as the README
+    // has it: each attack lasts until the next attack in either voice, or until both fall
+    // silent. What a held note has left after the next attack is its tail, kept in its
+    // voice's colour. No line joins one note to the next
+    const ns = lap.notes.filter(n => n.em === "w" && n.v < 4 && !n.lead).sort((a, b) => a.t - b.t || b.m - a.m);
+    const segs = [];
+    let sounding = -Infinity;            // when the notes attacked so far have all ended
+    ns.forEach((n, i) => {
+      sounding = Math.max(sounding, n.t + n.d);
+      const next = ns.slice(i + 1).find(x => x.t > n.t + EPS);
+      const end = next && next.t <= sounding + EPS ? next.t : sounding;
+      const tail = n.t + n.d > end + .1 ? [end, n.t + n.d] : null;
+      segs.push({ n, end, tail });
+    });
+    return segs;
+  }
+  function buildBands(j) {
+    const svg = $("bands");
+    svg.innerHTML = "";
+    const p = plan(), k = p[j], lap = LAPS[k];
+    bandNotes = []; playheads = [];
+    $("stage").classList.toggle("twined-lap", (lap.kinds || []).some(([name]) => name === "twined"));
+    const bands = [[B_TOP - 8, B_BOT + 6], [F_TOP, F_TOP + F_H * 3], [L_TOP, L_TOP + L_H * 5]];
+    for (const [top, bot] of bands) {
+      el("rect", { x: tx(-LEAD), y: top, width: LEAD * TSX, height: bot - top, fill: INK, opacity: .04 }, svg);
+      for (let b = 0; b < 9; b++) {
+        const t = b < 8 ? 1 + b * BAR : CYCLE;
+        el("line", { x1: tx(t), y1: top, x2: tx(t), y2: bot, stroke: LINE, "stroke-width": .6 }, svg);
+      }
+      el("line", { x1: tx(0), y1: top, x2: tx(0), y2: bot, stroke: INK, "stroke-width": 1.2 }, svg);
+    }
+    for (let b = 0; b < 8; b++) text(svg, tx(1 + b * BAR) + 3, B_TOP - 12, String(b + 1), { "font-size": 10, fill: MUTED });
+    el("line", { x1: 0, y1: DIV1, x2: RW, y2: DIV1, stroke: INK, "stroke-width": 1 }, svg);
+    el("line", { x1: 0, y1: DIV2, x2: RW, y2: DIV2, stroke: INK, "stroke-width": 1 }, svg);
+    text(svg, 12, DIV2 + 18, "Individual voices \u00b7 click a name to solo it, its dot to switch it off", { class: "heading engraved" });
+    text(svg, 12, L_TOP + L_H * 6 + 12, "Paused: tap a wedge for its cell alone, the block for every voice, a lane for one voice, the rhythm row for the attacks as drums.", { class: "hint" });
+    // the legend: the five voices and, beneath them, emergent, each a dot to switch it
+    // off or on and a name to click to isolate it
+    const legend = el("g", { class: "legend" }, svg);
+    // emergent's dot is grey where the lap's only reading is twined, as its line is
+    emHue = RELAY;
+    const hue = v => v === 5 ? emHue : HUE[v];
+    for (let v = 0; v < 6; v++) {
+      const y0 = L_TOP + v * L_H, ym = y0 + L_H / 2;
+      const row = el("g", { class: "row", "data-v": v, id: "row-" + v }, legend);
+      if (v < 4) el("line", { x1: 12, y1: y0 + L_H, x2: RW, y2: y0 + L_H, stroke: LINE, "stroke-width": .5 }, svg);
+      if (v === 4) el("line", { x1: 12, y1: y0 + L_H, x2: MX1, y2: y0 + L_H, stroke: LINE, "stroke-width": .5 }, svg);
+      const dot = el("g", { class: "sw", role: "button", "aria-label": "switch " + NAMES[v] + " off or on", id: "dot-" + v }, row);
+      el("circle", { cx: 22, cy: ym, r: 8.5, fill: "none", stroke: MUTED, "stroke-width": 1, class: "ring" }, dot);   // the button's rim
+      el("circle", { cx: 22, cy: ym, r: 5.5, fill: hue(v), stroke: hue(v), "stroke-width": 1.4, class: "dotmark" }, dot);
+      el("circle", { cx: 22, cy: ym, r: 11, fill: "transparent" }, dot);
+      dot.addEventListener("click", () => { on[v] = !on[v]; if (!on[v] && iso === v) iso = null; applySwitches(); });
+      const name = el("g", { class: "sw", role: "button", "aria-label": "isolate " + NAMES[v], id: "name-" + v }, row);
+      text(name, 36, ym + 4, NAMES[v], { class: "rowname" });
+      el("line", { x1: 36, y1: ym + 9, x2: 36 + NAMES[v].length * 6.4, y2: ym + 9, stroke: MUTED, "stroke-width": .8, "stroke-dasharray": "1.5 2.5", class: "name-cue" }, name);
+      el("rect", { x: 34, y: ym + 7, width: NAMES[v].length * 6.4, height: 1.2, fill: hue(v), class: "iso-mark", opacity: 0 }, name);
+      el("rect", { x: 32, y: ym - 10, width: 130, height: 20, fill: "transparent" }, name);
+      name.addEventListener("click", () => { iso = iso === v ? null : v; if (iso === v) on[v] = true; applySwitches(); });
+      if (v === 5) {                                  // emergent has no lane of its own, but a count, each in its colour
+        const counts = text(row, MX1 - 6, ym + 4, "", { "font-size": 9, "text-anchor": "end" });
+        (lap.kinds || []).forEach(([name, n], q) => {
+          const s = el("tspan", { fill: RELAY }, counts);
+          s.textContent = (q ? " · " : "") + (name === "twined" ? "alto+tenor" : name) + ` ×${n}`;
+        });
+        continue;
+      }
+      // the lane
+      const ns = lap.notes.filter(n => n.v === v);
+      if (!ns.length) continue;
+      const vlo = Math.min(...ns.map(n => n.m)), vhi = Math.max(...ns.map(n => n.m));
+      for (const n of ns) {
+        const yy = y0 + L_H - 8 - (n.m - vlo) / Math.max(vhi - vlo, 1) * (L_H - 16);
+        mark(svg, n, tx(n.t), tx(n.t + n.d) - 2, yy, v === 4 ? 3.6 : n.cell ? 3.2 : 2, n.cell ? 2.3 : 1.7, n.lead ? "lead-own" : n.em === "w" ? "twined-lane" : "");
+      }
+    }
+    if (j + 1 < p.length) for (const n of LAPS[p[j + 1]].notes) if (n.lead) {
+      const ns = lap.notes.filter(x => x.v === n.v);
+      const vlo = ns.length ? Math.min(...ns.map(x => x.m)) : n.m, vhi = ns.length ? Math.max(...ns.map(x => x.m)) : n.m;
+      const y0 = L_TOP + n.v * L_H, yy = y0 + L_H - 8 - (n.m - vlo) / Math.max(vhi - vlo, 1) * (L_H - 16);
+      mark(svg, { ...n, t: n.t + CYCLE }, tx(n.t + CYCLE), tx(n.t + CYCLE + n.d) - 2, yy, 2, 1.7, "lead-next");
+    }
+    // the middle: the numeral, the count, the cell
+    text(svg, MX1 / 2, B_TOP + 44, k ? lap.roman : "ground", { "font-size": k ? 46 : 22, "text-anchor": "middle", class: "engraved" });
+    text(svg, MX1 / 2, B_TOP + 64, `${j + 1} OF ${p.length}`, { "font-size": 9, "letter-spacing": 2.4, "text-anchor": "middle", fill: MUTED, class: "engraved" });
+    if (k) glyph(svg, lap.cell, 12, B_TOP + 96, MX1 - 24, 48, HUE[Math.max(0, lap.cellVoice)], 3.4, 2.5, INK, false);
+    const go = el("g", { id: "bands-go", class: "sw", role: "button", tabindex: 0 }, svg);
+    go.addEventListener("click", () => { playing ? stop() : play(); });
+    paintBandsGo();
+    // the block
+    for (const [t, lo, hi, u] of lap.field) {
+      if (u < .15) continue;
+      el("rect", { x: tx(t), y: by(hi) - 3, width: .25 * TSX, height: by(lo) - by(hi) + 6, fill: WARM, opacity: .05 + .22 * u }, svg);
+    }
+    for (const n of lap.notes) {
+      if (n.v === 4) { mark(svg, n, tx(n.t), tx(n.t + n.d) - 2, by(n.m), 4.2, 2.6, ""); continue; }
+      // a twined note is drawn as its voice's own here, and hidden while emergent is on,
+      // when the grey line below takes its place
+      const twined = n.em === "w" && !n.lead;
+      mark(svg, n, tx(n.t), tx(n.t + n.d) - 2, by(n.m), n.cell ? 3.6 : 2.2, n.cell ? 2.5 : 1.8, n.lead ? "lead-own" : twined ? "twined" : "", !twined);
+    }
+    if (j + 1 < p.length) for (const n of LAPS[p[j + 1]].notes) if (n.lead)
+      mark(svg, { ...n, t: n.t + CYCLE }, tx(n.t + CYCLE), tx(n.t + CYCLE + n.d) - 2, by(n.m), 2.2, 1.8, "lead-next");
+    // the twined line, shown with emergent: each attack in grey until the next, a held
+    // note's tail in its voice's colour
+    const tw = el("g", { class: "twine" }, svg);
+    for (const { n, end, tail } of twine(lap)) {
+      mark(tw, { ...n, d: end - n.t }, tx(n.t), tx(end) - 2, by(n.m), n.cell ? 3.6 : 3, n.cell ? 2.5 : 2.1, "", true);
+      if (tail) mark(tw, { ...n, em: null, t: tail[0], d: Math.max(HOLD, tail[1] - tail[0]) }, tx(tail[0]), tx(tail[1]) - 2, by(n.m), n.cell ? 3.6 : 2.2, 1.8, "");
+    }
+    // tap targets: the block for every voice, each lane for its own
+    const blockTap = el("rect", { x: tx(-LEAD), y: B_TOP - 8, width: tx(CYCLE + LEAD) - tx(-LEAD), height: B_BOT - B_TOP + 14, class: "tap" }, svg);
+    blockTap.addEventListener("click", () => { if (!playing) playLap(pos.i, null); });
+    for (let v = 0; v < 5; v++) {
+      const laneTap = el("rect", { x: MX1, y: L_TOP + v * L_H, width: RW - MX1, height: L_H, class: "tap" }, svg);
+      laneTap.addEventListener("click", () => { if (!playing) playLap(pos.i, ev => ev.v === v); });
+    }
+    // the measures: a live figure each, and its curve over the lap. Co-occurrences has a
+    // midline: the cell upright counts upward from it, its mirror downward, so the two
+    // diverge where both are stated at once
+    const grid = lap.field.map(f => f[0]);
+    const inv = lap.coocInv || [];
+    const cmax = Math.max(1, ...lap.cooc, ...inv);
+    figNodes = {};
+    {
+      const y0 = F_TOP, ym = y0 + F_H / 2, top = y0 + 6, bot = y0 + F_H - 6;
+      el("line", { x1: 0, y1: y0 + F_H, x2: RW, y2: y0 + F_H, stroke: LINE, "stroke-width": .5 }, svg);
+      text(svg, 12, ym + 4, "co-occurrences", { "font-size": 11 });
+      figNodes.cooc = text(svg, MX1 - 6, ym + 2, "", { "font-size": 16, "text-anchor": "end" });
+      figNodes.inv = text(svg, MX1 - 6, ym + 11, "", { "font-size": 9, "text-anchor": "end", fill: MIRROR, "letter-spacing": .4 });
+      if (grid.length) {
+        el("line", { x1: tx(0), y1: ym, x2: tx(CYCLE), y2: ym, stroke: LINE, "stroke-width": .6 }, svg);
+        const upPts = grid.map((t, q) => `${tx(t).toFixed(1)},${(ym - lap.cooc[q] / cmax * (ym - top)).toFixed(1)}`);
+        el("polyline", { points: upPts.join(" "), fill: "none", stroke: INK, "stroke-width": 1.4 }, svg);
+        if (inv.some(c => c > 0)) {
+          const dnPts = grid.map((t, q) => `${tx(t).toFixed(1)},${(ym + inv[q] / cmax * (bot - ym)).toFixed(1)}`);
+          el("polyline", { points: dnPts.join(" "), fill: "none", stroke: MIRROR, "stroke-width": 1.4 }, svg);
+        }
+      }
+    }
+    {
+      const y0 = F_TOP + F_H, ym = y0 + F_H / 2, top = y0 + 7, bot = y0 + F_H - 7;
+      text(svg, 12, ym + 4, "discordance", { "font-size": 11 });
+      figNodes.disc = text(svg, MX1 - 6, ym + 6, "", { "font-size": 17, "text-anchor": "end" });
+      if (grid.length) {
+        const pts = grid.map((t, q) => [tx(t), bot - lap.field[q][3] * (bot - top)]);
+        el("path", { d: `M${pts[0][0].toFixed(1)},${bot} ` + pts.map(([x, y]) => `L${x.toFixed(1)},${y.toFixed(1)}`).join(" ") + ` L${pts[pts.length - 1][0].toFixed(1)},${bot} Z`, fill: WARM, opacity: .55 }, svg);
+      }
+    }
+    {
+      // the rhythm: every attack in the lap as a tick, taller the more voices strike
+      // together; the live figure is the interval to the next attack, in beats
+      const y0 = F_TOP + F_H * 2, ym = y0 + F_H / 2, top = y0 + 5, bot = y0 + F_H - 5;
+      el("line", { x1: 0, y1: y0, x2: RW, y2: y0, stroke: LINE, "stroke-width": .5 }, svg);
+      text(svg, 12, ym + 4, "rhythm", { "font-size": 11 });
+      figNodes.rhy = text(svg, MX1 - 6, ym + 2, "", { "font-size": 16, "text-anchor": "end" });
+      const strikes = new Map();
+      for (const n of lap.notes) if (!n.lead) { const key = Math.round(n.t * 8); strikes.set(key, (strikes.get(key) || 0) + 1); }
+      lapStrikes = [...strikes.keys()].sort((a, b) => a - b).map(key => key / 8);
+      text(svg, MX1 - 6, ym + 11, `${(strikes.size / 8).toFixed(1)} attacks a bar`, { "font-size": 9, "text-anchor": "end", fill: MUTED, "letter-spacing": .4 });
+      el("line", { x1: tx(0), y1: bot, x2: tx(CYCLE), y2: bot, stroke: LINE, "stroke-width": .6 }, svg);
+      for (const [key, c] of strikes) {
+        const x = tx(key / 8);
+        el("line", { x1: x, y1: bot, x2: x, y2: bot - (bot - top) * Math.min(1, .35 + c / 5), stroke: INK, "stroke-width": c > 1 ? 1.6 : .9, class: "strike" }, svg);
+      }
+      const rhythmTap = el("rect", { x: MX1, y: y0, width: RW - MX1, height: F_H, class: "tap" }, svg);
+      rhythmTap.addEventListener("click", () => { if (!playing) playLap(pos.i, null, true); });
+    }
+    for (const [top, bot] of bands) playheads.push(el("line", { x1: tx(0), y1: top, x2: tx(0), y2: bot, stroke: RELAY, "stroke-width": 1.5 }, svg));
+    playheads.push(el("circle", { cx: tx(0), cy: B_TOP - 8, r: 4.5, fill: RELAY }, svg));
+    applySwitches();
+    // a soft turn of the page
+    svg.classList.add("fresh");
+    requestAnimationFrame(() => requestAnimationFrame(() => svg.classList.remove("fresh")));
+  }
+
+  // ---------------------------------------------------------------- the switches
+  function applySwitches() {
+    // the state as classes on the stage: off-v hides a voice, iso-v fades all but one,
+    // em-on paints the block's emergent notes, iso-5 paints them and fades the rest
+    const st = $("stage");
+    let cls = "stage";
+    for (let v = 0; v < 5; v++) if (!on[v]) cls += " off-" + v;
+    if (iso !== null) cls += " iso-" + iso;
+    if (on[5]) cls += " em-on";
+    if (st.classList.contains("twined-lap")) cls += " twined-lap";
+    st.className = cls;
+    for (let v = 0; v < 6; v++) {
+      const row = $("row-" + v);
+      if (!row) continue;
+      const lit = on[v] && (iso === null || iso === v);
+      row.querySelector(".dotmark").setAttribute("fill", on[v] ? (v === 5 ? emHue : HUE[v]) : "none");
+      row.querySelector(".rowname").setAttribute("fill", lit ? INK : MUTED);
+      row.querySelector(".iso-mark").setAttribute("opacity", iso === v ? 1 : 0);
+      $("dot-" + v).setAttribute("aria-pressed", String(on[v]));
+      $("name-" + v).setAttribute("aria-pressed", String(iso === v));
+    }
+  }
+  function audible(ev) {
+    if (once && once.filter) return once.filter(ev);
+    if (iso === 5) return ev.em;
+    if (iso !== null) return ev.v === iso;
+    return on[ev.v];
+  }
+
+  // ---------------------------------------------------------------- the frame
+  function refresh(force) {
+    const turned = pos.i !== shown || force;
+    if (turned) { shown = pos.i; buildWheel(pos.i); buildBands(pos.i); }
+    const t = pos.t, lap = LAPS[plan()[pos.i]];
+    discAngle = jumpDir ? onward(discAngle, -t / CYCLE * 360, jumpDir) : nearest(discAngle, -t / CYCLE * 360);
+    jumpDir = 0;
+    disc.style.transform = `rotate(${discAngle.toFixed(2)}deg)`;
+    paintBand(turned);
+    for (const ph of playheads) { if (ph.tagName === "line") { ph.setAttribute("x1", tx(t)); ph.setAttribute("x2", tx(t)); } else ph.setAttribute("cx", tx(t)); }
+    document.querySelectorAll(".lead-own").forEach(e => e.style.opacity = t < 0 ? 1 : 0);
+    document.querySelectorAll(".lead-next").forEach(e => e.style.opacity = t >= CYCLE - LEAD ? 1 : 0);
+    for (const list of [wheelNotes, bandNotes]) for (const n of list) n.e.classList.toggle("on", n.t <= t && t < n.end);
+    const q = Math.max(0, Math.min(lap.cooc.length - 1, Math.floor(t / .25)));
+    if (figNodes.cooc) figNodes.cooc.textContent = lap.cooc.length ? String(lap.cooc[q]) : "";
+    if (figNodes.inv) { const n = lap.coocInv && lap.coocInv.length ? lap.coocInv[q] : 0; figNodes.inv.textContent = n ? `${n} inverted` : ""; }
+    if (figNodes.disc) figNodes.disc.textContent = lap.field.length ? Math.round(lap.field[q][4] * 100) + "%" : "";
+    if (figNodes.rhy) {
+      let k = -1; while (k + 1 < lapStrikes.length && lapStrikes[k + 1] <= t + EPS) k++;
+      const gap = k >= 0 && k + 1 < lapStrikes.length ? lapStrikes[k + 1] - lapStrikes[k] : 0;
+      figNodes.rhy.textContent = gap ? String(Math.round(gap * 100) / 100).replace(/^0\./, ".") : "";
+    }
+  }
+
+  // ---------------------------------------------------------------- the sound
+  let ctx = null, master = null, comp = null, wet = null, buses = [], pans = [], knock = null, timer = null, raf = null;
+  let take = null;                     // the output of the current run: silenced and dropped when the run ends or jumps
+  let events = [], next = 0, startAt = 0, spq = 60 / 84, scheduledUntil = 0;
+  const HORIZON = .25;                 // how far ahead notes are handed to the audio engine
+  function makeRoom(c) {
+    const n = Math.floor(S.ROOM * 1.2 * c.sampleRate), pre = Math.floor(.018 * c.sampleRate);
+    const buf = c.createBuffer(2, n + pre, c.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = buf.getChannelData(ch); let lp = 0;
+      for (let i = 0; i < n; i++) { const x = (Math.random() * 2 - 1) * Math.exp(-6.91 * (i / c.sampleRate) / S.ROOM); lp += .35 * (x - lp); d[pre + i] = lp; }
+    }
+    return buf;
+  }
+  function makeKnock(c) {
+    const n = Math.floor(.03 * c.sampleRate), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
+    let lp = 0;
+    for (let i = 0; i < n; i++) { lp += .08 * ((Math.random() * 2 - 1) - lp); d[i] = lp * 6; }
+    return buf;
+  }
+  function setup() {
+    if (ctx) return;
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    master = ctx.createGain(); master.gain.value = .22;
+    comp = ctx.createDynamicsCompressor(); comp.threshold.value = -12; comp.ratio.value = 4; comp.attack.value = .003; comp.release.value = .25;
+    master.connect(comp).connect(ctx.destination);
+    wet = ctx.createGain(); wet.gain.value = S.ROOM_WET;
+    const conv = ctx.createConvolver(); conv.buffer = makeRoom(ctx);
+    wet.connect(conv).connect(comp);
+    pans = [];
+    buses = S.PANS.map((p, v) => {
+      const g = ctx.createGain(); g.gain.value = S.LEVELS[v];
+      const pan = ctx.createStereoPanner(); pan.pan.value = p;
+      g.connect(pan); pans.push(pan);
+      return g;
+    });
+    knock = makeKnock(ctx);
+    shard = makeShard(ctx);
+  }
+  let shard = null;
+  function makeShard(c) {
+    // the break of a glass: bright noise, a hundredth of a second, high-passed by differencing
+    const n = Math.floor(.015 * c.sampleRate), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
+    let prev = 0;
+    for (let i = 0; i < n; i++) { const x = Math.random() * 2 - 1; d[i] = (x - prev) * .7; prev = x; }
+    return buf;
+  }
+  // the glass: the strike's shape, but inharmonic partials, a whole-note detune and a
+  // small one per partial, a brighter and shorter ring, a bright break in the attack, and
+  // little thump; the tables come from bachlang/synth.py
+  function glass(v, midi, t) {
+    const f = 440 * Math.pow(2, (midi - 69) / 12) * Math.pow(2, ((Math.random() * 2 - 1) * S.GLASS_DETUNE) / 1200);
+    const ring = Math.min(S.RING_MAX, S.GLASS_RING * Math.pow(2, (60 - midi) / 20));
+    const out = buses[v], end = t + Math.min(4, ring * 6);
+    for (const [ratio, amp, share] of S.GLASS[v]) {
+      const fr = f * ratio * Math.pow(2, ((Math.random() * 2 - 1) * 3) / 1200); if (fr > 18000) continue;
+      const osc = ctx.createOscillator(); osc.frequency.value = fr;
+      const gs = ctx.createGain(); gs.gain.setValueAtTime(0, t); gs.gain.linearRampToValueAtTime(amp, t + .001); gs.gain.setTargetAtTime(0, t + .001, S.ATTACK * .6 * Math.sqrt(share));
+      const bright = ratio < 1.5 ? 1 : S.GLASS_BRIGHT, hold = ratio < 1.5 ? share : Math.max(share, S.GLASS_HOLD);
+      const gr = ctx.createGain(); gr.gain.setValueAtTime(0, t); gr.gain.linearRampToValueAtTime(S.RING_LEVEL * amp * bright, t + .001); gr.gain.setTargetAtTime(0, t + .001, ring * hold);
+      osc.connect(gs).connect(out); osc.connect(gr).connect(out); osc.start(t); osc.stop(end);
+    }
+    const src = ctx.createBufferSource(); src.buffer = shard;
+    const gk = ctx.createGain(); gk.gain.setValueAtTime(.5, t); gk.gain.setTargetAtTime(0, t, .004);
+    src.connect(gk).connect(out); src.start(t); src.stop(t + .03);
+    const th = ctx.createOscillator(); th.frequency.value = f / 2;
+    const gt = ctx.createGain(); gt.gain.setValueAtTime(0, t); gt.gain.linearRampToValueAtTime(S.GLASS_THUMP, t + .001); gt.gain.setTargetAtTime(0, t + .001, .03);
+    th.connect(gt).connect(out); th.start(t); th.stop(t + .15);
+  }
+  function newTake() {
+    // a fresh output for this run; the old one fades out with whatever was still queued on it
+    const old = take;
+    take = ctx.createGain(); take.connect(master); take.connect(wet);
+    for (const p of pans) p.connect(take);
+    if (old) {
+      old.gain.setTargetAtTime(0, ctx.currentTime, .015);
+      setTimeout(() => { for (const p of pans) { try { p.disconnect(old); } catch (e) {} } old.disconnect(); }, 250);
+    }
+  }
+  // the chime: the struck bar, as bachlang/synth.py has it
+  function chime(v, midi, t) {
+    const f = 440 * Math.pow(2, (midi - 69) / 12), ring = Math.min(S.RING_MAX, S.RING * Math.pow(2, (60 - midi) / 20));
+    const out = buses[v], end = t + Math.min(4, ring * 6);
+    for (const [ratio, amp, share] of S.MALLETS[v]) {
+      const fr = f * ratio; if (fr > 18000) continue;
+      const osc = ctx.createOscillator(); osc.frequency.value = fr;
+      const gs = ctx.createGain(); gs.gain.setValueAtTime(0, t); gs.gain.linearRampToValueAtTime(amp, t + .001); gs.gain.setTargetAtTime(0, t + .001, S.ATTACK * Math.sqrt(share));
+      const bright = ratio < 1.5 ? 1 : S.RING_BRIGHT, hold = ratio < 1.5 ? share : Math.max(share, S.RING_HOLD);
+      const gr = ctx.createGain(); gr.gain.setValueAtTime(0, t); gr.gain.linearRampToValueAtTime(S.RING_LEVEL * amp * bright, t + .001); gr.gain.setTargetAtTime(0, t + .001, ring * hold);
+      osc.connect(gs).connect(out); osc.connect(gr).connect(out); osc.start(t); osc.stop(end);
+    }
+    const src = ctx.createBufferSource(); src.buffer = knock;
+    const gk = ctx.createGain(); gk.gain.setValueAtTime(.6, t); gk.gain.setTargetAtTime(0, t, .008);
+    src.connect(gk).connect(out); src.start(t); src.stop(t + .05);
+    const th = ctx.createOscillator(); th.frequency.value = f / 2;
+    const gt = ctx.createGain(); gt.gain.setValueAtTime(0, t); gt.gain.linearRampToValueAtTime(.5, t + .001); gt.gain.setTargetAtTime(0, t + .001, .04);
+    th.connect(gt).connect(out); th.start(t); th.stop(t + .2);
+  }
+  // the drum: the attack alone, a filtered knock and a falling thump, one pitch a voice,
+  // the pedal lowest and longest; the lap heard as its rhythm
+  function drum(v, t) {
+    const out = buses[v], f = [420, 300, 210, 150, 95][v];
+    const src = ctx.createBufferSource(); src.buffer = knock;
+    const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = f * 4; bp.Q.value = 1.2;
+    const gk = ctx.createGain(); gk.gain.setValueAtTime(1.2, t); gk.gain.setTargetAtTime(0, t, .012);
+    src.connect(bp).connect(gk).connect(out); src.start(t); src.stop(t + .06);
+    const th = ctx.createOscillator(); th.frequency.setValueAtTime(f * 1.6, t); th.frequency.exponentialRampToValueAtTime(f, t + .04);
+    const gt = ctx.createGain(); gt.gain.setValueAtTime(0, t); gt.gain.linearRampToValueAtTime(.7, t + .002); gt.gain.setTargetAtTime(0, t + .002, v === 4 ? .09 : .05);
+    th.connect(gt).connect(out); th.start(t); th.stop(t + .4);
+  }
+  // the horn: a sustained reedy tone, two oscillators a few cents apart so held notes beat,
+  // a slow vibrato, a warm low-pass; the harmonics follow the sustained timbres in synth.py
+  function horn(v, midi, t, dur) {
+    const f = 440 * Math.pow(2, (midi - 69) / 12), out = buses[v];
+    const end = t + dur, rel = .12;
+    const filt = ctx.createBiquadFilter(); filt.type = "lowpass"; filt.frequency.value = Math.min(9000, f * 3.2); filt.Q.value = .8;
+    const env = ctx.createGain(); env.gain.setValueAtTime(0, t); env.gain.linearRampToValueAtTime(.16, t + .05);
+    env.gain.setValueAtTime(.16, Math.max(t + .05, end - .01)); env.gain.linearRampToValueAtTime(0, end + rel);
+    filt.connect(env).connect(out);
+    const lfo = ctx.createOscillator(); lfo.frequency.value = 5.2;
+    const depth = ctx.createGain(); depth.gain.value = f * .0025;
+    lfo.connect(depth);
+    for (const cents of [-4, 4]) {
+      const osc = ctx.createOscillator(); osc.type = "sawtooth"; osc.frequency.value = f * Math.pow(2, cents / 1200);
+      depth.connect(osc.frequency);
+      const g = ctx.createGain(); g.gain.value = .5;
+      osc.connect(g).connect(filt); osc.start(t); osc.stop(end + rel + .05);
+    }
+    lfo.start(t); lfo.stop(end + rel + .05);
+  }
+  let lapStartQ = 0, base = 0;         // where the next lap's events begin, in quarters from startAt; the plan index we started from
+  function appendLap(j, lapStart) {
+    for (const n of LAPS[plan()[j]].notes) {
+      const tt = lapStart + n.t;
+      events.push({ time: startAt + tt * spq, v: n.v, m: n.m, d: n.d * spq, em: n.em, cell: n.cell, t: tt });
+    }
+    events.sort((a, b) => a.time - b.time);
+    lapStartQ = lapStart + CYCLE;
+  }
+  function rebuildEvents(offset = 0, fresh = false) {
+    // from where we are, every note to come: this lap from its current time, then the laps
+    // after it in the plan; while looping, this lap again and again, appended as it is
+    // needed. A rebuild in mid-run skips what was already handed to the engine; a fresh run
+    // starts clean
+    spq = 60 / Number($("tempo").value);
+    startAt = ctx.currentTime + offset - pos.t * spq;
+    base = pos.i;
+    events = []; next = 0; lapStartQ = 0;
+    if (fresh) scheduledUntil = 0;
+    const p = plan();
+    if (once) appendLap(pos.i, 0);
+    else if (loop) appendLap(pos.i, 0);
+    else for (let i = pos.i; i < p.length; i++) appendLap(i, (i - pos.i) * CYCLE);
+    while (next < events.length && (events[next].t < pos.t - EPS || events[next].time < scheduledUntil)) next++;
+  }
+  function schedule() {
+    if (!playing) return;
+    const horizon = ctx.currentTime + HORIZON;
+    while (next < events.length && events[next].time < horizon) {
+      const ev = events[next++];
+      if (ev.time < scheduledUntil) continue;           // queued before a rebuild
+      if (!audible(ev)) continue;
+      if (once && once.perc) drum(ev.v, ev.time);
+      else if (sound === "horn") horn(ev.v, ev.m, ev.time, ev.d); else if (sound === "glass") glass(ev.v, ev.m, ev.time); else chime(ev.v, ev.m, ev.time);
+    }
+    scheduledUntil = Math.max(scheduledUntil, horizon);
+    if (loop && next >= events.length) appendLap(pos.i, lapStartQ);   // the lap again, on the same clock
+  }
+  function tick() {
+    if (!playing) return;
+    const el = (ctx.currentTime - startAt) / spq;         // quarters since the lap we started from began
+    const p = plan();
+    let i = base, t = el;
+    if (once) { if (t >= CYCLE + 1.5) { stop(); pos = { i: base, t: 0 }; refresh(true); return; } }
+    else if (loop) { t = el < 0 ? el : el % CYCLE; }
+    else { while (t >= CYCLE && i + 1 < p.length) { t -= CYCLE; i++; } }
+    if (!loop && i === p.length - 1 && t >= CYCLE + 5) { stop(); pos = { i: 0, t: 0 }; refresh(true); return; }   // the closing chord rings out
+    pos = { i, t };
+    refresh(false);
+    raf = requestAnimationFrame(tick);
+  }
+  function play() {
+    setup();
+    if (ctx.state === "suspended") ctx.resume();
+    playing = true;
+    paintHub();
+    newTake();
+    rebuildEvents(.08, true);
+    schedule();
+    if (!timer) timer = setInterval(schedule, 40);
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function stop() {
+    playing = false;
+    once = null;
+    paintHub();
+    if (timer) clearInterval(timer);
+    if (raf) cancelAnimationFrame(raf);
+    timer = raf = null;
+    if (take) { const old = take; take = null; old.gain.setTargetAtTime(0, ctx.currentTime, .015);
+      setTimeout(() => { for (const p of pans) { try { p.disconnect(old); } catch (e) {} } old.disconnect(); }, 250); }
+  }
+  let turnTimer = null;
+  function jumpTo(j) {
+    jumpDir = j > pos.i ? -1 : j < pos.i ? 1 : 0;      // forward in the piece is a negative turn
+    pos = { i: j, t: j === 0 ? 0 : -LEAD };
+    // the ring and the disc turn to the new place rather than snapping
+    for (const g of [band, disc]) if (g) g.classList.add("turning");
+    if (turnTimer) clearTimeout(turnTimer);
+    turnTimer = setTimeout(() => { for (const g of [band, disc]) if (g) g.classList.remove("turning"); turnTimer = null; }, 800);
+    if (playing) { newTake(); rebuildEvents(.05, true); schedule(); refresh(true); } else refresh(false);
+  }
+
+  // paused, a tap plays one lap once: the cell alone from a wedge, every voice from the
+  // block, one voice from its lane
+  function playLap(j, filter, perc = false) {
+    if (playing) stop();
+    if (j !== pos.i) jumpTo(j); else pos = { i: j, t: j === 0 ? 0 : -LEAD };
+    once = { j, filter, perc };
+    play();
+  }
+
+  // ---------------------------------------------------------------- controls
+  $("tempo").addEventListener("input", () => { $("tempo-out").textContent = "♩ = " + $("tempo").value; if (playing) rebuildEvents(); });
+  $("chime").addEventListener("click", () => { sound = "chime"; $("chime").classList.add("on"); $("glass").classList.remove("on"); });
+  $("glass").addEventListener("click", () => { sound = "glass"; $("glass").classList.add("on"); $("chime").classList.remove("on"); });
+  document.addEventListener("keydown", e => {
+    if (e.target.tagName === "INPUT" || e.target.tagName === "BUTTON") return;
+    if (e.key === " ") { e.preventDefault(); playing ? stop() : play(); }
+  });
+
+  // ---------------------------------------------------------------- example performances
+  for (const c of (window.CLIPS || [])) {
+    const a = document.createElement("a");
+    a.className = "card"; a.href = c.url; a.target = "_blank"; a.rel = "noopener";
+    a.innerHTML = `<img src="${c.thumb}" alt=""><div class="body"><p class="title"></p><p class="chan"></p><p class="desc"></p>${c.chapters.length ? '<p class="chap"></p>' : ""}</div>`;
+    a.querySelector(".title").textContent = c.title;
+    a.querySelector(".chan").textContent = c.channel;
+    a.querySelector(".desc").textContent = c.blurb;
+    if (c.chapters.length) a.querySelector(".chap").textContent = c.chapters.map(([t, n]) => `${t} ${n}`).join(" · ");
+    $("cards").appendChild(a);
+  }
+
+  // a position in the hash opens the page there: #7 is the seventh slot, #7@9.5 nine and a
+  // half quarters into it
+  const m = /^#(\d+)(?:@(-?[\d.]+))?(?:&iso=(\d))?(?:&em)?(?:&click=[\w-]+)?$/.exec(location.hash);
+  if (m) { pos = { i: Math.min(20, Number(m[1])), t: m[2] !== undefined ? Number(m[2]) : 0 }; if (m[3] !== undefined) { iso = Number(m[3]); on[iso] = true; } if (/&em/.test(location.hash)) on[5] = true; }
+  buildBand();
+  refresh(true);
+  // for checking: &click=<id> in the hash clicks that element once the page is up
+  const ck = /&click=([\w-]+)/.exec(location.hash);
+  if (ck) setTimeout(() => { const e = document.getElementById(ck[1]); if (e) e.dispatchEvent(new MouseEvent("click", { bubbles: true })); }, 50);
+
+  // ---------------------------------------------------------------- the scrolled page: each passage sets the stage, and the whole page follows
+  const stageEl = $("stage"), controls = $("controls");
+  const PASSAGES = {
+    ground:     { panel: "wheel", i: 0, em: true },
+    cell:       { panel: "bands", i: 7, em: true },
+  };
+  let passage = null, whole = false, panel = "wheel";
+  // one stage, moved: beside the story it shows the wheel or the block; on the whole page, both, with the controls under them
+  function toWhole(yes) {
+    if (yes === whole) return;
+    whole = yes;
+    (yes ? $("full-main") : $("board")).appendChild(stageEl);
+    (yes ? $("full-bar") : $("g-play")).appendChild(controls);
+    stageEl.dataset.panel = yes ? "both" : panel;
+  }
+  function enter(name) {
+    if (!PASSAGES[name]) return;
+    toWhole(false);
+    if (name === passage) return;
+    passage = name;
+    const P = PASSAGES[name];
+    for (const sec of document.querySelectorAll(".story section")) sec.classList.toggle("on", sec.dataset.scene === name);
+    panel = P.panel; stageEl.dataset.panel = panel;
+    iso = null; on[5] = P.em; applySwitches();
+    if (!playing && P.i !== pos.i) jumpTo(P.i);            // a passage moves the wheel, but never interrupts the music
+  }
+  const io = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting) enter(e.target.dataset.scene); }, { rootMargin: "-45% 0px -45% 0px" });
+  for (const sec of document.querySelectorAll(".story section")) io.observe(sec);
+  const wholeIo = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting) toWhole(true); }, { threshold: .5 });
+  wholeIo.observe($("full"));
+  // a place in the hash (#7, as the talk links it) opens the whole page there; #scene=cell opens a passage, with &still to hold it
+  if (m) { $("full").scrollIntoView({ behavior: "instant" }); toWhole(true); }
+  else {
+    const want = (location.hash.match(/scene=(\w+)/) || [])[1], first = PASSAGES[want] ? want : "ground";
+    if (/still/.test(location.hash)) { io.disconnect(); wholeIo.disconnect(); }
+    else if (first !== "ground") document.querySelector(`.story section[data-scene="${first}"]`).scrollIntoView({ behavior: "instant", block: "center" });
+    enter(first);
+    if (want === "whole" && /still/.test(location.hash)) { document.querySelector(".scrolly").hidden = true; toWhole(true); }   // for checking the whole page
+  }
+});
+// the page links back to the deck, and to the slide it was opened from when the hash says
+(function backToTalk() { const f = new URLSearchParams(location.hash.slice(1)).get("from"), a = document.getElementById("to-talk"); if (f && a) a.href = "talk.html#" + f; })();
+</script>
+<script src="noselect.js?v=e60814a2"></script>
+</body>
+</html>

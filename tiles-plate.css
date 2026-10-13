@@ -1,0 +1,50 @@
+/* The girih and Penrose pages in the scrolled form: the plate's drawing, over scroll.css. The tiles, their lines,
+   the ghost that follows the pointer, the faults in red, and the few words a passage draws on the plate. The street
+   and district pages keep tiles.css. */
+:root { --outline: #c0392b; }
+.board > svg#sv { width: 100%; height: 100%; cursor: crosshair; touch-action: none; overflow: visible; }
+.board > svg#sv.panning { cursor: grabbing; }
+.tools button:disabled, .tools button:disabled:hover { color: var(--line); cursor: default; }
+.readout .bad, .readout .bad b { color: var(--emerge); }
+
+/* a tile is one shade deeper than the paper, so a gap in the assembly shows the paper through */
+.t { fill: #f0e8d0; stroke: var(--outline); stroke-opacity: .4; stroke-width: .8; stroke-linejoin: round; }
+.t.thick { fill: #e8dfc2; }
+.t.loose { fill-opacity: .55; }
+.t.doomed { fill: #f3c9c4; stroke-opacity: .9; }
+.hide-outlines .t { stroke: none; }
+.s { fill: none; stroke: var(--ink); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.s.mark { stroke-width: .8; stroke-opacity: .8; }
+.hide-straps .s { display: none; }
+.openmark { stroke: var(--outline); stroke-opacity: .55; stroke-width: .8; stroke-dasharray: 3 2.4; stroke-linecap: round; pointer-events: none; }
+.hide-outlines .openmark { stroke: transparent; }
+.hole { fill: var(--emerge); opacity: .85; pointer-events: none; }
+.stranded { stroke: var(--emerge); stroke-width: 2.4; stroke-linecap: round; opacity: .8; pointer-events: none; }
+.ghost { fill: var(--warm); fill-opacity: .1; stroke: var(--warm); stroke-width: 1.1; stroke-dasharray: 3.5 2.5; stroke-linejoin: round; pointer-events: none; }
+.preview { fill: none; stroke: var(--warm); stroke-width: 1; stroke-dasharray: 3 2.5; stroke-linejoin: round; pointer-events: none; }
+/* deflating and inflating cross-fade: the old tiles linger and fade, the new ones arrive */
+.fading { animation: fadeout 1s ease forwards; pointer-events: none; }
+.arriving #tiles .t, .arriving #tiles .s { animation: fadein 1s ease; }
+@keyframes fadeout { from { opacity: 1; } to { opacity: 0; } }
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .fading, .arriving #tiles .t, .arriving #tiles .s { animation: none; } .fading { display: none; } }
+.ghost-s { fill: none; stroke: var(--warm); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; opacity: .85; pointer-events: none; }
+.ghost-s.mark { stroke-width: .8; }
+.ghost.copy { fill-opacity: .06; stroke-opacity: .5; }
+.ghost-s.copy { opacity: .35; }
+.ghost.bad { fill: var(--emerge); stroke: var(--emerge); }
+.ghost-s.bad { stroke: var(--emerge); }
+.ghost.offer { fill: var(--grey); stroke: var(--grey); }
+.ghost-s.offer { stroke: var(--grey); }
+.hide-straps .ghost-s { display: none; }
+.ghost-label { font-family: var(--caps); font-size: 8px; letter-spacing: .1em; text-transform: uppercase; fill: var(--muted); pointer-events: none; }
+.target { stroke: var(--warm); stroke-width: 3; stroke-linecap: round; pointer-events: none; }
+.target.bad { stroke: var(--emerge); }
+.hole.soon { fill: none; stroke: var(--emerge); stroke-width: 1.4; }
+.empty { font-family: var(--caps); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; fill: var(--line); pointer-events: none; }
+
+/* what a passage draws over its plate: a few words, a symmetry, the larger tile of the Topkapi scroll */
+.overlay { pointer-events: none; }
+.fk { font-family: var(--caps); letter-spacing: .12em; text-transform: uppercase; fill: var(--muted); }
+.sym { stroke: var(--grey); stroke-width: 1; stroke-dasharray: 3 3; }
+.bigtile { fill: none; stroke: var(--emerge); stroke-width: 2.2; stroke-linejoin: round; opacity: .8; }
