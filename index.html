@@ -6,8 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Unfolding Urbanism</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
-<link rel="stylesheet" href="top.css?v=9f1ed714">
-<link rel="stylesheet" href="scroll.css?v=da4efe7e">
+<link rel="stylesheet" href="top.css?v=8b1863cf">
+<link rel="stylesheet" href="scroll.css?v=6bdfeb6b">
 <style>
   :root { --tile: #f0e8d0; }   /* the wall's tiles, one shade deeper than the paper */
   /* the overview: the presentation as a short story, a few sentences a passage, and a picture held beside it. A picture
@@ -81,10 +81,13 @@
   .board svg.loop text { font-family: var(--caps); font-size: 6px; letter-spacing: .1em; text-transform: uppercase; fill: var(--muted); }
   .tocome { width: min(100%, 520px); aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; border: 1px dashed var(--line);
             font-family: var(--caps); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--grey); }
-  /* the opening picture, a girih wall and the moves played on it (girih-wall.js): the tiles one shade deeper than the paper, and their
-     lines, which take the colour the script gives each tile for its age. The two rules name no ancestor, since a rule that does is not
-     applied to a shape drawn through a use element. The wall keeps clear of the count at its right */
-  .board svg.wall { display: block; width: calc(100% - 80px); height: calc(100% - 72px); margin-right: 80px; overflow: visible; color: var(--ink); }
+  /* the opening picture: the title on a split-flap board (solari-live.js), two rows of drums */
+  .board svg.solari-title { display: block; width: min(100%, 784px); }
+  .story section#top p.lead { font-size: 28px; line-height: 36px; }
+  @media (max-width: 900px) { .board figure[data-for="open"] { justify-content: flex-end; padding-bottom: 24px; } .story section#top { min-height: 0; justify-content: flex-start; padding-top: 24px; } }   /* on a phone the title board sits over the lead, and the lead follows it at once */
+  /* the girih play beside the girih case (girih-wall.js): the tiles one shade deeper than the paper, and their lines, which take
+     the colour the script gives each tile for its age. The two rules name no ancestor, since a rule that does is not applied to a
+     shape drawn through a use element */
   .wall-tile { stroke-linejoin: round; }
   .wall-line { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
   /* the fill of the tiles and the width of the lines are set on their layers, so that the script can swell a fresh tile's lines
@@ -98,7 +101,7 @@
   .board svg.penrose-patch { display: block; width: min(100%, 520px); aspect-ratio: 1; margin-bottom: 24px; overflow: visible; }
   .penrose-patch .pt { fill: var(--tile); stroke: var(--ink); stroke-width: 1; stroke-linejoin: round; }
   .board svg.solari-patch { display: block; width: min(100%, 760px); margin-bottom: 24px; }
-  .solari-glyph { font-family: 'IBM Plex Sans Condensed', 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 19px; font-weight: 500; fill: #f1e8d0; }
+  .solari-glyph { font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 19px; font-weight: 500; fill: var(--paper); }
   .board svg.loom-patch { display: block; width: min(100%, 640px); margin-bottom: 24px; }
   .board svg.lattice-patch { display: block; width: min(100%, 720px); margin-bottom: 24px; }
   .truchet-spin { transform-box: fill-box; transform-origin: center; }
@@ -114,24 +117,6 @@
   .plates a { display: block; font-family: var(--sans); font-size: 13px; font-style: normal; color: var(--muted); text-decoration: none; }
   @media (hover: hover) { .plates a:hover { color: var(--ink); } }
   @media (max-width: 900px) { .plates { gap: 8px; } .plates p { font-size: 13px; } .plates a { font-size: 12px; } }
-  /* the count at the right of the wall: the five tiles, each with the number of it in the wall. Every tile has a row of one height,
-     so the numbers stand at equal steps. It is spaced on the pages' unit of 8px, and the numbers are in the face the scrolled pages
-     use for counts (notes/design-principles.md). It is out of sight on the first passage, where the wall is still, and comes into
-     view when the moves begin */
-  .wall-count { position: absolute; right: -24px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; opacity: 0; transition: opacity .8s ease;
-                font-family: var(--sans); font-size: 16px; font-weight: 500; line-height: 24px; color: var(--ink); font-variant-numeric: tabular-nums; }
-  .wall-count.on { opacity: 1; }
-  /* what the wall is doing, and where its tiles come from, under it: two captions in one place, the still wall's on the first
-     passage and the played wall's after it, crossed over by girih-wall.js as the reader scrolls */
-  .board figcaption.wall-caption { display: grid; margin: 16px 80px 0 0; max-width: 560px; text-align: center; line-height: 1.5; }
-  .board figcaption.wall-caption span { grid-area: 1 / 1; opacity: 0; transition: opacity .8s ease; }
-  .board figcaption.wall-caption span.on { opacity: 1; }
-  .wall-count div { display: grid; grid-template-columns: 64px 40px; height: 56px; align-items: center; }
-  .wall-count svg { justify-self: center; overflow: visible; }
-  .wall-count polygon { fill: var(--tile); }
-  .wall-count path { fill: none; stroke: currentColor; stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; }
-  .wall-count span { text-align: right; }
-  @media (max-width: 900px) { .board svg.wall { width: 100%; margin-right: 0; } .wall-count { display: none; } }
   /* the eight pages at a glance */
   .sheet { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px 16px; width: min(100%, 860px); }
   .sheet a { display: block; text-align: center; text-decoration: none; color: var(--muted); font-family: var(--caps); font-size: 12px; letter-spacing: .18em; text-transform: uppercase; }
@@ -153,15 +138,14 @@
 <main class="scrolly">
   <div class="story">
     <section data-scene="open" data-fig="open" id="top">
-      <h1>Unfolding Urbanism</h1>
-      <p class="lead">Cities are spaces of rich potential, webs of interdependence and exchange of every kind, social, economic, and more. The web is so rich and so dynamic that no one can predict it in full. The static master plan imposes a rigid order that shuts this space of potential down. So we ask how to act in the city without breaking it with static interventions, how not to be heavy-handed and wipe out the pedestrian scale, and how to do this at all when the human mind cannot take in the full range of a city&#x27;s dynamics.</p>
-      <p>We propose that history offers a way, which is to treat the city as a pattern, a template, a substrate. That keeps the rich potential of a continuous fabric open while staying simple enough for people to engage with it, with intention.</p>
-      <p>What follows explores how art, architecture, music, and towns have done this, with simple, modular patterns that are compatible with rich, emergent complexity.</p>
+      <p class="lead">A city is a web of exchange, social, economic, and of every other kind, more complex than we can describe or predict. When people have acted on it with intent, they have often damaged its fabric, especially at the pedestrian scale, and left it less able to carry the rich potential of interactions that unfold as a process and cannot be optimised as a static solution in advance. The question becomes how to act with intent while preserving this rich and complex fabric and its future unfolding, both at the pedestrian scale and at the wider, emergent scale.</p>
       <p class="cue">Scroll</p>
     </section>
-    <section data-scene="process" data-fig="open">
+    <section data-scene="process" data-fig="girih">
       <h2>The city as process</h2>
-      <p class="lead">Cities are accretions of process, knitted together as they unfold across space and time, congealing and dissolving by turns. Unfolding urbanism works with that rhythm.</p>
+      <p class="lead">The answer history offers is a pattern, modular and iterable, simple enough for anyone to use and cohesive enough not to interfere with the city’s wider dynamics.</p>
+      <p>Cities are accretions of process, knitted together as they unfold across space and time, congealing and dissolving by turns. Unfolding urbanism works with that rhythm.</p>
+      <p>The pages that follow trace that idea through art, architecture, music, and towns, where such patterns have carried rich and emergent complexity.</p>
       <p>Its elements are modular patterns, designed for the pedestrian scale. Small and composable, they let a designer intervene locally, with a light touch. Used incrementally, they allow intervention to proceed one street or square at a time, answering to the larger unfolding of the city as it goes.</p>
       <p>The simplicity is deceptive. Because the approach is modular and incremental, it can respond as the rhythms of the city rise and fall. Heavier-handed approaches interfere with those rhythms. They are brittle for that reason, and costly, and when they fail the damage can be extensive and can last for generations.</p>
       <p>The unfolding city celebrates process, not automation. It values human engagement over decisions driven by algorithm, and uses technology in its service. It relies on the city’s own intelligence, which rests on feedback and small steps, and which cannot be replaced by an external or automated process.</p>
@@ -321,7 +305,7 @@
 
   <div class="hold">
     <div class="board" id="board">
-      <figure data-for="open"><svg class="wall" id="wall" role="img" aria-label="Girih lines grown from one decagon"></svg><div class="wall-count" id="wall-count" aria-hidden="true"></div><figcaption class="wall-caption"><span class="on">A wall of girih tiles, the five shapes laid out from one decagon at the centre. After Lu and Steinhardt, 2007.</span><span>Variations on girih tiling, showing how a set of simple, modular patterns can respond and adapt to local change while remaining an integral part of a larger, more complex fabric.</span></figcaption></figure>
+      <figure data-for="open" class="crisp"><svg class="solari-title" role="img" aria-label="Unfolding Urbanism on a split-flap board, its first word turning through other words for the city"></svg></figure>
       <figure data-for="static"><div class="plates"><div><img src="images/overview/static-axis.webp" alt="The Monumental Axis of Brasília, laid out to Lúcio Costa&#x27;s plan of 1957, photographed in 2015." width="960" height="720" decoding="async" loading="lazy"><p>The Monumental Axis of Brasília, laid out to Lúcio Costa's plan of 1957, photographed in 2015.<a href="https://commons.wikimedia.org/wiki/File:Fotos_produzidas_pelo_Senado_(23427572015).jpg">Ana Volpe, Agência Senado. CC BY 2.0. Cropped and toned.</a></p></div><div><img src="images/overview/static-interchange.webp" alt="The interchange of the San Diego and Santa Monica freeways, Los Angeles, August 1964." width="960" height="720" decoding="async" loading="lazy"><p>The interchange of the San Diego and Santa Monica freeways, Los Angeles, August 1964.<a href="https://commons.wikimedia.org/wiki/File:San_Diego-Santa_Monica_Freeway_interchange.jpg">Los Angeles Times, UCLA Library. CC BY 4.0. Cropped and toned.</a></p></div><div><img src="images/overview/static-blocks.webp" alt="The Pruitt–Igoe housing complex, St Louis, photographed between 1963 and 1972." width="960" height="720" decoding="async" loading="lazy"><p>The Pruitt–Igoe housing complex, St Louis, photographed between 1963 and 1972.<a href="https://commons.wikimedia.org/wiki/File:Pruitt-igoeUSGS02.jpg">US Geological Survey. Public domain.</a></p></div><div><img src="images/overview/static-cityhall.webp" alt="Boston City Hall (dedicated in 1969) and its plaza, photographed in 2019. The Government Center it belongs to replaced more than 50 acres of the Scollay Square district." width="960" height="720" decoding="async" loading="lazy"><p>Boston City Hall (dedicated in 1969) and its plaza, photographed in 2019. The Government Center it belongs to replaced more than 50 acres of the Scollay Square district.<a href="https://commons.wikimedia.org/wiki/File:Boston_City_Hall_Plaza_2019_P1020783.jpg">NewtonCourt. CC BY-SA 4.0. Cropped and toned.</a></p></div></div></figure>
       <figure data-for="alexander" class="drawn"><svg class="lattice-patch" role="img" aria-label="A tree and a web of overlapping groups, drawn on the same six parts; in both a group forms or dissolves every few seconds, the left kept a tree and the right free to overlap, the web filling to all fifty-seven subsets while the tree fills at five, and under each a count of the subsets it holds of the most its kind can hold"></svg><figcaption>Left, a tree: each group of parts sits wholly inside one larger group, as in Alexander’s “artificial cities”, laid out for visual order or engineered as systems. Right, a semilattice: groups overlap, so one part can belong to several, as in his “natural cities”, grown over time. Alexander noted that on twenty parts a tree allows at most nineteen groupings, and a semilattice more than a million. After Christopher Alexander, A City Is Not a Tree, 1965, redrawn.</figcaption></figure>
       <figure data-for="mind" class="drawn"><svg class="dots" viewBox="0 0 320 60" role="img" aria-label="Four dots"><circle cx="40" cy="30" r="11"/><circle cx="120" cy="30" r="11"/><circle cx="200" cy="30" r="11"/><circle cx="280" cy="30" r="11"/></svg><figcaption>Four: what the mind holds at once (Cowan, 2001). </figcaption></figure>
@@ -401,7 +385,7 @@ enter(first);
 <script src="girih-wall.js?v=352eecb5"></script>
 <script src="truchet-live.js?v=0a92569e"></script>
 <script src="penrose-live.js?v=d8417084"></script>
-<script src="solari-live.js?v=d8699146"></script>
+<script src="solari-live.js?v=e38a8fd3"></script>
 <script src="loom-live.js?v=b60c045f"></script>
 <script src="lattice-live.js?v=88a8cc31"></script>
 <script src="live-figure.js?v=f64fa480"></script>

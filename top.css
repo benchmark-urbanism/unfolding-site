@@ -1,15 +1,14 @@
 /* The top line of every page: the page's name at the left and the pages at the right, in small capitals. It is the
    same on every page, and no control sits in it; a page's own controls sit on the page. The scrolled pages hold it
    fixed over the story (scroll.css); the other pages keep it at their head. The talk has its own line. */
-.top { display: flex; align-items: baseline; gap: 24px; padding: 16px 32px 24px; border: 0; }
+.top { display: flex; align-items: baseline; gap: 24px; padding: 16px 56px 24px; border: 0; }
 .top .mark { font-family: Cinzel, "Trajan Pro", serif; font-size: 13px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase;
              color: var(--ink, #1c1a17); text-decoration: none; white-space: nowrap; }
-/* while the site is a draft: a small inverted tag after the page's name, on every page */
-.top .mark::after { content: "Draft version"; display: inline-block; margin-left: 12px; padding: 3px 7px 2px; font-size: 9px; letter-spacing: .16em;
-                    color: var(--paper, #f6f0dc); background: var(--ink, #1c1a17); border-radius: 2px; vertical-align: 2px; }
+/* while the site is a draft: the word after the page's name, in the nav's grey, on every page */
+.top .mark::after { content: "Draft"; margin-left: 16px; font-size: 11px; letter-spacing: .16em; color: var(--grey, #9b968e); }
 /* the rights line at the foot of every page */
 .rights { margin: 48px 0 0; font-family: Cinzel, "Trajan Pro", serif; font-size: 10px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--grey, #9b968e); }
-.top .nav { margin-left: auto; display: flex; gap: 18px; flex-wrap: wrap; justify-content: flex-end; font-family: Cinzel, "Trajan Pro", serif;
+.top .nav { margin-left: auto; display: flex; gap: 16px; flex-wrap: wrap; justify-content: flex-end; font-family: Cinzel, "Trajan Pro", serif;
             font-size: 11px; font-weight: 500; letter-spacing: .16em; line-height: 1.4; text-transform: uppercase; }
 .top .nav a { color: var(--muted, #6f6a60); text-decoration: none; padding-bottom: 2px; border-bottom: 1px solid transparent; }
 .top .nav a.here { color: var(--ink, #1c1a17); border-bottom-color: var(--ink, #1c1a17); }
@@ -31,6 +30,7 @@ p.back.corner { position: absolute; left: 0; bottom: 0; margin: 0; }
 .page > p.back.corner { left: 24px; bottom: 16px; }
 @media (max-width: 900px) {
   .top { padding: 12px 16px 18px; }
+  .top .mark::after { display: none; }
   .top .nav a:not(.home) { display: none; }
   p.back.corner, .page > p.back.corner { position: static; margin: 16px 0 0; text-align: center; }
 }

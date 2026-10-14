@@ -17,53 +17,60 @@ const PASSAGES = [
 const COLS = 42, ROWS = 7, STEP = 6000, REST = 2;   // drums a row, rows, a line's time (the drums take up to three seconds of it, and the line then stands to be read), and blank rows between passages
 const BEAT = 60;                                    // milliseconds a flap: a drum runs through all its characters in about two and a half seconds
 const W = 22, H = 30, GX = 4, GY = 6;
-const DARK = "#2b2825", DARKER = "#1e1b19", LINE = "rgba(0,0,0,.55)";
+const DARK = "#1c1a17", DARKER = "rgba(0,0,0,.35)", LINE = "rgba(0,0,0,.55)";   // the drums in the pages' ink, the falling leaf a shade of it
 const NS = "http://www.w3.org/2000/svg";
 const el = (name, at) => { const e = document.createElementNS(NS, name); for (const k in at) e.setAttribute(k, at[k]); return e; };
 const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pad = s => (s + " ".repeat(COLS)).slice(0, COLS);
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ,.!-";   // the characters on a drum, in the order the drum runs through them
 
+// a drum of width w and height h: its dark face, its character, the leaf that falls across it on each flap, and the hinge
+// line. The patch's drums take their glyph from the page's style; a larger drum is given its glyph size, so the capitals
+// fill half the drum and the hinge crosses their middle
+function drum(sv, x, y, w = W, h = H, glyph = 0) {
+  const g = sv.appendChild(el("g", { transform: `translate(${x} ${y})` }));
+  g.appendChild(el("rect", { width: w, height: h, rx: 3, fill: DARK }));
+  const t = g.appendChild(el("text", { x: w / 2, y: glyph ? h / 2 + glyph * .36 : h / 2 + 6, "text-anchor": "middle", class: "solari-glyph" }));
+  if (glyph) t.style.cssText = `font-size: ${glyph}px; font-weight: 600`;
+  const leaf = g.appendChild(el("rect", { width: w, height: h / 2, rx: 3, fill: DARKER, opacity: 0 }));
+  leaf.style.transformOrigin = `${w / 2}px ${h / 2}px`;
+  g.appendChild(el("line", { x1: 0, y1: h / 2, x2: w, y2: h / 2, stroke: LINE, "stroke-width": 1 }));
+  return { t, leaf, ch: " ", pos: CHARS.indexOf(" "), target: CHARS.indexOf(" "), timer: null };
+}
+// one flap: the drum turns to its next character, with a hard stop and no easing, and turns again after a beat
+// unless that character is the one wanted
+function flip(cell) {
+  if (cell.pos === cell.target) { cell.timer = null; return; }
+  cell.pos = (cell.pos + 1) % CHARS.length;
+  cell.t.textContent = CHARS[cell.pos].trim();
+  cell.leaf.animate({ opacity: [1, 1, 0], transform: ["scaleY(1)", "scaleY(.15)", "scaleY(0)"] }, { duration: BEAT - 10, easing: "steps(3, end)", fill: "none" });
+  cell.timer = cell.pos === cell.target ? null : setTimeout(() => flip(cell), BEAT);
+}
+// the board takes a set of rows: every drum whose character changes is given the one wanted, and sets off after the
+// ripple unless it is still running, in which case it carries on round to the new one
+function paint(cells, rows, cols, animate) {
+  rows.forEach((row, r) => { for (let c = 0; c < cols; c++) {
+    const cell = cells[r * cols + c], ch = row[c];
+    if (cell.ch === ch) continue;
+    cell.ch = ch;
+    const want = CHARS.indexOf(ch);
+    if (!animate || want < 0) { cell.t.textContent = ch.trim(); if (want >= 0) cell.pos = want; cell.target = cell.pos; continue; }
+    cell.target = want;
+    if (!cell.timer) cell.timer = setTimeout(() => flip(cell), c * 12 + r * 8);
+  } });
+}
+
 for (const sv of document.querySelectorAll("svg.solari-patch")) run(sv);
 function run(sv) {
   const fig = sv.closest("figure");
   sv.setAttribute("viewBox", `0 0 ${COLS * (W + GX) - GX} ${ROWS * (H + GY) - GY}`);
   const cells = [];
-  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
-    const g = sv.appendChild(el("g", { transform: `translate(${c * (W + GX)} ${r * (H + GY)})` }));
-    g.appendChild(el("rect", { width: W, height: H, rx: 3, fill: DARK }));
-    const t = g.appendChild(el("text", { x: W / 2, y: H / 2 + 6, "text-anchor": "middle", class: "solari-glyph" }));
-    const leaf = g.appendChild(el("rect", { width: W, height: H / 2, rx: 3, fill: DARKER, opacity: 0 }));
-    leaf.style.transformOrigin = `${W / 2}px ${H / 2}px`;
-    g.appendChild(el("line", { x1: 0, y1: H / 2, x2: W, y2: H / 2, stroke: LINE, "stroke-width": 1 }));
-    cells.push({ t, leaf, ch: " ", pos: CHARS.indexOf(" "), target: CHARS.indexOf(" "), timer: null });
-  }
-  // one flap: the drum turns to its next character, with a hard stop and no easing, and turns again after a beat
-  // unless that character is the one wanted
-  function flip(cell) {
-    if (cell.pos === cell.target) { cell.timer = null; return; }
-    cell.pos = (cell.pos + 1) % CHARS.length;
-    cell.t.textContent = CHARS[cell.pos].trim();
-    cell.leaf.animate({ opacity: [1, 1, 0], transform: ["scaleY(1)", "scaleY(.15)", "scaleY(0)"] }, { duration: BEAT - 10, easing: "steps(3, end)", fill: "none" });
-    cell.timer = cell.pos === cell.target ? null : setTimeout(() => flip(cell), BEAT);
-  }
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) cells.push(drum(sv, c * (W + GX), r * (H + GY)));
   // the lines, in order, with blank rows between passages, taken round and round
   const script = [];
   for (const p of PASSAGES) { for (const l of p) script.push(pad(l)); for (let i = 0; i < REST; i++) script.push(pad("")); }
   let rows = Array.from({ length: ROWS }, () => pad("")), at = 0;
-  function show(animate) {
-    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
-      const cell = cells[r * COLS + c], ch = rows[r][c];
-      if (cell.ch === ch) continue;
-      cell.ch = ch;
-      const want = CHARS.indexOf(ch);
-      if (!animate || want < 0) { cell.t.textContent = ch.trim(); if (want >= 0) cell.pos = want; cell.target = cell.pos; continue; }
-      // the drum is given the character wanted. A drum still running towards the last one carries on round to this
-      // one; a drum at rest sets off after the ripple
-      cell.target = want;
-      if (!cell.timer) cell.timer = setTimeout(() => flip(cell), c * 12 + r * 8);
-    }
-  }
+  const show = animate => paint(cells, rows, COLS, animate);
   if (still) { rows = PASSAGES[0].map(pad).concat(rows).slice(0, ROWS); show(false); return; }
   let timer = null;
   function tick() {
@@ -73,6 +80,31 @@ function run(sv) {
     timer = setTimeout(tick, STEP);
   }
   const start = () => { if (!timer && (!fig || fig.classList.contains("on"))) timer = setTimeout(tick, 600); };
+  new MutationObserver(start).observe(fig || sv, { attributes: true, attributeFilter: ["class"] });
+  start();
+}
+
+// the title board on the overview's landing: two rows, UNFOLDING over URBANISM, the top row turning every few seconds
+// to another word for the city, and back, while the landing is in view. With motion turned down it stands on the first
+const WORDS = ["UNFOLDING", "MODULAR", "GENERATIVE", "ITERABLE", "EMERGENT", "ADAPTABLE", "SCALABLE", "TESTABLE"], TCOLS = 10, TROWS = 2, TSTEP = 4000;
+const TW = 36, TH = 50, TG = 4;   // the title's drums, larger than the patch's, on one gap both ways so the two rows read as one board
+for (const sv of document.querySelectorAll("svg.solari-title")) title(sv);
+function title(sv) {
+  const fig = sv.closest("figure"), padT = s => (s + " ".repeat(TCOLS)).slice(0, TCOLS);
+  sv.setAttribute("viewBox", `0 0 ${TCOLS * (TW + TG) - TG} ${TROWS * (TH + TG) - TG}`);
+  const cells = [];
+  for (let r = 0; r < TROWS; r++) for (let c = 0; c < TCOLS; c++) cells.push(drum(sv, c * (TW + TG), r * (TH + TG), TW, TH, TH * .72));
+  const rows = [padT(WORDS[0]), padT("URBANISM")];
+  paint(cells, rows, TCOLS, false);
+  if (still) return;
+  let timer = null, word = 0;
+  function tick() {
+    if (fig && !fig.classList.contains("on")) { timer = null; return; }
+    let next; do next = Math.floor(Math.random() * WORDS.length); while (next === word);
+    word = next; rows[0] = padT(WORDS[word]); paint(cells, rows, TCOLS, true);
+    timer = setTimeout(tick, TSTEP);
+  }
+  const start = () => { if (!timer && (!fig || fig.classList.contains("on"))) timer = setTimeout(tick, TSTEP); };
   new MutationObserver(start).observe(fig || sv, { attributes: true, attributeFilter: ["class"] });
   start();
 }
