@@ -86,7 +86,7 @@ function run(sv) {
 
 // the title board on the overview's landing: two rows, UNFOLDING over URBANISM, the top row turning every few seconds
 // to another word for the city, and back, while the landing is in view. With motion turned down it stands on the first
-const WORDS = ["UNFOLDING", "MODULAR", "GENERATIVE", "ITERABLE", "EMERGENT", "ADAPTABLE", "SCALABLE", "TESTABLE"], TCOLS = 10, TROWS = 2, TSTEP = 4000;
+const WORDS = ["UNFOLDING", "MODULAR", "COMPOSABLE", "GENERATIVE", "ITERABLE", "EMERGENT", "ADAPTIVE", "SCALABLE", "TESTABLE"], TCOLS = 10, TROWS = 2, TSTEP = 4000;
 const TW = 36, TH = 50, TG = 4;   // the title's drums, larger than the patch's, on one gap both ways so the two rows read as one board
 for (const sv of document.querySelectorAll("svg.solari-title")) title(sv);
 function title(sv) {

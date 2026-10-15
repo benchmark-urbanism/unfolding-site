@@ -1,0 +1,1484 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The game</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,500;1,500&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<link rel="stylesheet" href="top.css?v=b62063af">
+<style>
+  :root { --paper: #f6f0dc; --plate: #f9f4e5; --ink: #1c1a17; --muted: #6f6a60; --line: #cfc7ad; --grey: #9b968e; --warm: #d98c3a; --red: #e01b24; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Cormorant Garamond", Garamond, serif; font-size: 15px; }
+  .page { padding: 16px 24px 0; }
+  .tag { margin: 0; padding-bottom: 8px; border-bottom: 1px solid var(--ink); font-style: italic; color: var(--muted); }
+  /* while the game is in development: the ground, the cards, and the board can be looked at on their tabs, and nothing
+     on them is played; the links in the plate still work */
+  body.preview .work { pointer-events: none; }
+  body.preview .work a { pointer-events: auto; }
+  body.preview .keys, body.preview .verbs, body.preview .bar, body.preview .read { display: none; }
+  .page > .rights { margin: 48px 0 24px; }
+  .tabs { display: flex; gap: 24px; padding: 8px 0 0; font-family: Cinzel, serif; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
+  .tabs button { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; color: var(--muted); }
+  .tabs button:hover, .tabs button.on { color: var(--ink); }
+  .tabs .ring { width: 7px; height: 7px; border: 1px solid currentColor; border-radius: 50%; box-sizing: border-box; }
+  .tabs button.on .ring { background: currentColor; }
+  body:not([data-tab="cards"]) .cards-only { display: none; }
+  body:not([data-tab="board"]) .board-only { display: none; }
+  body:not([data-tab="ground"]) .ground-only { display: none; }
+  .choices { display: flex; flex-direction: column; gap: 8px; padding: 0 0 4px 4px; font-family: Cinzel, serif; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
+  .choices button { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; color: var(--muted); }
+  .choices button:hover, .choices button.on { color: var(--ink); }
+  .choices .ring { width: 7px; height: 7px; border: 1px solid currentColor; border-radius: 50%; box-sizing: border-box; }
+  .choices button.on .ring { background: currentColor; }
+  #groundwrap { width: min(100%, 1100px); margin: 0 auto; }
+  #groundwrap svg { display: block; width: 100%; overflow: visible; }
+  #groundwrap [data-cell] { cursor: pointer; }
+  .counts-g { padding: 8px 4px 0; font-size: 14px; color: var(--muted); line-height: 1.5; }
+  .counts-g b { font-family: "IBM Plex Sans", sans-serif; font-weight: 500; color: var(--ink); }
+  #boardwrap { position: relative; width: min(100%, 1320px); margin: 0 auto; }
+  #boardwrap canvas { display: block; width: 100%; }
+  #boardwrap svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; }
+  #boardwrap svg [data-seg] { cursor: pointer; }
+  body[data-tab="board"] .work { grid-template-columns: 232px 1px 1fr; }
+  .sidedeck .sc { padding: 6px 4px 8px 0; cursor: pointer; border-top: 1px solid rgba(207,199,173,.55); border-radius: 4px; }
+  .sidedeck .sc:last-child { border-bottom: 1px solid rgba(207,199,173,.55); }
+  .sidedeck .sch { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+  .sidedeck .letter { font-family: Cinzel, serif; font-size: 13px; color: var(--ink); }
+  .sidedeck .name { font-family: Cinzel, serif; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); }
+  .sidedeck .w { margin-left: auto; font-size: 12px; font-style: italic; color: var(--muted); white-space: nowrap; }
+  .sidedeck svg { display: block; width: 100%; overflow: visible; }
+  .sidedeck .sc.sel { background: rgba(217,140,58,.06); }
+  .sidedeck .sc.sel .name, .sidedeck .sc.sel .letter { color: var(--warm); }
+  .sidedeck .sc.on { outline: 1px dashed var(--warm); outline-offset: -2px; background: rgba(217,140,58,.08); }
+  .sidedeck .sc.on .name, .sidedeck .sc.on .letter { color: var(--warm); }
+  #boardwrap canvas + canvas { position: absolute; left: 0; top: 0; pointer-events: none; }
+  .bar { display: flex; gap: 24px; align-items: center; width: min(100%, 1320px); margin: 12px auto 0; font-family: Cinzel, serif; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; flex-wrap: wrap; }
+  .bar button { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; color: var(--muted); }
+  .bar button:hover, .bar button.on { color: var(--ink); }
+  .bar button[hidden] { display: none; }
+  .bar .ring { width: 7px; height: 7px; border: 1px solid currentColor; border-radius: 50%; box-sizing: border-box; }
+  .bar .glyph { fill: currentColor; }
+  .bar .sep { width: 1px; height: 14px; background: var(--line); }
+  .bar .count { font-family: "IBM Plex Sans", sans-serif; font-size: 12px; letter-spacing: 0; text-transform: none; color: var(--muted); }
+  .record { display: block; width: min(100%, 1320px); margin: 24px auto 0; overflow: visible; }
+  .bar .count#bturn { color: var(--warm); }
+  .bar .count#bturn:empty { display: none; }
+  .quest { width: min(100%, 1320px); margin: 12px auto 0; font-size: 17px; line-height: 1.35; }
+  .quest .qn { font-family: Cinzel, serif; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); margin-right: 6px; }
+  .verdict { width: min(100%, 1320px); margin: 12px auto 0; padding: 12px 16px; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--line); font-size: 17px; line-height: 1.4; }
+  .verdict p { margin: 0; }
+  .verdict .vt { font-family: Cinzel, serif; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 6px; }
+  .verdict .notmet { color: var(--red); }
+  .verdict .vb, .verdict .vg { color: var(--muted); font-style: italic; }
+  .verdict[hidden] { display: none; }
+  .work { display: grid; grid-template-columns: 168px 1px 1fr; column-gap: 24px; margin-top: 16px; min-height: calc(100vh - 90px); }
+  .rule { background: var(--line); }
+  .plate { background: var(--plate); padding: 24px 24px 48px; }
+  .lab { font-family: Cinzel, serif; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin: 0 0 8px; }
+  .kit { display: grid; grid-template-columns: 1fr; border-bottom: 1px solid rgba(207,199,173,.55); }
+  .kit .cell { position: relative; display: grid; grid-template-columns: 52px 1fr; column-gap: 8px; align-items: center; padding: 6px 4px 6px 0; cursor: pointer; border-top: 1px solid rgba(207,199,173,.55); }
+  .kit .cell svg { display: block; width: 52px; height: 44px; overflow: visible; }
+  .kit .cell .name { display: block; font-family: Cinzel, serif; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); }
+  .kit .cell .gloss { display: block; font-size: 12px; font-style: italic; color: var(--muted); line-height: 14px; }
+  .kit .cell .key { position: absolute; top: 5px; right: 4px; font-family: "IBM Plex Sans", sans-serif; font-size: 9px; color: var(--grey); }
+  .kit .cell.on { outline: 1px dashed var(--warm); outline-offset: -3px; background: rgba(217,140,58,.08); }
+  .kit .cell.on .name { color: var(--warm); }
+  .verbs { margin-top: 24px; border-top: 1px solid var(--line); }
+  .verbs .verb { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 6px 2px; cursor: pointer; }
+  .verbs .verb .w { font-family: Cinzel, serif; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
+  .verbs .verb .k, .keys { font-family: "IBM Plex Sans", sans-serif; font-size: 10px; color: var(--grey); }
+  .verbs .gloss { font-size: 12px; font-style: italic; color: var(--muted); padding: 0 6px 8px; border-bottom: 1px solid var(--line); margin: 0; }
+  .keys { margin-top: 24px; line-height: 16px; }
+  .counts-lab, .kit-lab { margin-top: 24px; }
+  .examples { margin: 0; padding: 0 6px; display: flex; gap: 16px; flex-wrap: wrap; font-size: 14px; }
+  .examples a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--line); }
+  .examples a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+  .lib-gloss { font-size: 12px; font-style: italic; color: var(--muted); padding: 4px 6px 0; margin: 0; }
+  .counts { width: min(100%, 1320px); margin: 16px auto 0; display: grid; grid-template-columns: repeat(5, 1fr); column-gap: 24px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .tile { min-width: 0; }
+  .tile .tt { font-family: Cinzel, serif; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin: 0 0 6px; }
+  .tile .fig { height: 44px; margin: 0 0 8px; }
+  .tile .fig svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .tile .vals { display: grid; grid-template-columns: auto 1fr; column-gap: 8px; row-gap: 1px; align-items: baseline; }
+  .tile.two .vals { grid-template-columns: auto 1fr auto 1fr; column-gap: 8px 8px; }
+  .tile.two .vals .w { padding-right: 12px; }
+  .tile.icons .vals { grid-template-columns: 28px auto 1fr; }
+  .tile.icons .vals svg { width: 26px; height: 26px; overflow: visible; align-self: center; }
+  .tile .n { font-family: "IBM Plex Sans", sans-serif; font-size: 15px; font-weight: 500; text-align: right; color: var(--ink); transition: color .9s ease-out; }
+  .tile .n.tick { color: var(--warm); transition: none; }
+  .tile .w { font-size: 13.5px; color: var(--muted); }
+  @media (max-width: 1200px) { .counts { grid-template-columns: repeat(3, 1fr); row-gap: 20px; } }
+  @media (max-width: 760px) { .counts { grid-template-columns: repeat(2, 1fr); } }
+  .plate .card { display: block; width: min(100%, 1320px); margin: 0 auto; overflow: visible; }
+  .plate .after { width: min(100%, 1320px); margin: 0 auto 16px; font-size: 16px; font-style: italic; color: var(--muted); line-height: 1.4; }
+  .plate .after a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--line); }
+  .plate .after a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+  .plate .record + .after, .plate .after + .record { margin-top: 24px; }
+  .plate .read { font-family: "IBM Plex Sans", sans-serif; font-size: 13px; color: var(--muted); margin: 16px auto 0; width: min(100%, 1320px); min-height: 18px; }
+  .plate .read.fault { color: var(--red); }
+  .deck { margin: 56px auto 0; width: min(100%, 1320px); }
+  .deck .deckhead { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .deck .deckhead .lab { margin: 0 0 8px; }
+  .deck .examples { padding: 0; align-items: baseline; }
+  .deck .examples .lab { margin: 0 8px 0 0; }
+  .deck .row { display: flex; gap: 24px; flex-wrap: wrap; }
+  .deck .c { flex: 1 1 300px; max-width: 370px; cursor: pointer; padding: 4px; border-radius: 6px; }
+  .deck .c.on { outline: 1px dashed var(--warm); outline-offset: -1px; background: rgba(217,140,58,.06); }
+  .deck .c svg { display: block; width: 100%; overflow: visible; }
+  .pop { animation: pop .34s cubic-bezier(.34, 1.5, .64, 1) both; transform-box: fill-box; transform-origin: 50% 100%; }
+  .pop.hang { transform-origin: 50% 0%; }
+  .out { animation: out .18s ease-in both; transform-box: fill-box; transform-origin: 50% 100%; }
+  .out.hang { transform-origin: 50% 0%; }
+  @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+  @keyframes out { to { transform: scale(0); opacity: 0; } }
+  [data-dot], [data-band], [data-door], [data-back] { cursor: pointer; }
+  text.clab { font-family: Cinzel, serif; font-weight: 500; letter-spacing: .15em; fill: var(--muted); }
+  text.num { font-family: "IBM Plex Sans", sans-serif; fill: var(--grey); }
+  text.plane { font-family: "IBM Plex Sans", sans-serif; font-weight: 500; fill: var(--grey); letter-spacing: .08em; }
+</style>
+</head>
+<body class="preview">
+<div class="page" id="top">
+  <header class="top">
+    <a class="mark" href="#top">The game</a>
+    <nav class="nav"><a class="home" href="index.html#scene=game">Overview</a></nav>
+  </header>
+  <p class="tag">Still in development, pending a playable version. The tabs show the ground, the cards, and the board. Nothing on them can be played yet.</p>
+  <div class="tabs"><button data-tab="ground"><span class="ring"></span>Ground</button><button data-tab="cards" class="on"><span class="ring"></span>Cards</button><button data-tab="board"><span class="ring"></span>Board</button></div>
+  <div class="work">
+    <div class="margin">
+      <p class="lab ground-only">Templates</p>
+      <div class="choices ground-only"><button data-template="grid"><span class="ring"></span>Grid</button><button data-template="long"><span class="ring"></span>Long blocks</button><button data-template="suburb"><span class="ring"></span>Suburb</button></div>
+      <p class="lab ground-only kit-lab">Tiles</p>
+      <div class="kit ground-only" id="gkit"></div>
+      <div class="verbs ground-only">
+        <div class="verb" id="gclear"><span class="w">Clear</span><span class="k"></span></div>
+        <p class="gloss">takes every tile off the field</p>
+      </div>
+      <div class="counts-g ground-only" id="gcounts"></div>
+      <p class="keys ground-only">1–6 a tile · X remove · Esc drop it</p>
+      <p class="lab cards-only">Pavement</p>
+      <div class="kit cards-only" id="pkit"></div>
+      <p class="lab kit-lab cards-only">Building</p>
+      <div class="kit cards-only" id="bkit"></div>
+      <p class="keys cards-only">1–9 a part &nbsp; Esc drop it</p>
+      <p class="lab board-only">The deck</p>
+      <div class="sidedeck board-only" id="sidedeck"></div>
+    </div>
+    <div class="rule"></div>
+    <div class="plate">
+      <p class="after ground-only">After the <a href="girih.html">girih tiles</a> and after <a href="https://en.wikipedia.org/wiki/Carcassonne_(board_game)">Carcassonne</a>: six tiles on one square, a line on each road edge running to the middle, road meeting road and land meeting land across the joins.</p>
+      <div id="groundwrap" class="ground-only"><svg id="groundplan"></svg></div>
+      <p class="after cards-only">After the <a href="jacquard.html">Jacquard loom</a>: a street held on a punched card, so that the card is edited and the street follows.</p>
+      <div id="card" class="cards-only"></div>
+      <div class="counts cards-only" id="counts"></div>
+      <p class="after board-only">After the loom's threading, and after the <a href="passacaglia.html">Passacaglia's ground</a>: the cards woven onto the district's streets, and the ground holding while the voices move.</p>
+      <div id="boardwrap" class="board-only"><canvas id="bcanvas"></canvas><canvas id="wcanvas"></canvas><svg id="boverlay"></svg></div>
+      <div class="bar board-only" id="bbar">
+        <button id="brun"><svg class="glyph" id="brunglyph" viewBox="0 0 10 10" width="9" height="9"><polygon points="2,1 9,5 2,9"/></svg><span id="brunword">Play</span></button>
+        <button id="bstep"><span class="ring"></span>Step</button>
+        <button id="bdone" hidden><span class="ring"></span>Done</button>
+        <button id="bagain"><span class="ring"></span>New quest</button>
+        <span class="sep"></span>
+        <button id="bedit" hidden><span class="ring"></span>Edit the card</button>
+        <span class="count" id="bturn"></span>
+        <span class="count" id="bcount"></span>
+      </div>
+      <p class="quest board-only" id="quest"></p>
+      <div class="verdict board-only" id="verdict" hidden></div>
+      <p class="read" id="read"></p>
+      <p class="after board-only">After the loom's cloth and the <a href="fugue.html">fugue's voices</a>: a row a tick, and three speeds answering each other, the walkers, the shops, and the cards.</p>
+      <svg id="record" class="record board-only"></svg>
+      <div class="deck cards-only">
+        <div class="deckhead"><p class="lab">The deck</p><p class="examples" id="examples"><span class="lab">Library</span></p></div>
+        <div class="row" id="deck"></div>
+      </div>
+    </div>
+  </div>
+  <p class="rights">Copyright Gareth Simons, 2026. Draft version.</p>
+</div>
+<script src="loom-icons.js?v=a8b64e37"></script>
+<script src="board-engine.js?v=1d102267"></script>
+<script>
+"use strict";
+// -- the block as the engine knows it: six plots of 20 m along the street, three places on each plot's frontage, five bands of
+// 3.2 m across the street with the outer two as pavements, and a row of dots along each pavement where a part can stand, one
+// to each place of the frontage
+const PLOT = 20, SEG = 6, L = PLOT * SEG, BW = 3.2, NB = 5, FACE = NB * BW, DOTS = 3, STEP = PLOT / DOTS, PLACE = PLOT / 3;
+// the plots are 10 m deep; behind them lies the backland, 24 m of it shown, gardens unless the card says otherwise
+const DEPTH = 10, BACKD = 24;
+const BACKS = {
+  gardens: { name: "Gardens", label: "GARDENS BEHIND", read: "Gardens behind the plots", fill: "#e6e9d3" },
+  park: { name: "Park", label: "PARK BEHIND", read: "A park behind the plots", fill: "#d6dfbf" },
+  carpark: { name: "Car park", label: "CAR PARK BEHIND", read: "A car park behind the plots", fill: "#ddd9d0" },
+  mall: { name: "Mall", label: "MALL BEHIND", read: "A mall behind the plots", fill: "#f0dcc2" },
+  civic: { name: "Civic", label: "CIVIC BEHIND", read: "A school or a hall behind the plots", fill: "#e3dfd8" },
+};
+const BACK_ORDER = ["gardens", "park", "carpark", "mall", "civic"];
+const USES = ["walk", "car", "bus", "bike"];
+const PARTS = [
+  { kind: "tree", name: "Tree", gloss: "shade on the pavement", take: .1 },
+  { kind: "bench", name: "Bench", gloss: "a place to stay", take: .2, wide: true },
+  { kind: "stall", name: "Stall", gloss: "sells, and draws people", take: .35, wide: true },
+  { kind: "art", name: "Artwork", gloss: "a destination", take: .15, wide: true },
+  { kind: "bay", name: "Bay", gloss: "a parking space at the kerb", take: 0, kerb: true },
+  { kind: "stop", name: "Stop", gloss: "a bus stop", take: 0 },
+  { kind: "shopfront", name: "Shopfront", gloss: "a shop in place of a home", face: true },
+  { kind: "garden", name: "Garden", gloss: "a place left unbuilt, with a tree", face: true },
+  { kind: "storey", name: "Storeys", gloss: "a plus and a minus float over each front", face: true },
+];
+const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+// storeys: the ground floor, the ones above it, and the most a front may carry
+const G0 = 3.4, SH = 3.1, MAXF = 7;
+const zTop = f => G0 + (f - 1) * SH;                 // the top of storey f, counted from one
+// the fronts: a run of places joined through their party walls is one front, with one door, one height, and one roof
+function fronts(card) {
+  const out = [];
+  for (let a = 0; a < SEG * 3;) { let b = a; while (b < SEG * 3 - 1 && card.joins[b]) b++; out.push([a, b]); a = b + 1; }
+  return out;
+}
+const runOf = (card, d) => fronts(card).find(([a, b]) => d >= a && d <= b);
+const PART = Object.fromEntries(PARTS.map(p => [p.kind, p]));
+const PAPER = "#fcf8ec", INK = "#1c1a17", MUTED = "#6f6a60", LINE = "#cfc7ad", GREY = "#9b968e", WARM = "#d98c3a", RED = "#e01b24";
+
+// -- the projection: the street along the card, the far side receding up and to the right, heights true
+const V = { yx: .32, yy: .78 };
+const PEW = (x, y, z) => [x + V.yx * y, -V.yy * y - (z || 0)];
+// a street that runs away from the viewer is drawn through the same projection turned a quarter: along the street runs
+// north, across it runs west from the near edge, and the frontage faces east
+const PNS = (x, y, z) => PEW(FACE - y, x, z);
+let P = PEW, NS = false;
+const f2 = v => Math.round(v * 100) / 100;
+const pts = a => a.map(p => p.map(f2).join(",")).join(" ");
+const YANG = Math.atan2(-V.yy, V.yx);   // the direction of the receding axis on the screen
+
+// -- the pencil. Every line is drawn twice with a little wobble and a little overshoot, seeded by where it is, so that a
+// redraw does not make it shiver
+let PEN = { w: .16, amp: .11, over: .45, passes: 2, col: INK };
+function hash() { let h = 2166136261; for (let i = 0; i < arguments.length; i++) { const v = Math.round(arguments[i] * 10) | 0; h ^= v & 0xffff; h = Math.imul(h, 16777619); h ^= v >>> 16; h = Math.imul(h, 16777619); } return h >>> 0; }
+function rng(seed) { return () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function wobble(p, r, amp, over) {
+  let d = "";
+  for (let s = 0; s < p.length - 1; s++) {
+    const a = p[s], b = p[s + 1], dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy) || 1e-6, ux = dx / len, uy = dy / len;
+    const o0 = s === 0 ? over * (.3 + .7 * r()) : 0, o1 = s === p.length - 2 ? over * (.3 + .7 * r()) : 0;
+    const n = Math.max(3, Math.ceil(len / 2)), fa = .8 + r() * 1.2, pa = r() * 6.28, fb = 1.7 + r() * 2, pb = r() * 6.28, bow = (r() - .5) * amp * 1.6;
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, along = -o0 + t * (len + o0 + o1);
+      const wig = amp * (.6 * Math.sin(t * 3.14 * fa + pa) + .4 * Math.sin(t * 3.14 * fb + pb)) + bow * Math.sin(3.14 * t);
+      d += (s === 0 && i === 0 ? "M" : "L") + f2(a[0] + ux * along - uy * wig) + "," + f2(a[1] + uy * along + ux * wig);
+    }
+  }
+  return d;
+}
+function stroke(p, o) {
+  o = o || {};
+  const w = o.w || PEN.w, col = o.col || PEN.col, op = o.op == null ? 1 : o.op, passes = o.passes || PEN.passes, over = o.over == null ? PEN.over : o.over;
+  const r = rng(hash(o.seed || 0, ...p.flat()));
+  let out = "";
+  for (let k = 0; k < passes; k++)
+    out += `<path d="${wobble(p, r, PEN.amp * (k ? 1.4 : 1), over)}" fill="none" stroke="${col}" stroke-width="${f2(k ? w * .75 : w)}" stroke-opacity="${f2(op * (k ? .3 : .78))}" stroke-linecap="round" stroke-linejoin="round"${o.dash ? ` stroke-dasharray="${o.dash}"` : ""}/>`;
+  return out;
+}
+const edges = (p, o) => p.map((a, i) => stroke([a, p[(i + 1) % p.length]], Object.assign({ over: .3 }, o || {}))).join("");
+// a wash of colour over a face, and a scribble of short strokes in the colour, for the kind of part that is in hand
+const WASH = { tree: "#6b8f47", bench: "#9a6b35", stall: "#c0392b", art: "#2b6f9e", bay: "#7d8793", stop: "#d9a441", shopfront: "#c0392b", garden: "#8fae5a" };
+const tint = (q, col, op) => `<polygon points="${pts(q)}" fill="${col}" fill-opacity="${op == null ? .3 : op}"/>`;
+function scribble(c, r, col, n, o) {
+  let m = "";
+  for (let i = 0; i < n; i++) { const t = (i + .5) / n - .5, x = c[0] + t * 1.5 * r, y = c[1] + .25 * r; m += stroke([[x - .35 * r, y + .4 * r], [x + .35 * r, y - .5 * r]], Object.assign({ passes: 1, op: .5, w: PEN.w * .9, over: .08, col, seed: i }, o || {})); }
+  return m;
+}
+// the shade a tree throws: a disc on the ground to the front and right, the sun being high at the back and left
+const shadow = (x, y, r) => { const c = P(x, y, 0); return `<g transform="translate(${f2(c[0])},${f2(c[1])}) matrix(1 0 ${V.yx} ${-V.yy} 0 0)"><circle r="${r}" fill="${INK}" fill-opacity=".08"/></g>` + scribble(P(x, y, 0), r * .9, INK, 4, { op: .14 }); };
+const poly = (p, o) => `<polygon points="${pts(p)}" fill="${(o && o.fill) || PAPER}"/>`;
+const ring = (c, r, o) => { const p = []; for (let i = 0; i <= 14; i++) { const a = i / 14 * 6.283; p.push([c[0] + r * Math.cos(a), c[1] + r * .95 * Math.sin(a)]); } return stroke(p, Object.assign({ over: .4 }, o || {})); };
+// parallel pencil strokes across a convex face, at an angle on the screen
+function hatch(p, ang, sp, o) {
+  const nx = -Math.sin(ang), ny = Math.cos(ang);
+  let lo = Infinity, hi = -Infinity;
+  for (const q of p) { const c = q[0] * nx + q[1] * ny; lo = Math.min(lo, c); hi = Math.max(hi, c); }
+  let out = "";
+  for (let c = lo + sp * .6; c < hi; c += sp) {
+    const hits = [];
+    for (let i = 0; i < p.length; i++) {
+      const a = p[i], b = p[(i + 1) % p.length], ca = a[0] * nx + a[1] * ny - c, cb = b[0] * nx + b[1] * ny - c;
+      if ((ca < 0) !== (cb < 0)) { const t = ca / (ca - cb); hits.push([a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])]); }
+    }
+    if (hits.length >= 2) out += stroke([hits[0], hits[1]], Object.assign({ passes: 1, op: .42, w: PEN.w * .8, over: .05 }, o || {}));
+  }
+  return out;
+}
+// a box in plan from (x0, y0) to (x1, y1), from z0 to z1: its top, its right side hatched (the far side recedes to the right, so
+// the right side is the one in view), and its front
+function box(x0, y0, x1, y1, z0, z1, o) {
+  o = o || {};
+  const top = [P(x0, y1, z1), P(x1, y1, z1), P(x1, y0, z1), P(x0, y0, z1)];
+  // the side in view: the right one, or, on a street turned north, the near end
+  const side = NS ? [P(x0, y0, z0), P(x0, y1, z0), P(x0, y1, z1), P(x0, y0, z1)] : [P(x1, y0, z0), P(x1, y1, z0), P(x1, y1, z1), P(x1, y0, z1)];
+  const front = [P(x0, y0, z0), P(x1, y0, z0), P(x1, y0, z1), P(x0, y0, z1)];
+  let m = poly(top, o) + poly(side, o) + poly(front, o);
+  if (o.hatch !== false) m += hatch(side, -.8, .55, o);
+  return m + edges(top, o) + edges(side, o) + edges(front, o);
+}
+
+// -- the parts, each drawn standing at the origin of the plan, so that it can be popped in about its own foot
+const DRAW = {
+  tree(o) {
+    let m = o.wash ? shadow(1.4, -.8, 2.5) : "";
+    m += stroke([P(0, 0, 0), P(0, 0, 2.6)], o);
+    const c = P(0, 0, 4.5), r = 2.1, p = [];
+    for (let i = 0; i <= 16; i++) { const a = i / 16 * 6.283; p.push([c[0] + r * Math.cos(a) * (1 + .05 * Math.sin(3 * a + 1)), c[1] + r * .92 * Math.sin(a)]); }
+    m += poly(p, o) + (o.wash ? tint(p, o.wash, .3) + scribble(c, r, o.wash, 5) : "") + stroke(p, Object.assign({ over: .7 }, o));
+    for (let i = 0; i < 4; i++) { const a = .2 + i * .33; m += stroke([[c[0] + r * .4 * Math.cos(a + .7), c[1] + r * .4 * Math.sin(a + .7)], [c[0] + r * .82 * Math.cos(a), c[1] + r * .82 * Math.sin(a)]], Object.assign({ passes: 1, op: .4, over: .05 }, o)); }
+    if (!o.wash) for (let i = 0; i < 3; i++) m += stroke([P(.5 + i * .6, -.5 + i * .25, 0), P(1.6 + i * .6, .4 + i * .25, 0)], Object.assign({ passes: 1, op: .28, over: 0 }, o));
+    return m;
+  },
+  bench(o) {
+    const q = Object.assign({ hatch: false }, o);
+    let m = box(-1.1, .2, 1.1, .32, .5, .95, q) + box(-1.1, -.32, 1.1, .32, .4, .52, q);
+    if (o.wash) m += tint([P(-1.1, .32, .52), P(1.1, .32, .52), P(1.1, -.32, .52), P(-1.1, -.32, .52)], o.wash, .45) + tint([P(-1.1, .2, .5), P(1.1, .2, .5), P(1.1, .2, .95), P(-1.1, .2, .95)], o.wash, .4);
+    m += stroke([P(-.9, -.2, 0), P(-.9, -.2, .4)], o) + stroke([P(.9, -.2, 0), P(.9, -.2, .4)], o);
+    return m;
+  },
+  stall(o) {
+    let m = box(-1.2, -1.1, 1.2, 1.1, 0, 1.8, o);
+    m += stroke([P(-1.5, -1.5, 1.8), P(-1.5, -1.5, 2.5)], o) + stroke([P(1.5, -1.5, 1.8), P(1.5, -1.5, 2.5)], o);
+    const aw = [P(-1.7, -1.7, 2.4), P(1.7, -1.7, 2.4), P(1.7, 1.7, 2.75), P(-1.7, 1.7, 2.75)];
+    return m + poly(aw, o) + (o.wash ? tint(aw, o.wash, .25) : "") + hatch(aw, YANG, .5, o.wash ? Object.assign({}, o, { col: o.wash, op: .85 }) : o) + edges(aw, o);
+  },
+  lamp(o) {
+    const h = P(0, -1.2, 4.55);
+    return stroke([P(0, 0, 0), P(0, 0, 5.4)], o) + stroke([P(0, 0, 5.4), P(0, -.7, 5.3), P(0, -1.2, 4.9)], Object.assign({ over: .1 }, o)) + `<circle cx="${f2(h[0])}" cy="${f2(h[1])}" r=".36" fill="${(o && o.col) || PEN.col}" opacity=".85"/>`;
+  },
+  art(o) {
+    const form = [P(-.5, 0, .7), P(.7, 0, 1.5), P(-.6, 0, 2.2), P(.45, .1, 2.9), P(-.2, .2, 3.3)];
+    return box(-.7, -.7, .7, .7, 0, .7, o) + (o.wash ? stroke(form, { passes: 1, op: .55, w: PEN.w * 2.6, col: o.wash, over: .1 }) : "") + stroke(form, Object.assign({ over: .2 }, o));
+  },
+  car(o) {
+    let m = box(-2.1, -.9, 2.1, .9, 0, 1.15, Object.assign({ hatch: false }, o));
+    if (o.wash) m += tint([P(-2.1, -.9, 0), P(2.1, -.9, 0), P(2.1, -.9, 1.15), P(-2.1, -.9, 1.15)], o.wash, .3) + tint([P(-2.1, .9, 1.15), P(2.1, .9, 1.15), P(2.1, -.9, 1.15), P(-2.1, -.9, 1.15)], o.wash, .35);
+    m += box(-1.1, -.75, 1, .75, 1.15, 1.95, Object.assign({ hatch: false, passes: 1, op: .8 }, o));
+    return m + ring(P(-1.3, -.9, .35), .33, Object.assign({ passes: 1 }, o)) + ring(P(1.3, -.9, .35), .33, Object.assign({ passes: 1 }, o));
+  },
+  bus(o) {
+    let m = box(-5, -1.2, 5, 1.2, 0, 2.9, Object.assign({ hatch: false }, o));
+    m += stroke([P(-4.6, -1.2, 1.3), P(4.6, -1.2, 1.3)], Object.assign({ passes: 1, op: .6 }, o)) + stroke([P(-4.6, -1.2, 2.4), P(4.6, -1.2, 2.4)], Object.assign({ passes: 1, op: .6 }, o));
+    for (let x = -3.2; x < 4.6; x += 1.6) m += stroke([P(x, -1.2, 1.3), P(x, -1.2, 2.4)], Object.assign({ passes: 1, op: .5, over: .05 }, o));
+    return m + ring(P(-3.4, -1.2, .4), .38, Object.assign({ passes: 1 }, o)) + ring(P(3.4, -1.2, .4), .38, Object.assign({ passes: 1 }, o));
+  },
+  bike(o) {
+    // a cyclist, riding along the street: two wheels, a frame, a rider leaning to the bars
+    const q = Object.assign({ passes: 1, op: .85, over: .1 }, o);
+    let m = ring(P(-.52, 0, .34), .34, q) + ring(P(.52, 0, .34), .34, q);
+    m += stroke([P(-.52, 0, .34), P(-.12, 0, .95), P(.52, 0, .34)], q) + stroke([P(-.12, 0, .95), P(.05, 0, .42), P(-.52, 0, .34)], q);
+    m += stroke([P(.52, 0, .34), P(.42, 0, 1.05)], q) + stroke([P(.25, 0, 1.05), P(.6, 0, 1.05)], q);
+    m += stroke([P(-.12, 0, .95), P(.12, 0, 1.55), P(.42, 0, 1.1)], q) + stroke([P(-.1, 0, 1.05), P(.05, 0, .42)], q);
+    return m + ring(P(.18, 0, 1.78), .19, q);
+  },
+  bay(o, side) {
+    const y0 = side > 0 ? -.6 : -1.6, y1 = side > 0 ? 1.6 : .6;
+    let m = stroke([P(-2.5, y0, 0), P(2.5, y0, 0)], Object.assign({ passes: 1, op: .5, dash: ".7 .6" }, o));
+    m += stroke([P(-2.5, y0, 0), P(-2.5, y1, 0)], Object.assign({ passes: 1, op: .5, dash: ".7 .6" }, o)) + stroke([P(2.5, y0, 0), P(2.5, y1, 0)], Object.assign({ passes: 1, op: .5, dash: ".7 .6" }, o));
+    return m + `<g transform="translate(${pts([P(0, (y0 + y1) / 2, 0)])})">` + DRAW.car(o) + "</g>";
+  },
+  stop(o, side) {
+    let m = stroke([P(0, 0, 0), P(0, 0, 2.9)], o);
+    const sign = [P(0, 0, 2.9), P(1.1, 0, 2.9), P(1.1, 0, 2.15), P(0, 0, 2.15)];
+    m += poly(sign, o) + (o.wash ? tint(sign, o.wash, .55) : hatch(sign, -.8, .3, o)) + edges(sign, o);
+    const yk = side > 0 ? 1.3 : -1.3;
+    return m + stroke([P(-2.2, yk, 0), P(2.2, yk, 0)], Object.assign({ passes: 1, op: .45, dash: ".6 .5" }, o));
+  },
+};
+// the lane tokens: a flat cut-out stood up on a base at the right end of each inner band, like a toy soldier, in clean ink so
+// that it stands apart from the pencil. Each is drawn with its foot at (0, 0) and its height up the screen: a walker, a parked
+// car with its sign, a car, a bus, a bicycle. The token is the band's switch
+const TW = .22;
+const tk = (d, col, w) => `<path d="${d}" fill="none" stroke="${col}" stroke-width="${w || TW}" stroke-linecap="round" stroke-linejoin="round"/>`;
+const tc = (x, y, r, col) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${PAPER}" stroke="${col}" stroke-width="${TW}"/>`;
+const tr = (x, y, w, h, col) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx=".18" fill="${PAPER}" stroke="${col}" stroke-width="${TW}"/>`;
+// each token is an outline no taller than a lane's spacing on the screen, its foot on the lane's rule
+const TOKEN = {
+  walk: c => tc(0, -1.95, .26, c) + tk("M0,-1.65 L-.08,-1.05 M-.08,-1.05 L-.6,0 M-.08,-1.05 L.38,-.55 L.48,0 M-.04,-1.5 L-.6,-1.0 M-.04,-1.5 L.55,-1.1", c),
+  car: c => tk("M-2,-.4 L-2,-1.1 L-1.25,-1.1 L-.75,-1.85 L.65,-1.85 L1.2,-1.1 L2,-1.0 L2,-.4 Z", c) + tc(-1.25, -.4, .38, c) + tc(1.25, -.4, .38, c),
+  bus: c => tr(-2.1, -2.15, 4.2, 1.75, c) + [-1.65, -.8, .05, .9].map(x => tr(x, -1.85, .7, .7, c)).join("") + tc(-1.35, -.4, .34, c) + tc(1.35, -.4, .34, c),
+  bike: c => tc(-.9, -.5, .5, c) + tc(.9, -.5, .5, c) + tk("M-.9,-.5 L-.25,-1.6 L.9,-.5 M-.25,-1.6 L.05,-.8 L-.9,-.5 M.9,-.5 L.65,-1.8 M.35,-1.8 L1,-1.8 M-.5,-1.75 L0,-1.75", c),
+};
+// a shopfront's awning, hung from the fascia of a place on the frontage; drawn about its own hanging point
+function awning(w, o) {
+  o = o || {};
+  const aw = [P(-w / 2 + .3, 0, 0), P(w / 2 - .3, 0, 0), P(w / 2 - .3, -1.3, -.5), P(-w / 2 + .3, -1.3, -.5)];
+  return poly(aw, o) + (o.wash ? tint(aw, o.wash, .22) : "") + hatch(aw, YANG, .5, o.wash ? Object.assign({}, o, { col: o.wash, op: .85 }) : o) + edges(aw, o);
+}
+
+// -- a card: its name, the block drawn from its data, and, when it is live, its dots and what the hand holds
+const BANDS_Y = b => [(NB - 1 - b) * BW, (NB - b) * BW];   // band 0 is the far pavement, band 4 the near one
+// the lanes' names, and how far each token reaches to the left of its foot, so that the name stands clear of it
+const LANE = { walk: "pavement", car: "cars", bus: "buses", bike: "bikes" };
+const TOKEN_LEFT = { walk: .6, car: 2, bus: 2.1, bike: 1.4 }, TOKEN_RIGHT = { walk: .6, car: 2, bus: 2.1, bike: 1.4 };
+// where a band's name and token stand: the names left-aligned on one line to the right of the block, the tokens' left edges on
+// another, each at the height of its lane, on a rule drawn out from the lane's end
+const NX = L + V.yx * FACE + 3.2, TX = NX + 8.4;
+const tokenAt = b => { const [y0, y1] = BANDS_Y(b); return [TX + TOKEN_LEFT[card.bands[b]], P(L, (y0 + y1) / 2, 0)[1]]; };
+const dotXY = (b, k) => [STEP / 2 + k * STEP, (BANDS_Y(b)[0] + BANDS_Y(b)[1]) / 2];
+const plotOf = k => Math.floor(k / DOTS);
+const nameOf = kind => kind === "art" ? "artwork" : kind;
+function rules(card) {
+  // what the engine would refuse: a stall, bench, or artwork without a third walk band, a bay with no car lane at its kerb, and a
+  // plot whose pavement has no room left. The faults are keyed by the dot
+  const walks = card.bands.filter(u => u === "walk").length;
+  const out = {}, used = {};
+  const keys = Object.keys(card.parts).sort((a, b) => card.parts[a].n - card.parts[b].n);
+  for (const key of keys) {
+    const p = PART[card.parts[key].kind], [band, k] = key.split(":").map(Number), plot = plotOf(k), side = band >= NB / 2 ? 1 : -1;
+    if (card.bands[band] !== "walk") out[key] = (p.kind === "art" ? "Artwork" : "A " + p.kind) + " needs a pavement under it.";
+    else if (p.wide && walks < 3) out[key] = (p.kind === "art" ? "Artwork" : "A " + p.kind) + " needs three bands of pavement.";
+    else if (p.kerb && card.bands[band - side] !== "car") out[key] = "A bay needs a car lane beside it.";
+    else { used[plot] = (used[plot] || 0) + p.take; if (used[plot] > 1.001) out[key] = "No room left on this plot's pavement."; }
+  }
+  return out;
+}
+// what the block adds up to, counting only the parts that work: pavement, seats, lanes, bays, stops, and shade
+function counts(card) {
+  const faults = rules(card), walks = card.bands.filter(u => u === "walk").length;
+  const kinds = Object.keys(card.parts).filter(k => !faults[k]).map(k => card.parts[k].kind), n = k => kinds.filter(x => x === k).length;
+  const built = card.floors.map((f, d) => f > 0), shops = card.doors.filter((s, d) => s && built[d]).length;
+  const homes = card.floors.reduce((a, f, d) => a + Math.max(0, f - (card.doors[d] ? 1 : 0)), 0);
+  const trees = n("tree") + card.floors.filter(f => f === 0).length;
+  const pave = walks * BW * L, shade = trees * Math.PI * 2.1 * 2.1 + shops * (PLACE - .6) * 1.3;
+  const lanes = u => card.bands.filter(x => x === u).length;
+  return { homes, shops, stalls: n("stall"), art: n("art"), seats: n("bench") * 3, trees, pave, walkPct: Math.round(100 * walks / NB), shade, shadePct: pave ? Math.min(100, Math.round(100 * shade / pave)) : 0,
+    carLanes: lanes("car"), vph: lanes("car") * 1800, bays: n("bay"), busLanes: lanes("bus"), stops: n("stop"), bikeLanes: lanes("bike"), storeys: Math.round(10 * card.floors.reduce((a, f) => a + f, 0) / card.floors.length) / 10 };
+}
+// the dashboard under the card: five tiles, each a theme with a small figure and its counts
+const FIG = {
+  // the frontage as a skyline: a bar to each place, its height the storeys, the ground floor filled where it is a shop, a ring
+  // where the place is a garden
+  people(card) {
+    let m = "";
+    for (let d = 0; d < 18; d++) {
+      const x = 1 + d * 6.6, f = card.floors[d], joinedL = d > 0 && card.joins[d - 1], w = joinedL ? 6.6 : 5.6, x0 = joinedL ? x - 1 : x;
+      if (f === 0) { m += `<circle cx="${f2(x + 2.8)}" cy="24.5" r="1.6" fill="none" stroke="${INK}" stroke-width=".6"/>`; continue; }
+      m += `<rect x="${f2(x0)}" y="${f2(27 - f * 3.2)}" width="${f2(w)}" height="${f2(f * 3.2)}" fill="${PAPER}" stroke="${INK}" stroke-width=".6"/>`;
+      if (card.doors[d]) m += `<rect x="${f2(x0 + .3)}" y="24.1" width="${f2(w - .6)}" height="2.6" fill="${INK}"/>`;
+    }
+    return `<svg viewBox="0 0 120 28">${m}</svg>`;
+  },
+  // the street's width as five bands, pavement filled, each marked with its use
+  street(card) {
+    const glyph = { walk: (x, c) => `<circle cx="${x}" cy="7.6" r="1" fill="${c}"/><path d="M${x},9 v3 M${x - 1.6},13.6 l1.6,-1.6 1.6,1.6" fill="none" stroke="${c}" stroke-width=".8" stroke-linecap="round"/>`,
+      car: (x, c) => `<rect x="${x - 4}" y="8.5" width="8" height="3.6" rx="1" fill="${c}"/><circle cx="${x - 2.3}" cy="12.6" r="1" fill="${c}"/><circle cx="${x + 2.3}" cy="12.6" r="1" fill="${c}"/>`,
+      bus: (x, c) => `<rect x="${x - 5.5}" y="7.5" width="11" height="5" rx=".8" fill="${c}"/><circle cx="${x - 3.5}" cy="13" r="1" fill="${c}"/><circle cx="${x + 3.5}" cy="13" r="1" fill="${c}"/>`,
+      bike: (x, c) => `<circle cx="${x - 2.4}" cy="11.6" r="2" fill="none" stroke="${c}" stroke-width=".8"/><circle cx="${x + 2.4}" cy="11.6" r="2" fill="none" stroke="${c}" stroke-width=".8"/><path d="M${x - 2.4},11.6 l1.6,-3.4 h2.2 l1,3.4" fill="none" stroke="${c}" stroke-width=".8"/>` };
+    let m = "";
+    card.bands.forEach((u, b) => { const x = 1 + b * 23.8, walk = u === "walk"; m += `<rect x="${f2(x)}" y="4" width="22.4" height="13" rx="1" fill="${walk ? INK : PAPER}" stroke="${INK}" stroke-width=".6"/>` + glyph[u](f2(x + 11.2), walk ? PAPER : INK); });
+    return `<svg viewBox="0 0 120 22">${m}</svg>`;
+  },
+  // the pavement as a track, the share of it in shade filled
+  comfort(s) {
+    const w = 118 * Math.min(1, s.shadePct / 100);
+    return `<svg viewBox="0 0 120 22"><rect x="1" y="7" width="118" height="8" rx="1" fill="${LINE}"/><rect x="1" y="7" width="${f2(w)}" height="8" rx="1" fill="${INK}"/></svg>`;
+  },
+  // what stands on the pavement, each with the kit's own drawing
+  life(s) {
+    PEN = { w: .26, amp: .1, over: .4, passes: 2, col: INK };
+    return ["tree", "bench", "stall", "art"].map(k => `<svg viewBox="-4.5 -7.4 9 9">${DRAW[k]({}, 1)}</svg>`);
+  },
+};
+function tiles(card) {
+  const s = counts(card);
+  return [
+    { title: "People", fig: FIG.people(card), items: [[s.homes, "homes"], [s.shops, "shops"], [s.storeys, "storeys on average"]] },
+    { title: "The street", fig: FIG.street(card), items: [[s.walkPct, "% of the width for walking"], [Math.round(s.pave), "m² of pavement"]] },
+    { title: "Comfort", fig: FIG.comfort(s), items: [[Math.round(s.shade), "m² of shade"], [s.shadePct, "% of the pavement in shade"]] },
+    { title: "Transport", fig: null, cols: 2, items: [[s.carLanes, "car lanes"], [s.vph, "vehicles an hour"], [s.bays, "parking bays"], [s.busLanes, "bus lanes"], [s.stops, "bus stops"], [s.bikeLanes, "bike lanes"]] },
+    { title: "On the pavement", icons: FIG.life(s), items: [[s.trees, "trees"], [s.seats, "seats"], [s.stalls, "stalls"], [s.art, "artworks"]] },
+  ];
+}
+function cardSVG(card, o) {
+  o = o || {};
+  // a stamp is the card's street without the card: drawn for the board, east to west or turned north
+  const stamp = o.stamp || null, live = !!o.live && !stamp, hand = o.hand || null, hover = o.hover || null, faults = rules(card);
+  const F = o.from || 0, LL = o.len || L, inLen = x => x >= F - .01 && x < F + LL - .01;   // a stamp may take only a part of the card
+  const X0 = -7, X1 = L + V.yx * (FACE + DEPTH) + 14, Y0 = -V.yy * (FACE + DEPTH) - zTop(MAXF) - .3 - 5, Y1 = 5;
+  let m = "";
+  const paved = card.bands.map((u, b) => u === "walk" ? b : -1).filter(b => b >= 0);
+  if (!stamp) {
+    // the card: a piece of dot paper with the lacing holes of a Jacquard card, its name, and how many streets it weaves
+    m += `<rect x="${X0}" y="${Y0}" width="${f2(X1 - X0)}" height="${f2(Y1 - Y0)}" rx="1.6" fill="${PAPER}" stroke="${LINE}" stroke-width=".22"/>`;
+    m += `<circle cx="${X0 + 2}" cy="${f2((Y0 + Y1) / 2)}" r=".6" fill="${LINE}"/><circle cx="${f2(X1 - 2)}" cy="${f2((Y0 + Y1) / 2)}" r=".6" fill="${LINE}"/>`;
+    m += `<text x="${X0 + 4.5}" y="${f2(Y0 + 3.6)}" class="clab" font-size="2.3">${card.letter} · ${card.name.toUpperCase()}</text>`;
+    if (card.weaves) m += `<text x="${f2(X1 - 4.5)}" y="${f2(Y0 + 3.6)}" class="num" font-size="2" text-anchor="end">× ${card.weaves}</text>`;
+    // what lies behind the plots, named at the top right; a click takes the next
+    if (live) { const back = BACKS[card.back || "gardens"], hot = hover === "back", bx = X1 - 4.5 - (card.weaves ? 8 : 0); m += `<text x="${f2(bx)}" y="${f2(Y0 + 3.6)}" class="clab" font-size="2" text-anchor="end" fill="${hot ? WARM : MUTED}">${back.label}</text><rect data-back="1" x="${f2(bx - 24)}" y="${f2(Y0 + 1)}" width="24" height="3.6" fill="transparent"/>`; }
+    // the dots: one wherever a part can stand, along every band that is pavement, under everything
+    for (const b of paved) for (let k = 0; k < SEG * DOTS; k++) { const [x, y] = dotXY(b, k), [X, Y] = P(x, y, 0); m += `<circle cx="${f2(X)}" cy="${f2(Y)}" r=".3" fill="${LINE}"/>`; }
+  }
+  // the backland behind the plots, washed in the colour of what lies there, under the buildings
+  if (!stamp) { const back = BACKS[card.back || "gardens"], land = [P(0, FACE + DEPTH, 0), P(L, FACE + DEPTH, 0), P(L, FACE + DEPTH + BACKD, 0), P(0, FACE + DEPTH + BACKD, 0)]; m += `<polygon points="${pts(land)}" fill="${back.fill}" stroke="${LINE}" stroke-width=".2"/>` + hatch(land, -.35, 1.4, { seed: 7, op: .14 }); }
+  // the buildings along the far side, one to each front, drawn from the left so that each covers the side of the last: a stack
+  // of storeys, or a garden where the front is left unbuilt. A front is one place, or several joined through their party walls.
+  // On a street turned north the far end is drawn first
+  const plusminus = [], FR = o.noFront ? [] : fronts(card).filter(([a]) => inLen(a * PLACE));
+  if (NS) FR.reverse();
+  for (const [a, b0] of FR) {
+    const b = Math.min(b0, Math.round((F + LL) / PLACE) - 1);
+    const xa = a * PLACE, xb = (b + 1) * PLACE, xm = (xa + xb) / 2, floors = card.floors[a], w = xb - xa;
+    if (floors === 0) {
+      const lawn = [P(xa + .3, FACE + .3, 0), P(xb - .3, FACE + .3, 0), P(xb - .3, FACE + DEPTH - .3, 0), P(xa + .3, FACE + DEPTH - .3, 0)], gw = live && hand === "garden";
+      m += (gw ? tint(lawn, WASH.garden, .18) : "") + hatch(lawn, -.35, 1.1, gw ? { seed: a, op: .5, col: WASH.garden } : { seed: a, op: .22 }) + stroke([P(xa, FACE, 0), P(xb, FACE, 0)], { seed: a, passes: 1, op: .6, dash: ".9 .7", over: 0 });
+      const pop = o.fresh === "gd:" + a ? ' class="pop"' : "";
+      for (let d = a; d <= b; d++) m += `<g data-key="gd:${d}" transform="translate(${pts([P((d + .5) * PLACE, FACE + 4.5, 0)])})"><g${pop}>${DRAW.tree({ seed: 50 + d, wash: gw ? WASH.tree : undefined })}</g></g>`;
+    }
+    for (let f = 1; f <= floors; f++) {
+      const z0 = f === 1 ? 0 : zTop(f - 1), z1 = zTop(f) + (f === floors ? .3 : 0), pop = f === floors && o.fresh === "st:" + a ? ' class="pop"' : "";
+      let s = box(xa, FACE, xb, FACE + DEPTH, z0, z1, { seed: a * 10 + f });
+      if (f > 1) for (let d = a; d <= b; d++) for (const wx of [1, 4]) { const zw = z0 + .8, x = d * PLACE + wx; s += edges([P(x, FACE, zw), P(x + 1.6, FACE, zw), P(x + 1.6, FACE, zw + 1.4), P(x, FACE, zw + 1.4)], { seed: d * 10 + f, passes: 1, op: .7, w: PEN.w * .85 }); }
+      m += `<g data-key="st:${a}:${f}"><g${pop}>${s}</g></g>`;
+    }
+    // a plus and a minus floating over the front while the storeys are in hand
+    if (live && hand === "storey") {
+      const zr = floors ? zTop(floors) + .3 : 0, c = P(xm, FACE, zr + 2.2);
+      const glyph = (dx, sign) => { const hot = hover === `st:${a}:${sign}`, col = hot ? WARM : INK; return `<g transform="translate(${f2(c[0] + dx)},${f2(c[1])})"><circle r=".95" fill="${PAPER}" stroke="${col}" stroke-width="${TW}"/>${tk("M-.5,0 L.5,0", col)}${sign === "+" ? tk("M0,-.5 L0,.5", col) : ""}</g>`; };
+      plusminus.push((floors > 0 && floors < MAXF ? glyph(floors ? 1.3 : 0, "+") : floors === 0 ? glyph(0, "+") : "") + (floors > 0 ? glyph(-1.3, "-") : ""));
+    }
+    if (floors === 0) continue;
+    const shop = card.doors[a], ghost = live && hand === "shopfront" && hover === "door:" + a;
+    if (shop || ghost) {
+      const q = ghost && !shop ? { col: WARM, dash: ".5 .45", passes: 1, fill: "rgba(217,140,58,.08)", seed: a } : { seed: a, col: hover === "door:" + a && live && (hand === "shopfront" || !hand) ? WARM : undefined, wash: live && hand === "shopfront" ? WASH.shopfront : undefined };
+      m += edges([P(xa + .6, FACE, .3), P(xb - .6, FACE, .3), P(xb - .6, FACE, 2.4), P(xa + .6, FACE, 2.4)], q);
+      m += stroke([P(xa + .3, FACE, 2.9), P(xb - .3, FACE, 2.9)], q);
+      const pop = o.fresh === "door:" + a ? ' class="pop hang"' : "";
+      m += `<g data-key="door:${a}" transform="translate(${pts([P(xm, FACE, 2.9)])})"><g${pop}>${awning(w, q)}</g></g>`;
+    } else {
+      // a door at the front's middle, and a window to each place
+      m += edges([P(xm - .45, FACE, 0), P(xm + .45, FACE, 0), P(xm + .45, FACE, 2.1), P(xm - .45, FACE, 2.1)], { seed: a, passes: 1, op: .8 });
+      for (let d = a; d <= b; d++) { const x = d * PLACE + (d === a && b === a ? 3.4 : d === a ? 1 : d === b ? 3.9 : 1); if (d === a && b > a || d === b || b === a) m += edges([P(x, FACE, .9), P(x + 2, FACE, .9), P(x + 2, FACE, 2.1), P(x, FACE, 2.1)], { seed: d, passes: 1, op: .7, w: PEN.w * .85 }); if (d !== a && d !== b) m += edges([P(x, FACE, .9), P(x + 2, FACE, .9), P(x + 2, FACE, 2.1), P(x, FACE, 2.1)], { seed: d, passes: 1, op: .7, w: PEN.w * .85 }) + edges([P(x + 3, FACE, .9), P(x + 5, FACE, .9), P(x + 5, FACE, 2.1), P(x + 3, FACE, 2.1)], { seed: d + 40, passes: 1, op: .7, w: PEN.w * .85 }); }
+    }
+    // the front's dot, where a shopfront can be punched or a garden left
+    if (!stamp) { const [dX, dY] = P(xm, FACE, 1.15); m += `<circle cx="${f2(dX)}" cy="${f2(dY)}" r=".26" fill="${LINE}"/>`; }
+  }
+  // the party walls: a dot at the foot of each, filled where two places are joined into one front; the joints' switches
+  if (!stamp) for (let j = 0; j < SEG * 3 - 1; j++) { const [X, Y] = P((j + 1) * PLACE, FACE, .35), hot = live && hover === "jt:" + j; m += `<circle cx="${f2(X)}" cy="${f2(Y)}" r=".24" fill="${card.joins[j] ? (hot ? WARM : MUTED) : PAPER}" stroke="${hot ? WARM : MUTED}" stroke-width=".1" opacity="${hot ? 1 : .55}"/>`; }
+  m += plusminus.join("");
+  // the bands: the near edge, the kerbs, the lane lines, the bays of a parking band, and the lettering of a bus lane
+  const objects = [];
+  for (let b = 0; b <= NB; b++) {
+    const y = b * BW, far = b > 0 ? card.bands[NB - b] : null, near = b < NB ? card.bands[NB - 1 - b] : null;
+    if (b === 0 || b === NB) { m += stroke([P(F, y, 0), P(F + LL, y, 0)], { seed: b, over: 0 }); continue; }
+    if ((far === "walk") !== (near === "walk")) m += stroke([P(F, y, 0), P(F + LL, y, 0)], { seed: b, over: 0 });
+    else if (far === "walk") m += stroke([P(F, y, 0), P(F + LL, y, 0)], { seed: b, passes: 1, op: .35, dash: ".5 1.6", over: 0 });
+    else m += stroke([P(F, y, 0), P(F + LL, y, 0)], { seed: b, passes: 1, op: .55, dash: "1.4 1", over: 0 });
+  }
+  // a rule out from the end of each inner band, and on it a token saying what the band is: the rule and the token are the band's switch
+  if (!stamp) for (let b = 1; b < NB - 1; b++) {
+    const [y0, y1] = BANDS_Y(b), e = P(L, (y0 + y1) / 2, 0), c = tokenAt(b), hot = live && hover === "band:" + b, col = hot ? WARM : INK;
+    m += `<line x1="${f2(e[0] + 1.2)}" y1="${f2(c[1])}" x2="${f2(c[0] + TOKEN_RIGHT[card.bands[b]] + .6)}" y2="${f2(c[1])}" stroke="${hot ? WARM : LINE}" stroke-width=".2" stroke-linecap="round"/>`;
+    m += `<g transform="translate(${f2(c[0])},${f2(c[1])})">${TOKEN[card.bands[b]](col)}</g>`;
+    // the lane's name, standing on the rule before its token
+    m += `<text x="${f2(NX)}" y="${f2(c[1] - .3)}" font-family="'IBM Plex Sans', sans-serif" font-size="1.5" letter-spacing=".04" fill="${col}">${LANE[card.bands[b]]}</text>`;
+  }
+  card.bands.forEach((u, b) => {
+    const [y0, y1] = BANDS_Y(b), yc = (y0 + y1) / 2;
+    if (u === "car") for (const x of [22 + 9 * b, 74 + 11 * b]) if (inLen(x + 3)) objects.push({ y: yc, x, m: `<g transform="translate(${pts([P(x, yc, 0)])})">${DRAW.car({ seed: b * 100 + x })}</g>` });
+    if (u === "bus") {
+      const xb = LL < L ? F + 34 : 58;
+      objects.push({ y: yc, x: xb, m: `<g transform="translate(${pts([P(xb, yc, 0)])})">${DRAW.bus({ seed: b })}</g>` });
+      if (!stamp) for (const x of [6, 100]) { const [X, Y] = P(x, yc - .9, 0); m += `<text class="plane" font-size="2.1" transform="matrix(1 0 ${-V.yx} ${V.yy} ${f2(X)} ${f2(Y)})" opacity=".75">BUS</text>`; }
+    }
+    if (u === "bike") for (const x of [17 + 5 * b, 51 + 7 * b, 93 + 4 * b]) if (inLen(x + 1)) objects.push({ y: yc, x, m: `<g transform="translate(${pts([P(x, yc, 0)])})">${DRAW.bike({ seed: b * 100 + x })}</g>` });
+  });
+  // the parts on the pavements, and the ghost of what the hand holds over the dot under the pointer
+  for (const key in card.parts) {
+    const [b, k] = key.split(":").map(Number), [x, y] = dotXY(b, k), kind = card.parts[key].kind, side = b >= NB / 2 ? 1 : -1;
+    if (!inLen(x)) continue;
+    const hot = live && hover === "dot:" + key && (!hand || hand === kind || !PART[hand].face);
+    const q = { seed: k * 7 + b, col: faults[key] ? RED : hot ? WARM : undefined, wash: live && hand === kind && !faults[key] ? WASH[kind] : undefined };
+    const pop = o.fresh === "dot:" + key ? ' class="pop"' : "";
+    objects.push({ y, x, m: `<g data-key="dot:${key}" transform="translate(${pts([P(x, y, 0)])})"><g${pop}>${DRAW[kind](q, side)}</g></g>` });
+  }
+  if (live && hand && !PART[hand].face && hover && hover.startsWith("dot:")) {
+    const key = hover.slice(4), [b, k] = key.split(":").map(Number), [x, y] = dotXY(b, k), side = b >= NB / 2 ? 1 : -1;
+    if (!card.parts[key] || card.parts[key].kind !== hand) objects.push({ y: y - .01, x, m: `<g transform="translate(${pts([P(x, y, 0)])})">${DRAW[hand]({ col: WARM, dash: ".5 .45", passes: 1, fill: "rgba(217,140,58,.08)", wash: WASH[hand] }, side)}</g>` });
+  }
+  // the far before the near, and among the near the left before the right, whose faces stand in view
+  objects.sort(NS ? (a, b) => b.x - a.x || b.y - a.y : (a, b) => b.y - a.y || a.x - b.x);
+  for (const ob of objects) m += ob.m;
+  if (stamp) return { svg: m };
+  // the holes: a ring on each dot that can take a part, and on each place of the frontage; the hand chooses which rows show
+  if (live) {
+    const wantFace = hand && PART[hand].face, wantPave = hand && !PART[hand].face;
+    if (wantPave) for (const b of paved) for (let k = 0; k < SEG * DOTS; k++) { const [x, y] = dotXY(b, k), [X, Y] = P(x, y, 0); m += `<circle cx="${f2(X)}" cy="${f2(Y)}" r=".6" fill="none" stroke="${MUTED}" stroke-width=".11" opacity=".7"/>`; }
+    if (wantFace && hand !== "storey") for (const [a, b] of fronts(card)) { if (card.floors[a] === 0 && hand === "shopfront") continue; const [X, Y] = P((a + b + 1) * PLACE / 2, FACE, 1.15); m += `<circle cx="${f2(X)}" cy="${f2(Y)}" r=".5" fill="none" stroke="${MUTED}" stroke-width=".11" opacity=".8"/>`; }
+    // what the pointer can take hold of: the three inner bands with their end symbols, every dot, every place
+    for (let b = 1; b < NB - 1; b++) { const [y0, y1] = BANDS_Y(b); m += `<polygon data-band="${b}" points="${pts([P(0, y0, 0), P(L, y0, 0), P(L, y1, 0), P(0, y1, 0)])}" fill="transparent"/>`; }
+    for (let b = 1; b < NB - 1; b++) { const [y0, y1] = BANDS_Y(b), e = P(L, (y0 + y1) / 2, 0), c = tokenAt(b); m += `<rect data-band="${b}" x="${f2(e[0] + 1)}" y="${f2(c[1] - 2.3)}" width="${f2(c[0] + TOKEN_RIGHT[card.bands[b]] + .8 - e[0] - 1)}" height="2.6" fill="transparent"/>`; }
+    for (const b of paved) for (let k = 0; k < SEG * DOTS; k++) { const [x, y] = dotXY(b, k), [X, Y] = P(x, y, 0); m += `<circle data-dot="${b}:${k}" cx="${f2(X)}" cy="${f2(Y)}" r="2.2" fill="transparent"/>`; }
+    for (const key in card.parts) { const [b, k] = key.split(":").map(Number); if (card.bands[b] !== "walk") { const [x, y] = dotXY(b, k), [X, Y] = P(x, y, 0); m += `<circle data-dot="${key}" cx="${f2(X)}" cy="${f2(Y)}" r="2.2" fill="transparent"/>`; } }
+    for (const [a, b] of fronts(card)) { const [X, Y] = P((a + b + 1) * PLACE / 2, FACE, 1.15); m += `<circle data-door="${a}" cx="${f2(X)}" cy="${f2(Y)}" r="1.3" fill="transparent"/>`; }
+    for (let j = 0; j < SEG * 3 - 1; j++) { const [X, Y] = P((j + 1) * PLACE, FACE, .35); m += `<circle data-joint="${j}" cx="${f2(X)}" cy="${f2(Y)}" r=".9" fill="transparent"/>`; }
+    if (hand === "storey") for (const [a, b] of fronts(card)) {
+      const floors = card.floors[a], c = P((a + b + 1) * PLACE / 2, FACE, (floors ? zTop(floors) + .3 : 0) + 2.2);
+      if (floors < MAXF) m += `<circle data-storey="${a}:+" cx="${f2(c[0] + (floors ? 1.3 : 0))}" cy="${f2(c[1])}" r="1.1" fill="transparent"/>`;
+      if (floors > 0) m += `<circle data-storey="${a}:-" cx="${f2(c[0] - 1.3)}" cy="${f2(c[1])}" r="1.1" fill="transparent"/>`;
+    }
+  }
+  return { svg: m, viewBox: `${X0 - 1} ${f2(Y0 - 1)} ${f2(X1 - X0 + 2)} ${f2(Y1 - Y0 + 2)}` };
+}
+// the back of a frontage, seen across a block's courtyard: the same fronts as plain boxes, or gardens, with no windows. Along
+// the card (the north strip of a block, its back to the viewer) or turned north (the west strip, its back to the east)
+function backsSVG(card, ns, len, from) {
+  let m = "";
+  const p0 = Math.round((from || 0) / PLACE), places = p0 + Math.round((len || L) / PLACE), FR = fronts(card).filter(([a, b]) => b >= p0 && a < places).map(([a, b]) => [Math.max(a, p0), b]);
+  if (ns) FR.reverse();
+  for (const [a, b0] of FR) {
+    const b = Math.min(b0, places - 1), sa = a * PLACE, sb = (b + 1) * PLACE, floors = card.floors[a];
+    const at = (s0, s1) => ns ? [0, s0, DEPTH, s1] : [s0, 0, s1, DEPTH];
+    if (floors === 0) {
+      const [x0, y0, x1, y1] = at(sa, sb), lawn = [P(x0 + .3, y0 + .3, 0), P(x1 - .3, y0 + .3, 0), P(x1 - .3, y1 - .3, 0), P(x0 + .3, y1 - .3, 0)];
+      m += hatch(lawn, -.35, 1.1, { seed: a, op: .22 });
+      for (let d = a; d <= b; d++) { const c = ns ? [DEPTH / 2, (d + .5) * PLACE] : [(d + .5) * PLACE, DEPTH / 2]; m += `<g transform="translate(${pts([P(c[0], c[1], 0)])})">${DRAW.tree({ seed: 50 + d })}</g>`; }
+      continue;
+    }
+    const [x0, y0, x1, y1] = at(sa, sb);
+    for (let f = 1; f <= floors; f++) m += box(x0, y0, x1, y1, f === 1 ? 0 : zTop(f - 1), zTop(f) + (f === floors ? .3 : 0), { seed: a * 10 + f });
+  }
+  return m;
+}
+// a stamp: one of a card's four views for the board, as an svg of its own with its extents in the projection, relative to
+// the street's near left corner on the ground. ew: the street along the card. ns: the street turned north, with the frontage
+// west of it facing east. backs-ew and backs-ns: the strip of backs across a courtyard
+function stampSVG(card, variant, from, len) {
+  PEN = { w: .34, amp: .1, over: .35, passes: 2, col: INK };
+  let inner, X0, X1, Y0, Y1;
+  const H = zTop(MAXF) + .3 + 1.5, plain = variant.endsWith("Plain"), depth = plain ? FACE : FACE + DEPTH;
+  // the part of the card from `from` for `len`, drawn as if it began at the stamp's origin
+  const at = (draw, shift) => { const t = shift(-from); return `<g transform="translate(${f2(t[0])},${f2(t[1])})">${draw()}</g>`; };
+  if (variant === "ew" || variant === "ewPlain") { inner = at(() => cardSVG(card, { stamp: "ew", from, len, noFront: plain }).svg, s => PEW(s, 0, 0)); X0 = -3; X1 = len + V.yx * depth + 3; Y0 = -V.yy * depth - (plain ? 4 : H); Y1 = 3; }
+  else if (variant === "ns" || variant === "nsPlain") { NS = true; P = PNS; inner = at(() => cardSVG(card, { stamp: "ns", from, len, noFront: plain }).svg, s => PNS(s, 0, 0)); NS = false; P = PEW; X0 = (plain ? 0 : -DEPTH) - 3; X1 = FACE + V.yx * len + 3; Y0 = -V.yy * len - (plain ? 4 : H); Y1 = 3; }
+  else if (variant === "backsEw") { inner = at(() => backsSVG(card, false, len, from), s => PEW(s, 0, 0)); X0 = -3; X1 = len + V.yx * DEPTH + 3; Y0 = -V.yy * DEPTH - H; Y1 = 3; }
+  else { inner = at(() => backsSVG(card, true, len, from), s => PEW(0, s, 0)); X0 = -3; X1 = DEPTH + V.yx * len + 3; Y0 = -V.yy * len - H; Y1 = 3; }
+  const W = X1 - X0, Hh = Y1 - Y0;
+  return { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${f2(X0)} ${f2(Y0)} ${f2(W)} ${f2(Hh)}" width="${f2(W * 4)}" height="${f2(Hh * 4)}">${inner}</svg>`, X0, Y0, W, H: Hh };
+}
+
+// -- the deck both streets start with, from the loom: a main street, a residential block, and a corner block
+const bits = s => s.split("").map(c => c === "1");
+function fromLoom(letter, name, weaves, bands, item, door, stop) {
+  const parts = {};
+  let n = 0;
+  item.forEach((kind, j) => { if (kind !== "none") parts[`${NB - 1}:${j * DOTS + 1}`] = { kind, n: n++ }; });
+  bits(stop).forEach((s, j) => { if (s) parts[`0:${j * DOTS + 1}`] = { kind: "stop", n: n++ }; });
+  return { letter, name, weaves, bands: bands.slice(), parts, doors: bits(door), floors: Array.from({ length: SEG * 3 }, (_, d) => d % 3 === 1 ? 3 : 2), joins: new Array(SEG * 3 - 1).fill(false), back: "gardens", n };
+}
+// the library: streets of different kinds and densities, each a whole card. Floors run along the eighteen places, 0 a garden;
+// door is a shopfront at each place; joins are the seventeen party walls, 1 where two places make one front; back is what
+// lies behind the plots, gardens unless said
+function preset(name, bands, floors, door, parts, joins, back) {
+  const c = { letter: "A", name, weaves: 0, bands: bands.slice(), parts: {}, doors: bits(door), floors: floors.slice(), joins: joins ? bits(joins) : new Array(SEG * 3 - 1).fill(false), back: back || "gardens", n: 0 };
+  for (const [key, kind] of parts) c.parts[key] = { kind, n: c.n++ };
+  return c;
+}
+const dotsOf = (b, ks, kind) => ks.map(k => [`${b}:${k}`, kind]);
+const every3 = (r) => [0, 1, 2, 3, 4, 5].map(j => 3 * j + r);
+const LIBRARY = {
+  "High street": () => preset("High street", ["walk", "car", "bus", "walk", "walk"], [4, 3, 4, 4, 3, 4, 3, 4, 4, 3, 4, 3, 4, 4, 3, 4, 3, 4], "111111011111110111",
+    [...dotsOf(4, every3(1), "tree"), ...dotsOf(4, [5, 11], "bench"), ...dotsOf(0, [4, 13], "stop"), ...dotsOf(0, [2, 8, 14], "bay"), ...dotsOf(4, [8], "stall")]),
+  "Shopping street": () => preset("Shopping street", ["walk", "walk", "bus", "walk", "walk"], [6, 7, 6, 6, 7, 6, 6, 6, 7, 6, 6, 7, 6, 6, 6, 7, 6, 6], "111111111111111111",
+    [...dotsOf(0, every3(1), "tree"), ...dotsOf(4, [2, 8, 14], "stall"), ...dotsOf(4, [5, 11], "bench"), ...dotsOf(4, [16], "art"), ...dotsOf(0, [7], "stop")]),
+  "Local high street": () => preset("Local high street", ["walk", "car", "car", "walk", "walk"], [3, 2, 3, 3, 2, 3, 2, 3, 3, 2, 3, 2, 3, 3, 2, 3, 2, 3], "101101011010110101",
+    [...dotsOf(4, every3(1), "tree"), ...dotsOf(0, every3(0), "bay"), ...dotsOf(0, [10], "stop"), ...dotsOf(4, [8], "bench")]),
+  Residential: () => preset("Residential", ["walk", "car", "walk", "walk", "walk"], [4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3], "000000000000000000",
+    [...dotsOf(0, every3(1), "tree"), ...dotsOf(4, every3(1), "tree"), ...dotsOf(0, every3(0), "bay"), ...dotsOf(4, [8], "bench")]),
+  Suburban: () => preset("Suburban", ["walk", "car", "car", "car", "walk"], [2, 2, 0, 1, 1, 0, 2, 2, 0, 2, 2, 0, 1, 1, 0, 2, 2, 0], "000000000000000000",
+    [...dotsOf(0, every3(1), "tree")], "10010010010010010"),
+  Civic: () => preset("Civic", ["walk", "car", "bus", "walk", "walk"], [3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 3, 3, 3, 3, 3], "110000000000000011",
+    [...dotsOf(4, every3(1), "tree"), ...dotsOf(4, [5, 11], "bench"), ...dotsOf(4, [13], "art"), ...dotsOf(0, [7], "stop"), ...dotsOf(0, [1, 16], "bay")], "00011111110100110", "civic"),
+  Green: () => preset("Green", ["walk", "walk", "bike", "walk", "walk"], [3, 0, 2, 3, 0, 2, 3, 0, 2, 3, 0, 2, 3, 0, 2, 3, 0, 2], "100100100100100100",
+    [...dotsOf(0, every3(1), "tree"), ...dotsOf(4, every3(1), "tree"), ...dotsOf(4, [2, 8, 14], "bench"), ...dotsOf(4, [11], "art")], null, "park"),
+  Madrid: () => preset("Madrid", ["walk", "car", "bus", "walk", "walk"], [6, 6, 7, 6, 6, 6, 7, 6, 6, 6, 6, 7, 6, 6, 6, 7, 6, 6], "111110111111011111",
+    [...dotsOf(0, [2, 8, 14], "bay"), ...dotsOf(0, [4, 13], "stop"), ...dotsOf(4, every3(1), "tree"), ...dotsOf(4, [5, 11], "bench")]),
+  Athens: () => preset("Athens", ["walk", "car", "car", "walk", "walk"], [5, 6, 7, 6, 5, 6, 7, 5, 6, 6, 7, 5, 6, 5, 7, 6, 5, 6], "110111011101111011",
+    [...dotsOf(0, [0, 2, 3, 5, 6, 8, 9, 11, 12, 14, 15, 17], "bay"), ...dotsOf(0, [10], "stop"), ...dotsOf(4, every3(0), "bay"), ...dotsOf(4, [4, 13], "tree")]),
+  Terrace: () => copy(START[0]),
+};
+// the deck: up to six cards, lettered, the first in hand
+const DECK = ["High street", "Shopping street", "Residential", "Suburban", "Civic", "Green"].map((name, i) => { const c = LIBRARY[name](); c.letter = String.fromCharCode(65 + i); return c; });
+let inHand = 0;
+// -- the ground as streets: the tiles laid on the Ground tab come here as squares with lines on them, and the lines are the
+// streets. A street runs along a line from one crossing to the next, through the bends inside a tile and across the joins;
+// the crossings are where lines meet, and a line that reaches an edge with no tile beyond ends there. One unit of the plan
+// is SCALE metres, so a cell is a card long
+const SCALE = 2.4, ROAD = FACE / SCALE, DEEP = DEPTH / SCALE, PL = PLACE / SCALE, BACKU = BACKD / SCALE, TILE_FILL = "#f0e8d0";
+let TILESET = [], SEGS = [], segMap = {}, BX0 = -8, BY0 = -8, BW_ = 416, BH_ = 316;
+// the point and the direction at a distance s along a line of several points
+function along(p, s) {
+  let acc = 0;
+  for (let i = 1; i < p.length; i++) {
+    const dx = p[i][0] - p[i - 1][0], dy = p[i][1] - p[i - 1][1], l = Math.hypot(dx, dy);
+    if (s <= acc + l || i === p.length - 1) { const f = l ? Math.max(0, Math.min(1, (s - acc) / l)) : 0; return { p: [p[i - 1][0] + dx * f, p[i - 1][1] + dy * f], t: [dx / (l || 1), dy / (l || 1)] }; }
+    acc += l;
+  }
+  return { p: p[0], t: [1, 0] };
+}
+const offAt = (q, o) => [q.p[0] - q.t[1] * o, q.p[1] + q.t[0] * o];   // o to the left of the line, or to the right when o < 0
+const strip = (p, s0, s1, o0, o1) => { const A = along(p, s0), B = along(p, s1); return [offAt(A, o0), offAt(B, o0), offAt(B, o1), offAt(A, o1)]; };
+const lineD = p => p.map((q, i) => (i ? "L" : "M") + f2(q[0]) + " " + f2(q[1])).join(" ");
+function streetsOf(tiles) {
+  const nearPt = (list, p, tol) => { for (const q of list) if (Math.abs(q.p[0] - p[0]) < tol && Math.abs(q.p[1] - p[1]) < tol) return q; return null; };
+  // the midpoints of the edges, and how many tiles share each; one tile only, and the midpoint is a wall
+  const mids = [];
+  for (const t of tiles) { const n = t.pts.length; for (let i = 0; i < n; i++) { const a = t.pts[i], b = t.pts[(i + 1) % n], p = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], m = nearPt(mids, p, .3); if (m) m.n++; else mids.push({ p, n: 1 }); } }
+  // the nodes: every point where a line starts, ends, or meets another, matched within a third of a unit; a line that reaches a
+  // wall gets an end of its own there, so that nothing passes from one line to another along the wall
+  const nodes = [], straps = [];
+  const nodeAt = p => { const m = nearPt(mids, p, .3), wall = !!m && m.n === 1; if (!wall) { const q = nearPt(nodes, p, .3); if (q) return q; } const q = { p, deg: 0, wall, id: nodes.length }; nodes.push(q); return q; };
+  tiles.forEach((t, ti) => { for (const [a, b] of t.straps) { if (Math.hypot(b[0] - a[0], b[1] - a[1]) < .5) continue; const A = nodeAt(a), B = nodeAt(b); A.deg++; B.deg++; straps.push({ ti, A, B, used: false }); } });
+  const adj = nodes.map(() => []); straps.forEach((s, k) => { adj[s.A.id].push(k); adj[s.B.id].push(k); });
+  const bend = q => q.deg === 2 && !q.wall;
+  // a street: from a crossing or an end, along the line through its bends, to the next crossing or end
+  const walk = (k, from) => {
+    const p = [from.p], tis = new Set(); let s = straps[k], at = from;
+    for (;;) {
+      s.used = true; tis.add(s.ti); at = s.A === at ? s.B : s.A; p.push(at.p);
+      if (!bend(at)) return { p, a: from, b: at, ti: s.ti, tis: [...tis] };
+      const k2 = adj[at.id].find(j => !straps[j].used);
+      if (k2 == null) return { p, a: from, b: at, ti: s.ti, tis: [...tis] };   // a line closed on itself
+      s = straps[k2];
+    }
+  };
+  const out = [];
+  for (const q of nodes) if (!bend(q)) for (const k of adj[q.id]) if (!straps[k].used) out.push(walk(k, q));
+  straps.forEach((s, k) => { if (!s.used) out.push(walk(k, s.A)); });
+  // in the order of the tiles, and round each tile from its east; named by number, keyed by where the street's ends lie
+  const cen = tiles.map(t => t.pts.reduce((a, p) => [a[0] + p[0] / t.pts.length, a[1] + p[1] / t.pts.length], [0, 0]));
+  for (const s of out) { s.u = 0; for (let i = 1; i < s.p.length; i++) s.u += Math.hypot(s.p[i][0] - s.p[i - 1][0], s.p[i][1] - s.p[i - 1][1]); const m = along(s.p, s.u / 2).p; s.ang = Math.atan2(m[1] - cen[s.ti][1], m[0] - cen[s.ti][0]); }
+  out.sort((p, q) => p.ti - q.ti || p.ang - q.ang);
+  const pk = p => Math.round(p[0]) + "," + Math.round(p[1]);
+  return out.map((s, n) => ({ key: [pk(s.a.p), pk(s.b.p)].sort().join("/") + (s.a === s.b ? "/" + s.p.length : ""), n, tile: s.ti, tiles: s.tis, pts: s.p, a: s.a.id, b: s.b.id, u: s.u, len: s.u * SCALE,
+    places: Math.max(3, Math.round(s.u * SCALE / PLACE)), closedAt: null, ends: (s.a.deg === 1 ? 1 : 0) + (s.b.deg === 1 ? 1 : 0) }));
+}
+// the board is the whole field, whether or not every cell is laid
+function reground(tiles, segs) {
+  TILESET = tiles; SEGS = segs; segMap = {}; for (const s of SEGS) segMap[s.key] = s;
+  BX0 = -FM; BY0 = -FM; BW_ = FX * U + 2 * FM; BH_ = FY * U + 2 * FM;
+}
+// the threading: which card weaves which street, by the street's key; unthreaded, the streets take the deck in a fixed round
+const threadMap = {}, ROUND = [2, 0, 2, 3, 2, 1, 2, 5, 4, 2];
+const cardOf = key => key in threadMap ? threadMap[key] : ROUND[(segMap[key] ? segMap[key].n : 0) % ROUND.length];
+const weavesOf = k => SEGS.filter(s => cardOf(s.key) === k).length;
+const segList = () => SEGS.map(s => ({ key: s.key, kind: "line", a: s.a, b: s.b, len: s.len, places: s.places, closedAt: null, card: cardOf(s.key) }));
+function segName(key) { const s = segMap[key]; return `street ${s.n + 1}`; }
+const START = [
+  fromLoom("A", "Main street", 2, ["walk", "car", "car", "walk", "walk"], ["tree", "none", "bench", "none", "tree", "none"], "010110011101010000", "001000"),
+  fromLoom("B", "Residential", 4, ["walk", "walk", "car", "walk", "walk"], ["tree", "none", "none", "tree", "none", "none"], "000000000000000000", "000000"),
+  fromLoom("C", "Corner", 2, ["walk", "walk", "car", "walk", "walk"], ["none", "bench", "none", "none", "bay", "none"], "111000000000000011", "000000"),
+];
+// a few bays at the kerb of the main street's far pavement, and of the residential block's
+for (const k of [3, 14]) START[0].parts["0:" + k] = { kind: "bay", n: START[0].n++ };
+START[1].parts["0:8"] = { kind: "bay", n: START[1].n++ };
+const copy = c => JSON.parse(JSON.stringify(c));
+
+// -- the page: the big card is live, the deck is drawn at its size
+const $ = id => document.getElementById(id);
+let card = DECK[0], hand = null, hover = null, fresh = null, busy = false, touched = false, tab = "cards", picked = null, sel = null;
+function render() {
+  PEN = { w: .16, amp: .11, over: .45, passes: 2, col: INK };
+  const { svg, viewBox } = cardSVG(card, { live: true, hand, hover, fresh });
+  $("card").innerHTML = `<svg class="card" viewBox="${viewBox}">${svg}</svg>`;
+  fresh = null;
+  read(); tally(); deck();
+  if (touched) { touched = false; sideDeck(); markChanged(inHand); refresh(); }
+}
+// the deck under the card: each card at its size, the one in hand marked, a click taking another in hand
+function deck() {
+  PEN = { w: .3, amp: .1, over: .35, passes: 2, col: INK };
+  const host = $("deck");
+  if (host.children.length !== DECK.length) { host.innerHTML = ""; DECK.forEach((c, i) => { const d = document.createElement("div"); d.className = "c"; d.onclick = () => { if (inHand !== i) { inHand = i; card = DECK[i]; shown = null; hover = null; render(); } }; host.appendChild(d); }); }
+  DECK.forEach((c, i) => { c.weaves = weavesOf(i); const { svg, viewBox } = cardSVG(c, {}); const d = host.children[i]; d.classList.toggle("on", i === inHand); d.innerHTML = `<svg viewBox="${viewBox}">${svg}</svg>`; });
+}
+// the deck in the margin of the board: the cards to weave with, each with the streets it weaves; the card of the chosen street
+// is marked, and a card taken is marked warm
+function sideDeck() {
+  PEN = { w: .3, amp: .1, over: .35, passes: 2, col: INK };
+  const side = $("sidedeck");
+  if (side.children.length !== DECK.length) { side.innerHTML = ""; DECK.forEach((c, i) => { const s = document.createElement("div"); s.className = "sc"; s.onclick = () => sideClick(i); side.appendChild(s); }); }
+  const selCard = sel ? cardOf(sel) : null;
+  DECK.forEach((c, i) => {
+    c.weaves = weavesOf(i);
+    const { svg, viewBox } = cardSVG(c, {}), s = side.children[i];
+    s.classList.toggle("on", picked === i); s.classList.toggle("sel", selCard === i);
+    s.innerHTML = `<div class="sch"><span class="letter">${c.letter}</span><span class="name">${c.name}</span><span class="w">${c.weaves === 0 ? "no street" : c.weaves === 1 ? "1 street" : c.weaves + " streets"}</span></div><svg viewBox="${viewBox}">${svg}</svg>`;
+  });
+}
+// -- the board: the district drawn in plan on a canvas, at the plate's own scale. The tiles are the blocks, a shade deeper
+// than the paper; along each street the frontages its card gives it, a place at a time on both sides, homes toned by their
+// storeys, shopfronts marked warm at the kerb, gardens left open with a tree; then the carriageway cut through in paper, with
+// a dashed centre line where the card has a car lane, and the trees of the pavements. The walkers go on a second canvas; on
+// an svg over both, the heat of the streets, the shutters of vacant shops, the street chosen, and the threading as a letter
+function boardSize() { const cw = $("boardwrap").clientWidth; return { cw, ch: cw * BH_ / BW_, dpr: devicePixelRatio || 1 }; }
+function drawBoard() {
+  const cv = $("bcanvas");
+  if (tab !== "board" || !$("boardwrap").clientWidth) return;
+  const { cw, ch, dpr } = boardSize();
+  cv.width = Math.round(cw * dpr); cv.height = Math.round(ch * dpr); cv.style.height = ch + "px";
+  const ctx = cv.getContext("2d"), k = cv.width / BW_;
+  ctx.setTransform(k, 0, 0, k, -BX0 * k, -BY0 * k);
+  ctx.clearRect(BX0, BY0, BW_, BH_);
+  const quad = q => { ctx.beginPath(); ctx.moveTo(q[0][0], q[0][1]); for (let i = 1; i < 4; i++) ctx.lineTo(q[i][0], q[i][1]); ctx.closePath(); };
+  const line = p => { ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]); for (let i = 1; i < p.length; i++) ctx.lineTo(p[i][0], p[i][1]); };
+  ctx.lineJoin = "round"; ctx.lineCap = "round";
+  for (const t of TILESET) { ctx.beginPath(); t.pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.fillStyle = TILE_FILL; ctx.fill(); ctx.strokeStyle = LINE; ctx.lineWidth = .4; ctx.stroke(); }
+  // what lies behind the plots, washed in along each side, then the frontages, all kept within the tiles the street passes
+  for (const s of SEGS) {
+    const c = DECK[cardOf(s.key)];
+    ctx.save(); ctx.beginPath(); for (const ti of s.tiles) TILESET[ti].pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.clip();
+    ctx.fillStyle = BACKS[c.back || "gardens"].fill;
+    for (let d = 0; d < s.places; d++) for (const side of [1, -1]) { quad(strip(s.pts, d * PL, Math.min(s.u, (d + 1) * PL), side * (ROAD / 2 + DEEP), side * (ROAD / 2 + DEEP + BACKU))); ctx.fill(); }
+    for (let d = 0; d < s.places; d++) {
+      const e = d % 18, floors = c.floors[e], door = c.doors[e] && floors > 0, s0 = d * PL, s1 = Math.min(s.u, (d + 1) * PL);
+      for (const side of [1, -1]) {
+        if (floors === 0) { const q = along(s.pts, (s0 + s1) / 2), p = offAt(q, side * (ROAD / 2 + DEEP / 2)); ctx.beginPath(); ctx.arc(p[0], p[1], .9, 0, 6.283); ctx.fillStyle = INK; ctx.globalAlpha = .45; ctx.fill(); ctx.globalAlpha = 1; continue; }
+        quad(strip(s.pts, s0, s1, side * ROAD / 2, side * (ROAD / 2 + DEEP)));
+        ctx.fillStyle = INK; ctx.globalAlpha = .06 + .05 * floors; ctx.fill(); ctx.globalAlpha = 1;
+        if (door) { const q = strip(s.pts, s0 + .3, s1 - .3, side * (ROAD / 2 + .2), side * (ROAD / 2 + 1.1)); quad(q); ctx.fillStyle = WARM; ctx.fill(); }
+      }
+    }
+    ctx.restore();
+  }
+  // the turning heads of the closes, then the carriageways, and the trees on their pavements
+  for (const t of TILESET) if (t.kind === "close") { ctx.beginPath(); ctx.arc(t.pts[0][0] + U / 2, t.pts[0][1] + U / 2, ROAD * .8, 0, 6.283); ctx.fillStyle = PAPER; ctx.fill(); }
+  for (const s of SEGS) {
+    const c = DECK[cardOf(s.key)];
+    line(s.pts); ctx.strokeStyle = PAPER; ctx.lineWidth = ROAD; ctx.stroke();
+    if (c.bands.some(b => b === "car")) { line(s.pts); ctx.strokeStyle = LINE; ctx.lineWidth = .35; ctx.setLineDash([1.6, 1.4]); ctx.stroke(); ctx.setLineDash([]); }
+    const copies = Math.ceil(s.u / (L / SCALE));
+    for (const key in c.parts) {
+      if (c.parts[key].kind !== "tree") continue;
+      const [b, j] = key.split(":").map(Number), side = b >= NB / 2 ? -1 : 1;
+      for (let r = 0; r < copies; r++) { const at = (j + .5) * STEP / SCALE + r * L / SCALE; if (at > s.u - .5) break; const p = offAt(along(s.pts, at), side * (ROAD / 2 - 1.3)); ctx.beginPath(); ctx.arc(p[0], p[1], 1, 0, 6.283); ctx.fillStyle = INK; ctx.globalAlpha = .75; ctx.fill(); ctx.globalAlpha = 1; }
+    }
+  }
+  drawWalkers(); drawOverlay();
+}
+function drawOverlay() {
+  const ov = $("boverlay");
+  ov.setAttribute("viewBox", `${f2(BX0)} ${f2(BY0)} ${f2(BW_)} ${f2(BH_)}`);
+  let m = "";
+  if (!SEGS.length) m += `<text x="${f2(BX0 + BW_ / 2)}" y="${f2(BY0 + BH_ / 2)}" text-anchor="middle" font-family="Cinzel, serif" font-size="9" letter-spacing="1.4" fill="${MUTED}">NO TILES LAID YET</text>`;
+  if (world) for (const s of world.segs) {
+    const r = segMap[s.key];
+    if (!r) continue;
+    // the heat of the street, a warm wash deepening past 26°
+    const hot = Math.max(0, Math.min(.55, (s.temp - 26) / 10));
+    if (hot > .02) m += `<path d="${lineD(r.pts)}" fill="none" stroke="${WARM}" stroke-width="${f2(ROAD + 2 * DEEP)}" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="${f2(hot)}"/>`;
+    // a shutter over every vacant shopfront
+    for (const sh of s.shops) {
+      if (sh.let || sh.place < 0) continue;
+      const side = sh.side ? -1 : 1, q = strip(r.pts, sh.place * PL + .3, Math.min(r.u, (sh.place + 1) * PL) - .3, side * (ROAD / 2 + .2), side * (ROAD / 2 + 1.1));
+      m += `<polygon points="${pts(q)}" fill="${MUTED}" opacity=".6"/>`;
+    }
+  }
+  // the street chosen, lit along its length
+  if (sel && segMap[sel]) m += `<path d="${lineD(segMap[sel].pts)}" fill="none" stroke="${WARM}" stroke-width="${f2(ROAD + 2 * DEEP)}" stroke-linecap="round" stroke-linejoin="round" stroke-opacity=".18"/>`;
+  // what the pointer can take hold of: the street and its frontages
+  for (const s of SEGS) m += `<path data-seg="${s.key}" d="${lineD(s.pts)}" fill="none" stroke="transparent" stroke-width="${f2(ROAD + 2 * DEEP)}" stroke-linecap="round" stroke-linejoin="round" pointer-events="stroke"/>`;
+  // the threading: a letter on every street
+  for (const s of SEGS) {
+    const c = cardOf(s.key), [X, Y] = along(s.pts, s.u / 2).p;
+    const hot = hover === "seg:" + s.key || sel === s.key || picked === c, col = hot ? WARM : INK;
+    m += `<g data-seg="${s.key}" transform="translate(${f2(X)},${f2(Y)})"><circle r="4.6" fill="${PAPER}" fill-opacity=".92" stroke="${col}" stroke-width="${sel === s.key ? 1 : .45}"/><text y="1.9" text-anchor="middle" font-family="'IBM Plex Sans', sans-serif" font-size="5.2" font-weight="500" fill="${col}">${String.fromCharCode(65 + c)}</text></g>`;
+  }
+  ov.innerHTML = m;
+}
+// -- the game: a quest with two targets that pull against each other, a run of a hundred ticks in turns of ten, three edits
+// a turn, a shock at tick fifty, and a verdict at the end against the same district left to run alone
+const QUESTS = [
+  { name: "Corner shops", shock: "downturn", brief: "a shop within 45 m of every home, and at least 85 of every 100 shopfronts let",
+    targets: [{ key: "reach", want: 45, less: true, word: v => `the walk to a shop is ${Math.round(v)} m`, ask: "45 m asked" }, { key: "letShare", want: 85, word: v => `${Math.round(v)} of every 100 shopfronts let`, ask: "85 asked" }] },
+  { name: "Green streets", shock: "heatwave", brief: "a garden within 80 m of every home, and no fewer homes than the district left alone",
+    targets: [{ key: "green", want: 80, less: true, word: v => `the walk to a garden is ${Math.round(v)} m`, ask: "80 m asked" }, { key: "homes", base: true, word: v => `${Math.round(v)} homes`, ask: "no fewer than left alone" }] },
+  { name: "Cool streets", shock: "heatwave", brief: "no street with homes above 29° through the heatwave, and takings no lower than the district left alone",
+    targets: [{ key: "peak", want: 29, less: true, word: v => `the hottest street reached ${v.toFixed(1)}°`, ask: "29° asked" }, { key: "takings", base: true, word: v => `takings of ${Math.round(v)}`, ask: "no lower than left alone" }] },
+  { name: "Room to breathe", shock: "downturn", brief: "6 m² of garden to every home, and the walk to a shop no longer than the district left alone",
+    targets: [{ key: "greenPer", want: 6, word: v => `${v.toFixed(1)} m² of garden to every home`, ask: "6 m² asked" }, { key: "reach", base: true, less: true, word: v => `the walk to a shop is ${Math.round(v)} m`, ask: "no longer than left alone" }] },
+];
+const END = 100, TURN = 10, EDITS = 3, SHOCK_AT = 50, SHOCK_FOR = 20;
+let game = null;
+const measure = (w, key) => key === "letShare" ? (w.doors ? 100 * w.lets / w.doors : 0) : key === "peak" ? w.peak : w[key];
+// a new game: a quest drawn, the district as it stands kept as the one left alone, the first turn open before the run
+function newGame() {
+  setRun(false);
+  game = { quest: QUESTS[Math.floor(Math.random() * QUESTS.length)], left: EDITS, turnOpen: true, over: false, verdict: null };
+  const list = segList();
+  world = BoardEngine.create(DECK, list); base = BoardEngine.create(copy(DECK), list);
+  for (const w of [world, base]) { w.shock = { kind: game.quest.shock, from: SHOCK_AT, to: SHOCK_AT + SHOCK_FOR }; w.peak = -1e9; }
+  walkers = {}; REC.rows = []; REC.foot = 10; REC.traffic = 1; changed = new Set();
+  $("verdict").hidden = true;
+  seedWalkers(); drawWalkers(); drawOverlay(); drawRecord(); questLine(); counters(); readBoard();
+}
+// the deck or the threading changed: the district takes it on, its shops kept where their card is the same
+function refresh() { if (world) BoardEngine.update(world, DECK, cardOf); seedWalkers(); drawOverlay(); counters(); }
+// may the cards or the threading be edited now, and what it costs
+function canEdit() { return !game || (game.turnOpen && game.left > 0 && !game.over); }
+function whyNot() { return !game ? "" : game.over ? "The run is over. Start a new quest to edit again." : game.turnOpen ? "No edits left this turn." : "The run is on. Edits open at the next turn."; }
+let passTimer = 0;
+function spend() {
+  if (!game) return;
+  game.left--; counters();
+  clearTimeout(passTimer);
+  if (game.left <= 0 && world.t > 0) passTimer = setTimeout(() => { if (game.turnOpen && game.left <= 0) done(); }, 900);
+}
+function openTurn() { game.turnOpen = true; game.left = EDITS; setRun(false); game.resume = true; counters(); readBoard(); }
+function done() {
+  if (!game || !game.turnOpen) return;
+  game.turnOpen = false; game.left = 0; counters(); readBoard();
+  if (game.resume || world.t === 0) setRun(true);
+}
+function tick() {
+  if (!world) newGame();
+  if (game.over) return;
+  if (game.turnOpen) { game.turnOpen = false; game.left = 0; }
+  BoardEngine.step(world); BoardEngine.step(base);
+  for (const w of [world, base]) w.peak = Math.max(w.peak, w.tempMax);
+  record(); seedWalkers(); drawOverlay(); counters();
+  if (world.t >= END) { verdict(); return; }
+  if (world.t % TURN === 0) openTurn();
+}
+function verdict() {
+  game.over = true; setRun(false);
+  const q = game.quest, lines = q.targets.map(t => {
+    const v = measure(world, t.key), b = measure(base, t.key), want = t.base ? b : t.want, met = t.less ? v <= want + 1e-9 : v >= want - 1e-9;
+    return { met, text: `${met ? "Met" : "Not met"}: ${t.word(v)}, ${t.ask}.`, left: t.word(b) };
+  });
+  game.verdict = { met: lines.every(l => l.met), lines };
+  const el = $("verdict");
+  el.innerHTML = `<p class="vt">Verdict at tick ${END}. ${game.verdict.met ? "Quest met." : "Quest not met."}</p>` + lines.map(l => `<p class="${l.met ? "met" : "notmet"}">${l.text}</p>`).join("") +
+    `<p class="vb">Left alone: ${lines.map(l => l.left).join(", and ")}.</p><p class="vg">Walk to a shop ${Math.round(world.reach)} m, takings ${Math.round(world.takings)}, ${world.lets} of ${world.doors} shops let, hottest street ${world.peak.toFixed(1)}° at its peak.</p>`;
+  el.hidden = false; counters(); readBoard();
+}
+function questLine() {
+  const q = game.quest, shockWord = q.shock === "heatwave" ? "A heatwave" : "A downturn";
+  $("quest").innerHTML = `<span class="qn">Quest · ${q.name}.</span> ${q.brief[0].toUpperCase()}${q.brief.slice(1)}, by tick ${END}. ${shockWord} comes at tick ${SHOCK_AT} and lasts ${SHOCK_FOR} ticks. Three edits a turn, a turn every ten ticks.`;
+}
+// -- the engine on the board, and the walkers it sends: red dots along the pavements, as many as the street's footfall
+let world = null, base = null, running = false, timer = 0, walkers = {}, frame = 0;
+function seedWalkers() {
+  if (!world) return;
+  for (const s of world.segs) {
+    const want = Math.min(24, Math.round(s.foot / 10)), list = walkers[s.key] || (walkers[s.key] = []);
+    while (list.length < want) list.push({ p: Math.random(), side: Math.random() < .5 ? 0 : 1, v: (Math.random() < .5 ? -1 : 1) * (.0025 + .003 * Math.random()) });
+    if (list.length > want) list.length = want;
+  }
+}
+function drawWalkers() {
+  const cv = $("wcanvas"), { cw, ch, dpr } = boardSize();
+  if (!cw) return;
+  if (cv.width !== Math.round(cw * dpr)) { cv.width = Math.round(cw * dpr); cv.height = Math.round(ch * dpr); }
+  cv.style.height = ch + "px";
+  const ctx = cv.getContext("2d"), k = cv.width / BW_;
+  ctx.setTransform(k, 0, 0, k, -BX0 * k, -BY0 * k);
+  ctx.clearRect(BX0, BY0, BW_, BH_);
+  if (!world) return;
+  ctx.fillStyle = RED;
+  for (const key in walkers) {
+    const s = segMap[key]; if (!s) continue;
+    for (const w of walkers[key]) {
+      const [X, Y] = offAt(along(s.pts, w.p * s.u), (w.side ? -1 : 1) * (ROAD / 2 - 1.4));
+      ctx.beginPath(); ctx.arc(X, Y, 1, 0, 6.283); ctx.fill();
+    }
+  }
+}
+function animate() {
+  if (!running) return;
+  for (const key in walkers) for (const w of walkers[key]) { w.p += w.v; if (w.p < 0) w.p += 1; if (w.p > 1) w.p -= 1; }
+  drawWalkers();
+  frame = requestAnimationFrame(animate);
+}
+function setRun(on) {
+  if (on && game && game.turnOpen) { game.turnOpen = false; game.left = 0; }
+  running = on;
+  $("brunword").textContent = on ? "Pause" : "Play";
+  $("brunglyph").innerHTML = on ? '<rect x="1.5" y="1" width="2.4" height="8"/><rect x="6.1" y="1" width="2.4" height="8"/>' : '<polygon points="2,1 9,5 2,9"/>';
+  clearInterval(timer);
+  if (on) { timer = setInterval(tick, 500); animate(); } else cancelAnimationFrame(frame);
+  counters();
+}
+function counters() {
+  if (!world) return;
+  const n = v => Math.round(v).toLocaleString("en-GB"), q = game && game.quest;
+  let s = `tick ${world.t} · ${n(world.trips)} trips · ${world.lets} of ${world.doors} shops let · takings ${n(world.takings)} · walk to a shop ${n(world.reach)} m · hottest street ${world.tempMax.toFixed(1)}°`;
+  if (world.blocked) s += " · no way through, no street has a car lane";
+  if (q && world.t >= SHOCK_AT - 10 && world.t < SHOCK_AT + SHOCK_FOR) s += ` · ${q.shock === "heatwave" ? "heatwave" : "downturn"}, tick ${SHOCK_AT} to ${SHOCK_AT + SHOCK_FOR}`;
+  $("bcount").textContent = s;
+  const turn = game && game.turnOpen && !game.over;
+  $("bdone").hidden = !turn;
+  $("bturn").textContent = turn ? `your turn: ${game.left} ${game.left === 1 ? "edit" : "edits"} left` : "";
+}
+// -- the record beneath the board, drawn as the loom drew it: a woven row a tick. Across the row, a bead to each street sized
+// by its footfall, a dash beneath for the shops let, and three ribbons running the width of the cloth for the heat, the
+// crowding, and the traffic of every street. A turn is a hairline over the row, solid over the streets changed that turn. At
+// the right the curtain: a pair of strings for each measure, the district left alone hollow on the left and the district
+// played solid on the right, the two beads of a tick joined by a hairline, with the gap between them beside. The newest row
+// is at the foot; the oldest drops off the top
+const REC = { rows: [], max: 20, foot: 10, traffic: 1 };
+const RIB = { temp: "#b77f8f", crowd: "#5f9d98", traffic: "#8395b3" };
+const MEASURES = [
+  { key: "footfall", name: "footfall", sym: "walker", better: 1, col: INK },
+  { key: "takings", name: "takings", sym: "coin", better: 1, col: INK },
+  { key: "lets", name: "shops let", sym: "stall", better: 1, col: WARM },
+  { key: "reach", name: "walk to a shop", sym: "home", better: -1, unit: " m", col: INK },
+  { key: "green", name: "walk to a garden", sym: "tree", better: -1, unit: " m", col: MUTED },
+  { key: "tempMax", name: "hottest street", sym: "sun", better: -1, unit: "°", dp: 1, col: RIB.temp },
+];
+let changed = new Set();   // the streets changed since the last tick, by key: a card edit changes every street it weaves
+function markChanged(k) { for (const r of SEGS) if (cardOf(r.key) === k) changed.add(r.key); }
+function record() {
+  const row = { t: world.t, keys: world.segs.map(s => s.key), foot: world.segs.map(s => s.foot), lets: world.segs.map(s => s.shops.length ? s.lets / s.shops.length : -1),
+    temp: world.segs.map(s => s.temp), crowd: world.segs.map(s => s.foot / Math.max(1, s.at.walk)), traffic: world.segs.map(s => s.traffic), changed, m: { t: world.t } };
+  for (const me of MEASURES) { row.m[me.key] = world[me.key]; row.m["b_" + me.key] = base[me.key]; }
+  changed = new Set();
+  REC.rows.push(row);
+  if (REC.rows.length > REC.max) REC.rows.shift();
+  REC.foot = 10; REC.traffic = 1;
+  for (const r of REC.rows) { for (const f of r.foot) REC.foot = Math.max(REC.foot, f); for (const v of r.traffic) REC.traffic = Math.max(REC.traffic, v); }
+  drawRecord();
+}
+function drawRecord() {
+  const keys = SEGS.map(r => r.key), groups = SEGS.map(r => r.tile), NC = keys.length;
+  // the columns close up as the streets grow many, down to four units a street, the beads and dashes shrinking with them
+  const PITCH = Math.max(4, Math.min(10, 640 / Math.max(1, NC))), K = PITCH / 10, GAP = 6 * K, RP = 10, X0 = 30;
+  // the columns: a street each, in the order of the field, a gap between the rows of the field
+  const colX = []; let x = X0 + PITCH / 2;
+  for (let n = 0; n < NC; n++) { if (n > 0 && groups[n] !== groups[n - 1]) x += GAP; colX.push(x); x += PITCH; }
+  const CLOTH = Math.max(80, x - X0), CX = X0 + CLOTH + 28, CP = 58, TOP = 30, H = TOP + REC.max * RP + 16, W = CX + MEASURES.length * CP + 6;
+  const clamp = v => Math.max(0, Math.min(1, v));
+  let m = "";
+  // the heads: the card each street is woven by, the rows of the field, and the measures' symbols over their strings
+  if (PITCH >= 7) keys.forEach((key, n) => { m += `<text x="${f2(colX[n])}" y="${TOP - 9}" text-anchor="middle" font-family="'IBM Plex Sans', sans-serif" font-size="5.5" fill="${GREY}">${String.fromCharCode(65 + cardOf(key))}</text>`; });
+  groups.forEach((g, n) => { if (n === 0 || groups[n - 1] !== g) m += `<text x="${f2(colX[n] - PITCH / 2)}" y="${TOP - 19}" font-family="Cinzel, serif" font-size="5" letter-spacing=".8" fill="${MUTED}">${cellName(TILESET[g])}</text>`; });
+  MEASURES.forEach((me, k) => {
+    const xm = CX + k * CP + CP / 2;
+    m += icon(me.sym, xm, TOP - 16, .55, me.col === INK ? MUTED : me.col);
+    m += `<line x1="${xm - 4}" y1="${TOP - 5}" x2="${xm - 4}" y2="${H - 12}" stroke="${me.col}" stroke-width=".4" opacity=".45"/><line x1="${xm + 4}" y1="${TOP - 5}" x2="${xm + 4}" y2="${H - 12}" stroke="${me.col}" stroke-width=".5" opacity=".75"/>`;
+  });
+  // a ribbon across the row: a band whose half height follows the value street by street, as the loom's ribbons did
+  const ribbon = (y, vals, col, h) => {
+    const top = [], bot = [];
+    vals.forEach((v, n) => { const xx = colX[n], hh = .08 + h * clamp(v); top.push([xx, y - hh]); bot.unshift([xx, y + hh]); });
+    return `<polygon points="${pts(top.concat(bot))}" fill="${col}" opacity=".75"/>`;
+  };
+  const same = r => r.keys.length === NC && r.keys.every((k, n) => k === keys[n]);
+  REC.rows.forEach((r, ri) => {
+    const y = TOP + ri * RP + 3.5;
+    if (r.t % 10 === 0) m += `<text x="${X0 - 5}" y="${f2(y + 2)}" text-anchor="end" font-family="'IBM Plex Sans', sans-serif" font-size="5" fill="${GREY}">${r.t}</text>`;
+    if (!same(r)) return;
+    // a turn: a hairline over the row, dotted where nothing changed and solid over the streets that did, with a mark on each
+    if (r.changed && r.changed.size) {
+      const yy = y - 4.6;
+      m += `<line x1="${f2(colX[0] - PITCH / 2)}" y1="${yy}" x2="${f2(colX[NC - 1] + PITCH / 2)}" y2="${yy}" stroke="${GREY}" stroke-width=".4" stroke-dasharray="1.2 2"/>`;
+      keys.forEach((key, n) => { if (r.changed.has(key)) { const xx = colX[n]; m += `<line x1="${f2(xx - PITCH / 2)}" y1="${yy}" x2="${f2(xx + PITCH / 2)}" y2="${yy}" stroke="${INK}" stroke-width=".7"/><polygon points="${pts([[xx - 1.6, yy - .6], [xx + 1.6, yy - .6], [xx, yy + 1.4]])}" fill="${INK}"/>`; } });
+    }
+    // the footfall beads, and the dash of the shops let beneath each
+    r.foot.forEach((f, n) => {
+      const a = clamp(f / REC.foot), xx = colX[n];
+      m += `<circle cx="${f2(xx)}" cy="${f2(y)}" r="${f2((.4 + 2.4 * Math.pow(a, .85)) * K)}" fill="${INK}" opacity="${f2(.2 + .8 * a)}"/>`;
+      if (r.lets[n] >= 0) m += `<line x1="${f2(xx - 3.6 * K * r.lets[n])}" y1="${f2(y + 3.4)}" x2="${f2(xx + 3.6 * K * r.lets[n])}" y2="${f2(y + 3.4)}" stroke="${WARM}" stroke-width="${f2(.8 * K)}"/>`;
+    });
+    // the ribbons: heat from 22° to 34°, crowding against the cloth's own busiest, traffic against the heaviest street
+    m += ribbon(y + 4.9, r.temp.map(v => (v - 22) / 12), RIB.temp, .7);
+    m += ribbon(y + 6.2, r.crowd.map(v => v / (REC.foot / 2)), RIB.crowd, .6);
+    m += ribbon(y + 7.5, r.traffic.map(v => v / REC.traffic), RIB.traffic, .6);
+    // the curtain: the pair of beads of each measure, the leader full size and the other smaller as it falls behind, joined
+    MEASURES.forEach((me, k) => {
+      const xm = CX + k * CP + CP / 2, a = r.m[me.key], b = r.m["b_" + me.key], hi = Math.max(1e-6, a, b), lo = Math.max(1e-6, Math.min(a, b));
+      const ra = me.better > 0 ? a / hi : lo / Math.max(1e-6, a), rb = me.better > 0 ? b / hi : lo / Math.max(1e-6, b);
+      m += `<line x1="${xm - 4}" y1="${f2(y)}" x2="${xm + 4}" y2="${f2(y)}" stroke="${me.col}" stroke-width=".3" opacity=".6"/>`;
+      m += `<circle cx="${xm - 4}" cy="${f2(y)}" r="${f2(Math.max(.5, (.4 + 2.6 * rb * rb) - .3))}" fill="none" stroke="${me.col}" stroke-width=".55" opacity=".85"/>`;
+      m += `<circle cx="${xm + 4}" cy="${f2(y)}" r="${f2(.4 + 2.6 * ra * ra)}" fill="${me.col}"/>`;
+      const gap = me.dp ? Math.round((a - b) * 10) / 10 : Math.round(a - b);
+      m += `<text x="${xm + 8.5}" y="${f2(y + 1.8)}" font-family="'IBM Plex Sans', sans-serif" font-size="4.6" fill="${me.col}" opacity="${gap === 0 ? .35 : .85}">${gap > 0 ? "+" : gap < 0 ? "−" : ""}${Math.abs(gap)}</text>`;
+    });
+  });
+  // under each pair of strings, the latest readings: the district played in ink and the district left alone in a lighter hand
+  const last = REC.rows[REC.rows.length - 1];
+  MEASURES.forEach((me, k) => {
+    const xm = CX + k * CP + CP / 2, fmt = v => (me.dp ? v.toFixed(me.dp) : Math.round(v).toLocaleString("en-GB")) + (me.unit || "");
+    if (last) m += `<text x="${xm - 6}" y="${H - 5}" text-anchor="end" font-family="'IBM Plex Sans', sans-serif" font-size="5" fill="${GREY}">${fmt(last.m["b_" + me.key])}</text><text x="${xm + 6}" y="${H - 5}" font-family="'IBM Plex Sans', sans-serif" font-size="5.6" font-weight="500" fill="${INK}">${fmt(last.m[me.key])}</text>`;
+    m += `<text x="${xm}" y="${H + 1}" text-anchor="middle" font-family="Cinzel, serif" font-size="4" letter-spacing=".4" fill="${MUTED}">${me.name.toUpperCase()}</text>`;
+  });
+  // the ribbons' names under the cloth, each with a swatch of its ribbon
+  let lx = X0;
+  [["temp", "heat"], ["crowd", "crowding"], ["traffic", "traffic"]].forEach(([k, name]) => { m += `<rect x="${lx}" y="${H - 8.6}" width="6" height="1.6" fill="${RIB[k]}" opacity=".75"/><text x="${lx + 8}" y="${H - 6.6}" font-family="Cinzel, serif" font-size="4" letter-spacing=".4" fill="${MUTED}">${name.toUpperCase()}</text>`; lx += 12 + name.length * 3.4; });
+  const sv = $("record"); sv.setAttribute("viewBox", `0 0 ${W} ${H + 8}`); sv.innerHTML = m;
+}
+// -- choosing a street: its card is marked in the margin, and the card can be edited, or another card woven in its place
+function threadSet(key, k) {
+  if (cardOf(key) === k) return;
+  if (!canEdit()) { note(whyNot()); return; }
+  threadMap[key] = k; changed.add(key); spend(); sideDeck(); deck(); refresh(); drawBoard(); readBoard();
+}
+function sideClick(i) {
+  if (sel) { threadSet(sel, i); return; }
+  picked = picked === i ? null : i; sideDeck(); drawOverlay(); readBoard();
+}
+function choose(key) {
+  if (picked != null) { threadSet(key, picked); return; }
+  sel = sel === key ? null : key; $("bedit").hidden = !sel; sideDeck(); drawOverlay(); readBoard();
+}
+function note(text) { const el = $("read"); el.textContent = text; el.classList.add("fault"); }
+function readBoard() {
+  const el = $("read");
+  if (hover && hover.startsWith("seg:")) { const key = hover.slice(4), c = DECK[cardOf(key)]; el.textContent = `${segName(key)[0].toUpperCase()}${segName(key).slice(1)}, woven by ${c.letter}, ${c.name}. ` + (picked != null ? `Click to weave it with ${DECK[picked].letter}, ${DECK[picked].name}.` : "Click to choose it."); }
+  else if (sel) { const c = DECK[cardOf(sel)]; el.textContent = `${segName(sel)[0].toUpperCase()}${segName(sel).slice(1)} is woven by ${c.letter}, ${c.name}. Edit the card, or click another card in the margin to weave this street with it.`; }
+  else if (picked != null) el.textContent = `${DECK[picked].letter}, ${DECK[picked].name} in hand, its streets marked. Click a street to weave it with this card.`;
+  else if (game && game.turnOpen && !game.over) el.textContent = `Your turn: ${game.left} ${game.left === 1 ? "edit" : "edits"} left. Done when you are ready.`;
+  else el.textContent = "Click a street to choose it, or a card in the margin to see where it weaves.";
+  el.classList.remove("fault");
+}
+// -- the ground tab: six tiles on one square, laid on a field of cells. An edge is road or land. A road edge carries a line
+// from its midpoint to the tile's centre, a close ends at a turning head there, and a parcel has no road at all. Across a
+// join road meets road and land meets land, and the six tiles, turned, cover every pattern of four edges, so for any gap one
+// tile fits. The lines are the streets; the land is what they leave, a strip of frontage along each road, filled by the
+// street's card, and backland behind it. A parcel's use reaches the streets of the tiles beside it. A change to the ground
+// starts the quest again. After the girih tiles, and after the fields and roads of Carcassonne
+const U = L / SCALE, FX = 8, FY = 6, FM = 8;   // a cell is a card long; the field is eight cells by six, with a margin
+const KIT = {
+  cross: { name: "Crossroads", gloss: "four roads meet", edges: "1111", turns: 1 },
+  tee: { name: "T-junction", gloss: "three roads meet, one edge is land", edges: "1110", turns: 4 },
+  straight: { name: "Straight", gloss: "one road through", edges: "1010", turns: 2 },
+  corner: { name: "Corner", gloss: "one road turns", edges: "1100", turns: 4 },
+  close: { name: "Close", gloss: "one road ends at a turning head", edges: "1000", turns: 4 },
+  land: { name: "Land", gloss: "a parcel with no road", edges: "0000", turns: 1 },
+  remove: { name: "Remove", gloss: "takes a tile off the field", edges: "0000", turns: 1 },
+};
+const KIT_ORDER = ["cross", "tee", "straight", "corner", "close", "land"];
+const DIRS = [[0, -1], [1, 0], [0, 1], [-1, 0]];   // north, east, south, west, north up the page
+const field = Array.from({ length: FY }, () => Array(FX).fill(null));   // a cell holds { type, rot } or nothing
+let ghand = null;   // in hand: a tile { type, rot }, or { type: "remove" }
+const edgeOf = (t, d) => KIT[t.type].edges[(d - t.rot + 4) % 4] === "1";
+const inField = (x, y) => x >= 0 && y >= 0 && x < FX && y < FY;
+const cellName = t => String.fromCharCode(65 + t.cell[0]) + (t.cell[1] + 1);
+// a tile turned so fits a cell when every neighbour's edge toward it agrees, road with road and land with land
+function fits(x, y, type, rot) {
+  for (let d = 0; d < 4; d++) {
+    const nx = x + DIRS[d][0], ny = y + DIRS[d][1];
+    if (!inField(nx, ny) || !field[ny][nx]) continue;
+    if (edgeOf({ type, rot }, d) !== edgeOf(field[ny][nx], (d + 2) % 4)) return false;
+  }
+  return true;
+}
+// the tile in hand turns to where the pointer is within the cell: a close's road comes in from the nearest edge, a straight
+// runs through it, a T-junction's stem points to it, a corner's two roads face the pointer's quarter
+function rotFor(type, fx, fy) {
+  const dx = fx - .5, dy = fy - .5, d = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 1 : 3) : (dy > 0 ? 2 : 0);
+  if (type === "close") return d;
+  if (type === "straight") return d % 2;
+  if (type === "tee") return (d + 3) % 4;
+  if (type === "corner") return dx > 0 ? (dy > 0 ? 1 : 0) : (dy > 0 ? 2 : 3);
+  return 0;
+}
+// the joins that do not match, road against land, each once: a tile's east and south joins
+function mismatches() {
+  const out = [];
+  for (let y = 0; y < FY; y++) for (let x = 0; x < FX; x++) {
+    const t = field[y][x]; if (!t) continue;
+    for (const d of [1, 2]) { const nx = x + DIRS[d][0], ny = y + DIRS[d][1]; if (inField(nx, ny) && field[ny][nx] && edgeOf(t, d) !== edgeOf(field[ny][nx], (d + 2) % 4)) out.push([x, y, d]); }
+  }
+  return out;
+}
+// the field as tiles for the street builder: each a square with a line from every road edge to its centre
+function fieldTiles() {
+  const out = [];
+  for (let y = 0; y < FY; y++) for (let x = 0; x < FX; x++) {
+    const t = field[y][x]; if (!t) continue;
+    const x0 = x * U, y0 = y * U, cx = x0 + U / 2, cy = y0 + U / 2, straps = [];
+    for (let d = 0; d < 4; d++) if (edgeOf(t, d)) straps.push([[cx + DIRS[d][0] * U / 2, cy + DIRS[d][1] * U / 2], [cx, cy]]);
+    out.push({ kind: t.type, cell: [x, y], pts: [[x0, y0], [x0 + U, y0], [x0 + U, y0 + U], [x0, y0 + U]], straps });
+  }
+  return out;
+}
+// a tile drawn at scale s with its north-west corner at (x0, y0): the face, the land hatched, a line from each road edge to
+// the centre, the turning head of a close, a tick on each land edge, and the use of a parcel
+function tileSVG(t, x0, y0, s, o) {
+  const k = KIT[t.type], w = U * s, c = w / 2, col = o.col || INK, dash = o.dash ? ` stroke-dasharray="${o.dash}"` : "";
+  let m = `<rect x="${f2(x0)}" y="${f2(y0)}" width="${f2(w)}" height="${f2(w)}" fill="${o.face || TILE_FILL}" stroke="${o.edge || LINE}" stroke-width="${o.w || .5}"${dash}/>`;
+  if (!o.ghost) m += `<rect x="${f2(x0)}" y="${f2(y0)}" width="${f2(w)}" height="${f2(w)}" fill="url(#hatch)" opacity=".5"/>`;
+  for (let d = 0; d < 4; d++) {
+    const ex = x0 + c + DIRS[d][0] * c, ey = y0 + c + DIRS[d][1] * c;
+    if (edgeOf(t, d)) m += `<line x1="${f2(ex)}" y1="${f2(ey)}" x2="${f2(x0 + c)}" y2="${f2(y0 + c)}" stroke="${col}" stroke-width="${f2(1.8 * (o.lw || 1))}" stroke-linecap="round"${dash}/>`;
+    else if (!o.ghost) m += `<line x1="${f2(ex - DIRS[d][1] * 3 * s)}" y1="${f2(ey + DIRS[d][0] * 3 * s)}" x2="${f2(ex + DIRS[d][1] * 3 * s)}" y2="${f2(ey - DIRS[d][0] * 3 * s)}" stroke="${GREY}" stroke-width="${f2(.9 * s)}" stroke-linecap="round"/>`;
+  }
+  if (t.type === "close") m += `<circle cx="${f2(x0 + c)}" cy="${f2(y0 + c)}" r="${f2(3 * s)}" fill="${o.ghost ? "none" : PAPER}" stroke="${col}" stroke-width="${f2(1.2 * (o.lw || 1))}"${dash}/>`;
+  if (t.type === "remove") m += `<line x1="${f2(x0 + c - 4 * s)}" y1="${f2(y0 + c - 4 * s)}" x2="${f2(x0 + c + 4 * s)}" y2="${f2(y0 + c + 4 * s)}" stroke="${col}" stroke-width="${f2(1.2 * (o.lw || 1))}" stroke-linecap="round"/><line x1="${f2(x0 + c + 4 * s)}" y1="${f2(y0 + c - 4 * s)}" x2="${f2(x0 + c - 4 * s)}" y2="${f2(y0 + c + 4 * s)}" stroke="${col}" stroke-width="${f2(1.2 * (o.lw || 1))}" stroke-linecap="round"/>`;
+  return m;
+}
+const HATCH = `<defs><pattern id="hatch" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="3" stroke="${INK}" stroke-width=".3" stroke-opacity=".16"/></pattern></defs>`;
+function drawGround() {
+  const sv = $("groundplan");
+  sv.setAttribute("viewBox", `${-FM} ${-FM} ${f2(FX * U + 2 * FM)} ${f2(FY * U + 2 * FM)}`);
+  let m = HATCH;
+  const hov = hover && hover.startsWith("cell:") ? hover.slice(5).split(":").map(Number) : null;
+  for (let y = 0; y < FY; y++) for (let x = 0; x < FX; x++) {
+    const t = field[y][x], hot = hov && hov[0] === x && hov[1] === y;
+    if (t) m += tileSVG(t, x * U, y * U, 1, hot && (!ghand || ghand.type === "remove") ? { col: ghand ? RED : WARM, edge: ghand ? RED : WARM, w: 1 } : {});
+    else m += `<rect x="${f2(x * U + 1)}" y="${f2(y * U + 1)}" width="${f2(U - 2)}" height="${f2(U - 2)}" fill="none" stroke="${LINE}" stroke-width=".4" stroke-dasharray="1.5 2.5"/>`;
+  }
+  // a join that does not match: a red bar across the edge at its middle, where the road stops
+  for (const [x, y, d] of mismatches()) { const ex = x * U + U / 2 + DIRS[d][0] * U / 2, ey = y * U + U / 2 + DIRS[d][1] * U / 2; m += `<line x1="${f2(ex - DIRS[d][1] * 4)}" y1="${f2(ey + DIRS[d][0] * 4)}" x2="${f2(ex + DIRS[d][1] * 4)}" y2="${f2(ey - DIRS[d][0] * 4)}" stroke="${RED}" stroke-width="1.6" stroke-linecap="round"/>`; }
+  // the ghost of the tile in hand over the cell under the pointer, turned to the pointer, red where it would not match
+  if (ghand && ghand.type !== "remove" && hov) { const col = fits(hov[0], hov[1], ghand.type, ghand.rot) ? WARM : RED; m += `<g opacity=".95">${tileSVG({ type: ghand.type, rot: ghand.rot }, hov[0] * U, hov[1] * U, 1, { col, edge: col, face: "none", w: 1.1, dash: "2.5 2", ghost: true })}</g>`; }
+  if (!TILESET.length) m += `<text x="${f2(FX * U / 2)}" y="${f2(FY * U / 2)}" text-anchor="middle" font-family="Cinzel, serif" font-size="9" letter-spacing="1.4" fill="${MUTED}">CLICK A CELL TO LAY THE FIRST TILE</text>`;
+  for (let y = 0; y < FY; y++) for (let x = 0; x < FX; x++) m += `<rect data-cell="${x}:${y}" x="${f2(x * U)}" y="${f2(y * U)}" width="${U}" height="${U}" fill="transparent"/>`;
+  sv.innerHTML = m;
+}
+function groundCounts() {
+  const ends = SEGS.reduce((a, s) => a + s.ends, 0), bad = mismatches().length;
+  $("gcounts").innerHTML = (SEGS.length ? `<b>${TILESET.length}</b> ${TILESET.length === 1 ? "tile" : "tiles"} · <b>${SEGS.length}</b> ${SEGS.length === 1 ? "street" : "streets"} · <b>${ends}</b> ${ends === 1 ? "end" : "ends"}` : TILESET.length ? `<b>${TILESET.length}</b> ${TILESET.length === 1 ? "tile" : "tiles"} · no street` : "") +
+    (bad ? ` · <b>${bad}</b> ${bad === 1 ? "join" : "joins"} unmatched` : "");
+}
+function readGround() {
+  const el = $("read"), hov = hover && hover.startsWith("cell:") ? hover.slice(5).split(":").map(Number) : null;
+  const aTile = t => { const k = KIT[t.type]; return k.name === "T-junction" ? "A T-junction" : t.type === "land" ? "A parcel of land" : "A " + k.name.toLowerCase(); };
+  if (ghand && ghand.type === "remove") el.textContent = "Remove in hand. Click a tile to take it off.";
+  else if (ghand) { const k = KIT[ghand.type]; el.textContent = k.turns > 1 ? `${k.name} in hand. Move over a cell to turn it, and click to lay it.` : `${k.name} in hand. Click a cell to lay it.`; }
+  else if (hov && field[hov[1]][hov[0]]) el.textContent = `${aTile(field[hov[1]][hov[0]])}. Click to take it in hand.`;
+  else el.textContent = "Pick a tile, then a cell. Road meets road, and land meets land.";
+  el.classList.remove("fault");
+}
+function groundChanged() {
+  for (const b of document.querySelectorAll("[data-template]")) b.classList.remove("on");   // edited, the ground is no template now
+  const tiles = fieldTiles();
+  reground(tiles, streetsOf(tiles));
+  sel = null; picked = null; $("bedit").hidden = true;
+  groundCounts(); sideDeck(); deck();
+  if (world) newGame();
+  drawGround();
+  if (tab === "board") drawBoard(); else if (tab === "ground") readGround(); else read();
+}
+function pickTile(type, rot) {
+  ghand = ghand && ghand.type === type && rot == null ? null : { type, rot: rot || 0 };
+  markHand();
+}
+function markHand() {
+  for (const c of document.querySelectorAll("#gkit .cell")) c.classList.toggle("on", !!ghand && c.dataset.kind === ghand.type);
+  drawGround(); readGround();
+}
+// three grounds to start from and edit: a grid of small blocks, the same with long blocks, and a suburb, a collector road
+// running off the field at both ends with closes off it, two of them bent
+const TEMPLATES = {
+  grid: { name: "Grid", gloss: "four blocks by three", lay() {
+    const X0 = 2, Y0 = 1, W = 4, H = 3;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const n = y === 0, s = y === H - 1, w = x === 0, e = x === W - 1;
+      let type, rot;
+      if ((n || s) && (w || e)) { type = "corner"; rot = n && w ? 1 : n && e ? 2 : s && e ? 3 : 0; }
+      else if (n || s || w || e) { type = "tee"; rot = n ? 1 : e ? 2 : s ? 3 : 0; }
+      else { type = "cross"; rot = 0; }
+      field[Y0 + y][X0 + x] = { type, rot };
+    }
+  } },
+  long: { name: "Long blocks", gloss: "three streets joined at their ends", lay() { TEMPLATES.grid.lay(); for (const x of [3, 4]) for (const y of [1, 2, 3]) field[y][x] = { type: "straight", rot: 1 }; } },
+  suburb: { name: "Suburb", gloss: "a collector road with closes off it", lay() {
+    const cells = [[0, 2, "straight", 1], [1, 2, "tee", 3], [2, 2, "straight", 1], [3, 2, "tee", 1], [4, 2, "straight", 1], [5, 2, "tee", 3], [6, 2, "straight", 1], [7, 2, "straight", 1],
+      [1, 1, "straight", 0], [1, 0, "close", 2], [5, 1, "corner", 1], [6, 1, "corner", 3], [6, 0, "close", 2],
+      [3, 3, "tee", 3], [2, 3, "corner", 1], [2, 4, "close", 0], [4, 3, "corner", 2], [4, 4, "straight", 0], [4, 5, "close", 0]];
+    for (const [x, y, type, rot] of cells) field[y][x] = { type, rot };
+  } },
+};
+function layTemplate(k) { for (const row of field) row.fill(null); TEMPLATES[k].lay(); groundChanged(); for (const b of document.querySelectorAll("[data-template]")) b.classList.toggle("on", b.dataset.template === k); }
+(function buildGroundKit() {
+  const kit = $("gkit");
+  KIT_ORDER.concat("remove").forEach((type, i) => {
+    const k = KIT[type], d = document.createElement("div"); d.className = "cell"; d.dataset.kind = type;
+    d.innerHTML = `<span class="key">${type === "remove" ? "X" : i + 1}</span><svg viewBox="-1 -1 22 22">${tileSVG({ type, rot: 0 }, 0, 0, 20 / U, { w: .6, lw: .7 })}</svg><span><span class="name">${k.name}</span><span class="gloss">${k.gloss}</span></span>`;
+    d.onclick = () => pickTile(type);
+    kit.appendChild(d);
+  });
+})();
+$("groundplan").addEventListener("click", e => {
+  const a = e.target.closest("[data-cell]"); if (!a) return;
+  const [x, y] = a.dataset.cell.split(":").map(Number), t = field[y][x];
+  if (ghand && ghand.type === "remove") { if (t) { field[y][x] = null; groundChanged(); } return; }
+  if (ghand) {
+    // laid in place of whatever is there, turned as the pointer has it; a join left unmatched is marked, and the road ends there
+    field[y][x] = { type: ghand.type, rot: ghand.rot }; groundChanged();
+    const n = mismatches().length;
+    if (n) note(n === 1 ? "Laid. One join does not match, marked red, and the road ends there." : `Laid. ${["Two", "Three", "Four"][n - 2] || n} joins do not match, marked red, and the roads end there.`);
+    return;
+  }
+  if (t) pickTile(t.type, t.rot);
+});
+$("groundplan").addEventListener("mousemove", e => {
+  const a = e.target.closest("[data-cell]"), h = a ? "cell:" + a.dataset.cell : null;
+  let turned = false;
+  if (a && ghand && ghand.type !== "remove") { const r = a.getBoundingClientRect(), rot = rotFor(ghand.type, (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height); if (rot !== ghand.rot) { ghand.rot = rot; turned = true; } }
+  if (h !== hover || turned) { hover = h; drawGround(); readGround(); }
+});
+$("groundplan").addEventListener("mouseleave", () => { if (hover) { hover = null; drawGround(); readGround(); } });
+for (const b of document.querySelectorAll("[data-template]")) b.onclick = () => layTemplate(b.dataset.template);
+$("gclear").onclick = () => { for (const row of field) row.fill(null); groundChanged(); };
+layTemplate("grid");
+// the tabs: the ground, the cards, or the board
+function setTab(t) {
+  tab = t; document.body.dataset.tab = t;
+  for (const b of document.querySelectorAll(".tabs button")) b.classList.toggle("on", b.dataset.tab === t);
+  hover = null;
+  if (t === "board") { if (!world) newGame(); sideDeck(); drawBoard(); drawRecord(); readBoard(); counters(); }
+  else if (t === "ground") { setRun(false); drawGround(); readGround(); }
+  else { setRun(false); render(); }
+}
+for (const b of document.querySelectorAll(".tabs button")) b.onclick = () => setTab(b.dataset.tab);
+$("boverlay").addEventListener("click", e => { const a = e.target.closest("[data-seg]"); if (a) choose(a.dataset.seg); });
+$("boverlay").addEventListener("mousemove", e => { const a = e.target.closest("[data-seg]"), h = a ? "seg:" + a.dataset.seg : null; if (h !== hover) { hover = h; drawOverlay(); readBoard(); } });
+$("boverlay").addEventListener("mouseleave", () => { if (hover) { hover = null; drawOverlay(); readBoard(); } });
+$("brun").onclick = () => { if (game && game.over) return; setRun(!running); };
+$("bstep").onclick = () => { if (game && game.over) return; setRun(false); tick(); drawWalkers(); };
+$("bdone").onclick = () => { game.resume = true; done(); };
+$("bagain").onclick = () => { newGame(); drawBoard(); };
+$("bedit").onclick = () => { if (!sel) return; inHand = cardOf(sel); card = DECK[inHand]; shown = null; setTab("cards"); };
+window.addEventListener("resize", () => { if (tab === "board") drawBoard(); });
+// the counts in the margin, a numeral turning warm for a moment when it changes
+let shown = null;
+function tally() {
+  const T = tiles(card), host = $("counts"), flat = T.flatMap(t => t.items.map(it => it[0]));
+  if (!shown) {
+    let k = 0;
+    host.innerHTML = T.map((t, ti) => `<div class="tile${t.cols ? " two" : ""}${t.icons ? " icons" : ""}"><p class="tt">${t.title}</p>` + (t.fig ? `<div class="fig" id="fig${ti}">${t.fig}</div>` : "") +
+      `<div class="vals">` + t.items.map((it, j) => (t.icons ? t.icons[j] : "") + `<span class="n" id="n${k}">${it[0]}</span><span class="w">${it[1]}</span>` + (k++, "")).join("") + `</div></div>`).join("");
+    shown = flat; return;
+  }
+  T.forEach((t, ti) => { if (t.fig) { const f = $("fig" + ti); if (f.innerHTML !== t.fig) f.innerHTML = t.fig; } });
+  flat.forEach((v, i) => {
+    if (v === shown[i]) return;
+    const el = $("n" + i); el.textContent = v; el.classList.add("tick"); void el.offsetWidth; el.classList.remove("tick");
+    shown[i] = v;
+  });
+}
+function read() {
+  const faults = rules(card), el = $("read");
+  let text = "", fault = false;
+  if (hover === "back") text = `${BACKS[card.back || "gardens"].read}. Click to change it.`;
+  else if (hover && hover.startsWith("band:")) { const u = card.bands[+hover.slice(5)]; text = (u === "walk" ? "A band of pavement" : u === "car" ? "A car lane" : u === "bus" ? "A bus lane" : "A bike lane") + ". Click to change it."; }
+  else if (hover && hover.startsWith("dot:") && card.parts[hover.slice(4)]) {
+    const kind = card.parts[hover.slice(4)].kind, f = faults[hover.slice(4)];
+    if (f) { text = f; fault = true; }
+    else text = (kind === "art" ? "Artwork" : "A " + kind) + (hand && hand !== kind && !PART[hand].face ? `. Click to put a ${nameOf(hand)} in its place.` : ". Click to take it off.");
+  }
+  else if (hover && hover.startsWith("door:")) {
+    const d = +hover.slice(5);
+    if (card.floors[d] === 0) text = hand === "garden" ? "A garden. Click to build on it." : "A garden.";
+    else text = hand === "garden" ? "A home. Click to make it a garden." : card.doors[d] ? "A shopfront. Click to make it a home." : hand === "shopfront" ? "A home. Click to make it a shopfront." : "";
+  }
+  else if (hover && hover.startsWith("st:")) text = hover.endsWith("+") ? "Click to add a storey." : "Click to take a storey off.";
+  else if (hover && hover.startsWith("jt:")) text = card.joins[+hover.slice(3)] ? "One front over two places. Click to split it." : "A party wall. Click to join the two fronts.";
+  else { const keys = Object.keys(faults); if (keys.length) { text = faults[keys[0]]; fault = true; } else text = hand ? `${PART[hand].name} in hand. ${PART[hand].face ? "Click a place on the frontage." : "Click a dot on a pavement."}` : "Pick a part, then a dot."; }
+  el.textContent = text; el.classList.toggle("fault", fault);
+}
+function pick(kind) {
+  hand = hand === kind ? null : kind;
+  for (const c of document.querySelectorAll(".kit .cell")) { const on = c.dataset.kind === hand; if (on !== c.classList.contains("on")) { c.classList.toggle("on", on); c.querySelector("svg").innerHTML = kitIcon(c.dataset.kind, on); } }
+  render();
+}
+function place(key) {
+  if (!canEdit()) { note(whyNot()); return; }
+  const have = card.parts[key];
+  if (!hand || PART[hand].face) { if (have) { remove(key); spend(); } return; }
+  if (have && have.kind === hand) { remove(key); spend(); return; }
+  card.parts[key] = { kind: hand, n: card.n++ };
+  fresh = "dot:" + key; touched = true; spend(); render();
+}
+function remove(key) {
+  const g = document.querySelector(`g[data-key="${key}"] > g`);
+  if (g) { g.setAttribute("class", "out" + (key.startsWith("door") ? " hang" : "")); busy = true; }
+  setTimeout(() => { busy = false; if (key.startsWith("door:")) setFront(+key.slice(5), d => { card.doors[d] = false; }); else delete card.parts[key]; touched = true; render(); }, g ? 190 : 0);
+}
+// a front's places share one height and one door, so a change to the front is written to every place in it
+const setFront = (a, fn) => { const [x, y] = runOf(card, a); for (let d = x; d <= y; d++) fn(d); };
+function punch(a) {
+  if (hand === "garden") {
+    if (!canEdit()) { note(whyNot()); return; }
+    // a garden in place of the building, or the building back in place of the garden
+    if (card.floors[a] === 0) { setFront(a, d => { card.floors[d] = 2; }); fresh = "st:" + a; } else { setFront(a, d => { card.floors[d] = 0; card.doors[d] = false; }); fresh = "gd:" + a; }
+    touched = true; spend(); render(); return;
+  }
+  if (card.floors[a] === 0) return;
+  if (card.doors[a]) { if (!canEdit()) { note(whyNot()); return; } remove("door:" + a); spend(); return; }
+  if (hand !== "shopfront") return;
+  if (!canEdit()) { note(whyNot()); return; }
+  setFront(a, d => { card.doors[d] = true; }); fresh = "door:" + a; touched = true; spend(); render();
+}
+function storeys(a, sign) {
+  const f = card.floors[a] + (sign === "+" ? 1 : -1);
+  if (f < 0 || f > MAXF) return;
+  if (!canEdit()) { note(whyNot()); return; }
+  setFront(a, d => { card.floors[d] = f; if (f === 0) card.doors[d] = false; }); touched = true;
+  if (sign === "+") fresh = "st:" + a;
+  spend(); render();
+}
+// a party wall joined makes one front of the two; the new front takes the left one's height and door. Split, each keeps them
+function joint(j) {
+  if (!canEdit()) { note(whyNot()); return; }
+  card.joins[j] = !card.joins[j]; touched = true;
+  if (card.joins[j]) { const [a] = runOf(card, j); setFront(a, d => { card.floors[d] = card.floors[a]; card.doors[d] = card.doors[a]; }); }
+  spend(); render();
+}
+$("card").addEventListener("click", e => {
+  const a = e.target.closest("[data-dot], [data-band], [data-door], [data-storey], [data-joint], [data-back]");
+  if (!a || busy) return;
+  if (a.dataset.back) { if (!canEdit()) { note(whyNot()); return; } card.back = BACK_ORDER[(BACK_ORDER.indexOf(card.back || "gardens") + 1) % BACK_ORDER.length]; touched = true; spend(); render(); }
+  else if (a.dataset.dot) place(a.dataset.dot);
+  else if (a.dataset.door) punch(+a.dataset.door);
+  else if (a.dataset.storey) { const [d, sign] = a.dataset.storey.split(":"); storeys(+d, sign); }
+  else if (a.dataset.joint) joint(+a.dataset.joint);
+  else { if (!canEdit()) { note(whyNot()); return; } const b = +a.dataset.band; card.bands[b] = USES[(USES.indexOf(card.bands[b]) + 1) % USES.length]; touched = true; spend(); render(); }
+});
+$("card").addEventListener("mousemove", e => {
+  const a = e.target.closest("[data-dot], [data-band], [data-door], [data-storey], [data-joint], [data-back]");
+  const h = a ? (a.dataset.back ? "back" : a.dataset.dot ? "dot:" + a.dataset.dot : a.dataset.door ? "door:" + a.dataset.door : a.dataset.storey ? "st:" + a.dataset.storey : a.dataset.joint ? "jt:" + a.dataset.joint : "band:" + a.dataset.band) : null;
+  if (h !== hover && !busy) { hover = h; render(); }
+});
+// the library: a whole card each, loaded into the card in hand
+for (const name in LIBRARY) {
+  const a = document.createElement("a"); a.textContent = name; a.href = "#";
+  a.onclick = e => { e.preventDefault(); if (!canEdit()) { note(whyNot()); return; } DECK[inHand] = LIBRARY[name](); DECK[inHand].letter = String.fromCharCode(65 + inHand); card = DECK[inHand]; shown = null; touched = true; spend(); render(); };
+  $("examples").appendChild(a);
+}
+$("card").addEventListener("mouseleave", () => { if (hover && !busy) { hover = null; render(); } });
+document.addEventListener("keydown", e => {
+  if (document.body.classList.contains("preview")) return;
+  if (tab === "ground") {
+    if (e.key === "Escape") { if (ghand) pickTile(ghand.type); return; }
+    if (e.key === "x" || e.key === "X") { pickTile("remove"); return; }
+    const n = parseInt(e.key, 10); if (n >= 1 && n <= KIT_ORDER.length) pickTile(KIT_ORDER[n - 1]);
+    return;
+  }
+  if (tab !== "cards") return;
+  if (e.key === "Escape") { if (hand) pick(hand); return; }
+  const n = KEYS.indexOf(e.key);
+  if (n >= 0 && n < PARTS.length) pick(PARTS[n].kind);
+});
+
+// the kit: each part drawn small with the same pencil, the pavement parts in one table and the building parts in another; the
+// part in hand takes its colour
+function kitIcon(kind, on) {
+  PEN = { w: .26, amp: .1, over: .4, passes: 2, col: INK };
+  const wash = on ? WASH[kind] : undefined, face = [P(-3.3, 0, 0), P(3.3, 0, 0), P(3.3, 0, 3.6), P(-3.3, 0, 3.6)];
+  if (kind === "shopfront") return poly(face) + edges(face) + edges([P(-2.7, 0, .3), P(2.7, 0, .3), P(2.7, 0, 2.4), P(-2.7, 0, 2.4)]) + `<g transform="translate(${pts([P(0, 0, 2.9)])})">${awning(PLACE, { wash })}</g>`;
+  if (kind === "garden") return stroke([P(-3.3, 0, 0), P(3.3, 0, 0)], { passes: 1, op: .6, dash: ".9 .7", over: 0 }) + `<g transform="translate(${pts([P(0, 2.5, 0)])})">${DRAW.tree({ wash: on ? WASH.tree : undefined })}</g>`;
+  if (kind === "storey") return box(-2.6, 0, 2.6, 4, 0, 2.2, { hatch: false }) + box(-2.6, 0, 2.6, 4, 2.2, 4.4, { hatch: false }) + `<g transform="translate(0,-6.3)"><circle r=".9" fill="${PAPER}" stroke="${on ? WARM : INK}" stroke-width="${TW}"/>${tk("M-.45,0 L.45,0 M0,-.45 L0,.45", on ? WARM : INK)}</g>`;
+  return DRAW[kind]({ wash }, 1);
+}
+PARTS.forEach((p, i) => {
+  const d = document.createElement("div"); d.className = "cell"; d.dataset.kind = p.kind;
+  const vb = p.kind === "bay" || p.kind === "bus" ? "-5 -5.5 10 8" : "-4.5 -7.4 9 9";
+  d.innerHTML = `<span class="key">${KEYS[i]}</span><svg viewBox="${vb}">${kitIcon(p.kind, false)}</svg><span><span class="name">${p.name}</span><span class="gloss">${p.gloss}</span></span>`;
+  d.onclick = () => pick(p.kind);
+  $(p.face ? "bkit" : "pkit").appendChild(d);
+});
+document.body.dataset.tab = "cards";
+render();
+</script>
+</body>
+</html>

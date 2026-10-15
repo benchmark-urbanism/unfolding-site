@@ -4,7 +4,7 @@
 .top { display: flex; align-items: baseline; gap: 24px; padding: 16px 56px 24px; border: 0; }
 .top .mark { font-family: Cinzel, "Trajan Pro", serif; font-size: 13px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase;
              color: var(--ink, #1c1a17); text-decoration: none; white-space: nowrap; }
-/* while the site is a draft: the word after the page's name, in the nav's grey, on every page */
+/* while the site is a draft: the word after the page's name, in the nav's grey, on every page and at every width */
 .top .mark::after { content: "Draft"; margin-left: 16px; font-size: 11px; letter-spacing: .16em; color: var(--grey, #9b968e); }
 /* the rights line at the foot of every page */
 .rights { margin: 48px 0 0; font-family: Cinzel, "Trajan Pro", serif; font-size: 10px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--grey, #9b968e); }
@@ -30,7 +30,6 @@ p.back.corner { position: absolute; left: 0; bottom: 0; margin: 0; }
 .page > p.back.corner { left: 24px; bottom: 16px; }
 @media (max-width: 900px) {
   .top { padding: 12px 16px 18px; }
-  .top .mark::after { display: none; }
   .top .nav a:not(.home) { display: none; }
   p.back.corner, .page > p.back.corner { position: static; margin: 16px 0 0; text-align: center; }
 }
